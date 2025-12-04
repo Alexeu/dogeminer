@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { BoxType, BonkCharacter, getRandomCharacter, rarityConfig } from "@/data/bonkData";
-import { Gift, Sparkles } from "lucide-react";
+import { useBonkBalance } from "@/contexts/BonkBalanceContext";
+import { Gift, Sparkles, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 interface MysteryBoxModalProps {
   isOpen: boolean;
@@ -15,6 +17,7 @@ type AnimationPhase = "idle" | "shaking" | "opening" | "revealing" | "revealed";
 const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => {
   const [phase, setPhase] = useState<AnimationPhase>("idle");
   const [revealedCharacter, setRevealedCharacter] = useState<BonkCharacter | null>(null);
+  const { balance, subtractBalance, setMiningRate, miningRate } = useBonkBalance();
 
   useEffect(() => {
     if (!isOpen) {
@@ -26,6 +29,18 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
   const handleOpen = () => {
     if (!boxType) return;
 
+    // Check if user has enough balance
+    if (balance < boxType.price) {
+      toast.error("Not enough BONK!", {
+        description: `You need ${boxType.price.toLocaleString()} BONK to open this box.`,
+      });
+      return;
+    }
+
+    // Subtract balance
+    const success = subtractBalance(boxType.price);
+    if (!success) return;
+
     setPhase("shaking");
 
     setTimeout(() => {
@@ -36,6 +51,19 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
       const character = getRandomCharacter(boxType.dropRates);
       setRevealedCharacter(character);
       setPhase("revealing");
+
+      // Bonus: Increase mining rate based on rarity
+      const rarityBonus = {
+        common: 1,
+        rare: 3,
+        epic: 7,
+        legendary: 15,
+      };
+      setMiningRate(miningRate + rarityBonus[character.rarity]);
+      
+      toast.success(`Mining rate increased!`, {
+        description: `+${rarityBonus[character.rarity]} BONK/s from ${character.name}`,
+      });
     }, 2500);
 
     setTimeout(() => {
@@ -52,6 +80,7 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
   if (!boxType) return null;
 
   const config = revealedCharacter ? rarityConfig[revealedCharacter.rarity] : null;
+  const canAfford = balance >= boxType.price;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -110,12 +139,28 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
               </div>
 
               <h3 className="text-2xl font-bold mt-6 mb-2">{boxType.name}</h3>
-              <p className="text-muted-foreground text-center mb-6">{boxType.description}</p>
+              <p className="text-muted-foreground text-center mb-4">{boxType.description}</p>
+
+              {/* Price display */}
+              <div className="flex items-center gap-2 mb-4">
+                <span className={`text-xl font-bold ${canAfford ? "text-gradient" : "text-destructive"}`}>
+                  {boxType.price.toLocaleString()} BONK
+                </span>
+                {!canAfford && (
+                  <AlertCircle className="w-5 h-5 text-destructive" />
+                )}
+              </div>
 
               {phase === "idle" && (
-                <Button variant="hero" size="lg" onClick={handleOpen}>
+                <Button
+                  variant="hero"
+                  size="lg"
+                  onClick={handleOpen}
+                  disabled={!canAfford}
+                  className={!canAfford ? "opacity-50 cursor-not-allowed" : ""}
+                >
                   <Gift className="w-5 h-5" />
-                  Open for {boxType.price} BONK
+                  {canAfford ? "Open Box" : "Not Enough BONK"}
                 </Button>
               )}
 
@@ -171,10 +216,14 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
                 <Button variant="heroOutline" onClick={handleClose}>
                   Close
                 </Button>
-                <Button variant="hero" onClick={() => {
-                  setPhase("idle");
-                  setRevealedCharacter(null);
-                }}>
+                <Button
+                  variant="hero"
+                  onClick={() => {
+                    setPhase("idle");
+                    setRevealedCharacter(null);
+                  }}
+                  disabled={balance < boxType.price}
+                >
                   Open Another
                 </Button>
               </div>

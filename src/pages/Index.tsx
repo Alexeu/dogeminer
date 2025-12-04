@@ -6,18 +6,22 @@ import HowItWorksSection from "@/components/HowItWorksSection";
 import WithdrawalsSection from "@/components/WithdrawalsSection";
 import RaritySection from "@/components/RaritySection";
 import CTASection from "@/components/CTASection";
+import BalanceHeader from "@/components/BalanceHeader";
 
 const Index = () => {
   return (
     <main className="min-h-screen">
-      <HeroSection />
-      <CharacterCarousel />
-      <FeaturesSection />
-      <MysteryBoxSection />
-      <HowItWorksSection />
-      <WithdrawalsSection />
-      <RaritySection />
-      <CTASection />
+      <BalanceHeader />
+      <div className="pt-16"> {/* Offset for fixed header */}
+        <HeroSection />
+        <CharacterCarousel />
+        <FeaturesSection />
+        <MysteryBoxSection />
+        <HowItWorksSection />
+        <WithdrawalsSection />
+        <RaritySection />
+        <CTASection />
+      </div>
     </main>
   );
 };
