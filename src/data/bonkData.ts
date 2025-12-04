@@ -72,7 +72,7 @@ export const boxTypes: BoxType[] = [
   {
     id: "basic",
     name: "Basic Box",
-    price: 50,
+    price: 5000,
     dropRates: { common: 70, rare: 22, epic: 7, legendary: 1 },
     gradient: "from-gray-500 to-gray-700",
     description: "Standard mystery box with decent drop rates",
@@ -80,7 +80,7 @@ export const boxTypes: BoxType[] = [
   {
     id: "premium",
     name: "Premium Box",
-    price: 150,
+    price: 80000,
     dropRates: { common: 45, rare: 35, epic: 15, legendary: 5 },
     gradient: "from-blue-500 to-indigo-600",
     description: "Better chances for rare and epic BONKs",
@@ -88,7 +88,7 @@ export const boxTypes: BoxType[] = [
   {
     id: "legendary",
     name: "Legendary Box",
-    price: 500,
+    price: 250000,
     dropRates: { common: 20, rare: 35, epic: 30, legendary: 15 },
     gradient: "from-amber-500 to-orange-600",
     description: "Highest chance for legendary BONKs!",

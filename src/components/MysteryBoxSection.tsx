@@ -1,20 +1,32 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { boxTypes, BoxType } from "@/data/bonkData";
+import { useBonkBalance } from "@/contexts/BonkBalanceContext";
 import MysteryBoxModal from "@/components/MysteryBoxModal";
-import { Gift, Sparkles, Zap } from "lucide-react";
+import { Gift, Sparkles, Zap, Lock } from "lucide-react";
 
 const MysteryBoxSection = () => {
   const [selectedBox, setSelectedBox] = useState<BoxType | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { balance } = useBonkBalance();
 
   const handleOpenBox = (box: BoxType) => {
     setSelectedBox(box);
     setIsModalOpen(true);
   };
 
+  const formatPrice = (price: number) => {
+    if (price >= 1000000) {
+      return `${(price / 1000000).toFixed(1)}M`;
+    }
+    if (price >= 1000) {
+      return `${(price / 1000).toFixed(0)}K`;
+    }
+    return price.toString();
+  };
+
   return (
-    <section className="py-20 bg-background relative overflow-hidden">
+    <section id="mystery-boxes" className="py-20 bg-background relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
@@ -37,86 +49,113 @@ const MysteryBoxSection = () => {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          {boxTypes.map((box, index) => (
-            <div
-              key={box.id}
-              className="glass rounded-2xl p-6 text-center hover:shadow-bonk-lg transition-all duration-300 hover:-translate-y-2 animate-slide-up group"
-              style={{ animationDelay: `${index * 150}ms` }}
-            >
-              {/* Box visual */}
-              <div className="relative mb-6">
-                <div
-                  className={`
-                    w-32 h-32 mx-auto rounded-2xl bg-gradient-to-br ${box.gradient}
-                    flex items-center justify-center shadow-lg
-                    transform transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3
-                  `}
-                >
-                  {/* Box lid */}
+          {boxTypes.map((box, index) => {
+            const canAfford = balance >= box.price;
+            
+            return (
+              <div
+                key={box.id}
+                className={`glass rounded-2xl p-6 text-center transition-all duration-300 animate-slide-up group ${
+                  canAfford ? "hover:shadow-bonk-lg hover:-translate-y-2" : "opacity-75"
+                }`}
+                style={{ animationDelay: `${index * 150}ms` }}
+              >
+                {/* Box visual */}
+                <div className="relative mb-6">
                   <div
                     className={`
-                      absolute -top-3 left-2 right-2 h-8 rounded-t-xl bg-gradient-to-br ${box.gradient}
-                      shadow-md
+                      w-32 h-32 mx-auto rounded-2xl bg-gradient-to-br ${box.gradient}
+                      flex items-center justify-center shadow-lg
+                      transform transition-transform duration-300 
+                      ${canAfford ? "group-hover:scale-105 group-hover:rotate-3" : "grayscale-[30%]"}
                     `}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent rounded-t-xl" />
+                    {/* Box lid */}
+                    <div
+                      className={`
+                        absolute -top-3 left-2 right-2 h-8 rounded-t-xl bg-gradient-to-br ${box.gradient}
+                        shadow-md
+                      `}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent rounded-t-xl" />
+                    </div>
+
+                    {/* Shine effect */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent rounded-2xl" />
+
+                    {/* Icon */}
+                    {canAfford ? (
+                      <Gift className="w-12 h-12 text-white/90 drop-shadow-lg" />
+                    ) : (
+                      <Lock className="w-12 h-12 text-white/70 drop-shadow-lg" />
+                    )}
                   </div>
 
-                  {/* Shine effect */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent rounded-2xl" />
-
-                  {/* Icon */}
-                  <Gift className="w-12 h-12 text-white/90 drop-shadow-lg" />
+                  {/* Sparkle effects on hover */}
+                  {canAfford && (
+                    <>
+                      <Sparkles className="absolute top-0 left-1/4 w-5 h-5 text-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity animate-pulse" />
+                      <Sparkles className="absolute bottom-0 right-1/4 w-4 h-4 text-yellow-300 opacity-0 group-hover:opacity-100 transition-opacity animate-pulse animation-delay-200" />
+                    </>
+                  )}
                 </div>
 
-                {/* Sparkle effects on hover */}
-                <Sparkles className="absolute top-0 left-1/4 w-5 h-5 text-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity animate-pulse" />
-                <Sparkles className="absolute bottom-0 right-1/4 w-4 h-4 text-yellow-300 opacity-0 group-hover:opacity-100 transition-opacity animate-pulse animation-delay-200" />
-              </div>
+                <h3 className="text-xl font-bold mb-2">{box.name}</h3>
+                <p className="text-muted-foreground text-sm mb-4">{box.description}</p>
 
-              <h3 className="text-xl font-bold mb-2">{box.name}</h3>
-              <p className="text-muted-foreground text-sm mb-4">{box.description}</p>
-
-              {/* Drop rates */}
-              <div className="space-y-2 mb-6">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Drop Rates</p>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="flex justify-between px-2 py-1 rounded bg-gray-100">
-                    <span className="text-gray-600">Common</span>
-                    <span className="font-semibold">{box.dropRates.common}%</span>
-                  </div>
-                  <div className="flex justify-between px-2 py-1 rounded bg-blue-100">
-                    <span className="text-blue-600">Rare</span>
-                    <span className="font-semibold">{box.dropRates.rare}%</span>
-                  </div>
-                  <div className="flex justify-between px-2 py-1 rounded bg-purple-100">
-                    <span className="text-purple-600">Epic</span>
-                    <span className="font-semibold">{box.dropRates.epic}%</span>
-                  </div>
-                  <div className="flex justify-between px-2 py-1 rounded bg-amber-100">
-                    <span className="text-amber-600">Legendary</span>
-                    <span className="font-semibold">{box.dropRates.legendary}%</span>
+                {/* Drop rates */}
+                <div className="space-y-2 mb-6">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Drop Rates</p>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="flex justify-between px-2 py-1 rounded bg-gray-100">
+                      <span className="text-gray-600">Common</span>
+                      <span className="font-semibold">{box.dropRates.common}%</span>
+                    </div>
+                    <div className="flex justify-between px-2 py-1 rounded bg-blue-100">
+                      <span className="text-blue-600">Rare</span>
+                      <span className="font-semibold">{box.dropRates.rare}%</span>
+                    </div>
+                    <div className="flex justify-between px-2 py-1 rounded bg-purple-100">
+                      <span className="text-purple-600">Epic</span>
+                      <span className="font-semibold">{box.dropRates.epic}%</span>
+                    </div>
+                    <div className="flex justify-between px-2 py-1 rounded bg-amber-100">
+                      <span className="text-amber-600">Legendary</span>
+                      <span className="font-semibold">{box.dropRates.legendary}%</span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Price and button */}
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <Zap className="w-5 h-5 text-primary" />
-                <span className="text-2xl font-bold text-gradient">{box.price}</span>
-                <span className="text-muted-foreground">BONK</span>
-              </div>
+                {/* Price and button */}
+                <div className="flex items-center justify-center gap-2 mb-4">
+                  <Zap className={`w-5 h-5 ${canAfford ? "text-primary" : "text-muted-foreground"}`} />
+                  <span className={`text-2xl font-bold ${canAfford ? "text-gradient" : "text-muted-foreground"}`}>
+                    {formatPrice(box.price)}
+                  </span>
+                  <span className="text-muted-foreground">BONK</span>
+                </div>
 
-              <Button
-                variant={box.id === "legendary" ? "hero" : "default"}
-                className="w-full"
-                onClick={() => handleOpenBox(box)}
-              >
-                <Gift className="w-4 h-4" />
-                Open Box
-              </Button>
-            </div>
-          ))}
+                <Button
+                  variant={box.id === "legendary" ? "hero" : "default"}
+                  className={`w-full ${!canAfford ? "opacity-50" : ""}`}
+                  onClick={() => handleOpenBox(box)}
+                  disabled={!canAfford}
+                >
+                  {canAfford ? (
+                    <>
+                      <Gift className="w-4 h-4" />
+                      Open Box
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-4 h-4" />
+                      Need {formatPrice(box.price - balance)} more
+                    </>
+                  )}
+                </Button>
+              </div>
+            );
+          })}
         </div>
       </div>
 
