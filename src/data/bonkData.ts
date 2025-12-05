@@ -7,7 +7,7 @@ import bonkNinja from "@/assets/bonk-ninja.png";
 import bonkAstronaut from "@/assets/bonk-astronaut.png";
 import bonkCyberpunk from "@/assets/bonk-cyberpunk.png";
 
-export type Rarity = "common" | "rare" | "epic" | "legendary";
+export type Rarity = "starter" | "common" | "rare" | "epic" | "legendary";
 
 export interface BonkCharacter {
   id: string;
@@ -19,10 +19,20 @@ export interface BonkCharacter {
 
 // Mining rates per hour by rarity
 export const miningRatesByRarity: Record<Rarity, number> = {
+  starter: 2,
   common: 22,
   rare: 31,
   epic: 40,
   legendary: 50,
+};
+
+// Starter character given for free upon registration
+export const starterCharacter: BonkCharacter = {
+  id: "bonknus",
+  name: "Bonknus",
+  image: bonkBuilder,
+  rarity: "starter",
+  miningRate: 2,
 };
 
 export const characters: BonkCharacter[] = [
@@ -56,6 +66,13 @@ export const characters: BonkCharacter[] = [
 ];
 
 export const rarityConfig = {
+  starter: {
+    label: "Starter",
+    color: "from-green-400 to-emerald-500",
+    bgColor: "bg-green-100",
+    textColor: "text-green-600",
+    glowColor: "shadow-green-400/50",
+  },
   common: {
     label: "Common",
     color: "from-gray-400 to-gray-500",
@@ -100,7 +117,7 @@ export const boxTypes: BoxType[] = [
     id: "basic",
     name: "Basic Box",
     price: 5000,
-    dropRates: { common: 70, rare: 22, epic: 7, legendary: 1 },
+    dropRates: { starter: 0, common: 70, rare: 22, epic: 7, legendary: 1 },
     gradient: "from-gray-500 to-gray-700",
     description: "Standard mystery box with decent drop rates",
   },
@@ -108,7 +125,7 @@ export const boxTypes: BoxType[] = [
     id: "premium",
     name: "Premium Box",
     price: 80000,
-    dropRates: { common: 45, rare: 35, epic: 15, legendary: 5 },
+    dropRates: { starter: 0, common: 45, rare: 35, epic: 15, legendary: 5 },
     gradient: "from-blue-500 to-indigo-600",
     description: "Better chances for rare and epic BONKs",
   },
@@ -116,7 +133,7 @@ export const boxTypes: BoxType[] = [
     id: "legendary",
     name: "Legendary Box",
     price: 250000,
-    dropRates: { common: 20, rare: 35, epic: 30, legendary: 15 },
+    dropRates: { starter: 0, common: 20, rare: 35, epic: 30, legendary: 15 },
     gradient: "from-amber-500 to-orange-600",
     description: "Highest chance for legendary BONKs!",
   },

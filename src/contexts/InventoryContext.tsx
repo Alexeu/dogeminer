@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { BonkCharacter } from "@/data/bonkData";
+import { BonkCharacter, starterCharacter } from "@/data/bonkData";
 
 export interface InventoryItem {
   character: BonkCharacter;
@@ -20,12 +20,36 @@ interface InventoryContextType {
 const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
 
 const MINING_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
+const STARTER_GIFT_KEY = "bonk_starter_gift_received";
 
 export const InventoryProvider = ({ children }: { children: ReactNode }) => {
   const [inventory, setInventory] = useState<InventoryItem[]>(() => {
     const stored = localStorage.getItem("bonk_inventory");
     return stored ? JSON.parse(stored) : [];
   });
+
+  // Give starter character (Bonknus) to new users
+  useEffect(() => {
+    const hasReceivedStarterGift = localStorage.getItem(STARTER_GIFT_KEY);
+    if (!hasReceivedStarterGift) {
+      setInventory((prev) => {
+        const hasBonknus = prev.some((item) => item.character.id === "bonknus");
+        if (!hasBonknus) {
+          return [
+            ...prev,
+            {
+              character: starterCharacter,
+              quantity: 1,
+              miningStartTime: null,
+              accumulatedBonk: 0,
+            },
+          ];
+        }
+        return prev;
+      });
+      localStorage.setItem(STARTER_GIFT_KEY, "true");
+    }
+  }, []);
 
   // Save to localStorage whenever inventory changes
   useEffect(() => {
