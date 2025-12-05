@@ -1,25 +1,54 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { characters, starterCharacter, mythicCharacter, rarityConfig, DogeCharacter, isMythicCharacter } from "@/data/dogeData";
 import { useInventory } from "@/contexts/InventoryContext";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Trophy, Gift, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 const COLLECTION_REWARD = 45.5; // 700000 BONK * 0.000065 = 45.5 DOGE
-const COLLECTION_REWARD_KEY = "doge_collection_reward_claimed";
 
 // All characters including starter and mythic
 const allCharacters: DogeCharacter[] = [starterCharacter, ...characters, mythicCharacter];
 const TOTAL_CHARACTERS = allCharacters.length;
 
+interface ClaimResponse {
+  success: boolean;
+  error?: string;
+  new_balance?: number;
+  reward?: number;
+}
+
 const CollectionSection = () => {
   const { inventory } = useInventory();
-  const { addBalance } = useDogeBalance();
-  const [rewardClaimed, setRewardClaimed] = useState(() => {
-    return localStorage.getItem(COLLECTION_REWARD_KEY) === "true";
-  });
+  const { refreshBalance } = useDogeBalance();
+  const [rewardClaimed, setRewardClaimed] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check if reward was already claimed (from database)
+  useEffect(() => {
+    const checkClaimStatus = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data } = await supabase
+            .from('profiles')
+            .select('collection_reward_claimed_at')
+            .eq('id', user.id)
+            .single();
+          
+          setRewardClaimed(!!data?.collection_reward_claimed_at);
+        }
+      } catch (error) {
+        console.error('Error checking claim status:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    checkClaimStatus();
+  }, []);
 
   // Get collected character IDs
   const collectedIds = new Set(inventory.map((item) => item.character.id));
@@ -30,15 +59,24 @@ const CollectionSection = () => {
     if (!isCollectionComplete || rewardClaimed || isClaiming) return;
     
     setIsClaiming(true);
-    const success = await addBalance(COLLECTION_REWARD);
-    setIsClaiming(false);
-    
-    if (success) {
-      setRewardClaimed(true);
-      localStorage.setItem(COLLECTION_REWARD_KEY, "true");
-      toast.success(`¡Felicidades! Has recibido ${COLLECTION_REWARD} DOGE por completar la colección!`);
-    } else {
+    try {
+      const { data, error } = await supabase.rpc('claim_collection_reward');
+      
+      if (error) throw error;
+      
+      const result = data as unknown as ClaimResponse;
+      if (result?.success) {
+        setRewardClaimed(true);
+        await refreshBalance();
+        toast.success(`¡Felicidades! Has recibido ${COLLECTION_REWARD} DOGE por completar la colección!`);
+      } else {
+        toast.error(result?.error || "Error al reclamar la recompensa");
+      }
+    } catch (error: any) {
+      console.error('Error claiming reward:', error);
       toast.error("Error al reclamar la recompensa");
+    } finally {
+      setIsClaiming(false);
     }
   };
 
@@ -102,7 +140,7 @@ const CollectionSection = () => {
             {isCollectionComplete && !rewardClaimed ? (
               <Button 
                 onClick={handleClaimReward}
-                disabled={isClaiming}
+                disabled={isClaiming || isLoading}
                 className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold"
               >
                 <Gift className="w-5 h-5 mr-2" />

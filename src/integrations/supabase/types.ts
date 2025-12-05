@@ -320,6 +320,7 @@ export type Database = {
           collection_reward_claimed_at: string | null
           created_at: string | null
           email: string | null
+          faucetpay_linked_at: string | null
           id: string
           is_banned: boolean | null
           referral_code: string | null
@@ -337,6 +338,7 @@ export type Database = {
           collection_reward_claimed_at?: string | null
           created_at?: string | null
           email?: string | null
+          faucetpay_linked_at?: string | null
           id: string
           is_banned?: boolean | null
           referral_code?: string | null
@@ -354,6 +356,7 @@ export type Database = {
           collection_reward_claimed_at?: string | null
           created_at?: string | null
           email?: string | null
+          faucetpay_linked_at?: string | null
           id?: string
           is_banned?: boolean | null
           referral_code?: string | null
@@ -513,6 +516,9 @@ export type Database = {
         Returns: Json
       }
       check_fingerprint_banned: { Args: { fp: string }; Returns: boolean }
+      claim_ad_view_reward: { Args: { p_ad_id: string }; Returns: Json }
+      claim_collection_reward: { Args: never; Returns: Json }
+      claim_faucetpay_bonus: { Args: never; Returns: Json }
       claim_mining_reward: {
         Args: { p_amount: number; p_character_id: string }
         Returns: Json
