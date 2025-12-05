@@ -1,11 +1,20 @@
 import { useBonkBalance } from "@/contexts/BonkBalanceContext";
-import { Coins, Pickaxe } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Coins, Pickaxe, LogOut, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const BalanceHeader = () => {
   const { balance, miningRate } = useBonkBalance();
+  const { user, signOut } = useAuth();
 
   const formatNumber = (num: number) => {
     return num.toLocaleString("en-US");
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    toast.success("¡Hasta pronto!");
   };
 
   return (
@@ -22,8 +31,8 @@ const BalanceHeader = () => {
             </span>
           </div>
 
-          {/* Balance */}
-          <div className="flex items-center gap-4">
+          {/* Balance & User */}
+          <div className="flex items-center gap-3">
             {/* Mining rate indicator */}
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700">
               <Pickaxe className="w-4 h-4 animate-pulse" />
@@ -36,7 +45,25 @@ const BalanceHeader = () => {
               <span className="text-lg font-bold text-gradient tabular-nums">
                 {formatNumber(Math.floor(balance))}
               </span>
-              <span className="text-sm text-muted-foreground">BONK</span>
+              <span className="text-sm text-muted-foreground hidden sm:inline">BONK</span>
+            </div>
+
+            {/* User menu */}
+            <div className="flex items-center gap-2">
+              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50">
+                <User className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground max-w-[120px] truncate">
+                  {user?.email}
+                </span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                className="text-muted-foreground hover:text-destructive"
+              >
+                <LogOut className="w-5 h-5" />
+              </Button>
             </div>
           </div>
         </div>
