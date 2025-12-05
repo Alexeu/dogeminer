@@ -9,6 +9,7 @@ import ReferralSection from "@/components/ReferralSection";
 import CTASection from "@/components/CTASection";
 import BalanceHeader from "@/components/BalanceHeader";
 import InventorySection from "@/components/InventorySection";
+import FaucetPaySection from "@/components/FaucetPaySection";
 
 const Index = () => {
   return (
@@ -20,6 +21,7 @@ const Index = () => {
         <FeaturesSection />
         <MysteryBoxSection />
         <InventorySection />
+        <FaucetPaySection />
         <ReferralSection />
         <HowItWorksSection />
         <WithdrawalsSection />
