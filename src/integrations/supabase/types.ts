@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_view_sessions: {
+        Row: {
+          ad_id: string
+          completed_at: string | null
+          id: string
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          ad_id: string
+          completed_at?: string | null
+          id?: string
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          ad_id?: string
+          completed_at?: string | null
+          id?: string
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ad_views: {
         Row: {
           ad_id: string
@@ -554,6 +578,7 @@ export type Database = {
         Returns: boolean
       }
       open_mystery_box: { Args: { p_box_id: string }; Returns: Json }
+      start_ad_view: { Args: { p_ad_id: string }; Returns: Json }
       start_mining: { Args: { p_character_id: string }; Returns: Json }
       subtract_balance: { Args: { p_amount: number }; Returns: Json }
     }
