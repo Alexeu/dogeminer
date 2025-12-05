@@ -8,6 +8,7 @@ import RaritySection from "@/components/RaritySection";
 import ReferralSection from "@/components/ReferralSection";
 import CTASection from "@/components/CTASection";
 import BalanceHeader from "@/components/BalanceHeader";
+import InventorySection from "@/components/InventorySection";
 
 const Index = () => {
   return (
@@ -18,6 +19,7 @@ const Index = () => {
         <CharacterCarousel />
         <FeaturesSection />
         <MysteryBoxSection />
+        <InventorySection />
         <ReferralSection />
         <HowItWorksSection />
         <WithdrawalsSection />

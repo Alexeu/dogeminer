@@ -14,18 +14,45 @@ export interface BonkCharacter {
   name: string;
   image: string;
   rarity: Rarity;
-  miningRate: string;
+  miningRate: number; // BONK per hour
 }
 
+// Mining rates per hour by rarity
+export const miningRatesByRarity: Record<Rarity, number> = {
+  common: 22,
+  rare: 31,
+  epic: 40,
+  legendary: 50,
+};
+
 export const characters: BonkCharacter[] = [
-  { id: "builder", name: "Bonk Builder", image: bonkBuilder, rarity: "common", miningRate: "220-245" },
-  { id: "astronaut", name: "Bonk Astronaut", image: bonkAstronaut, rarity: "common", miningRate: "230-250" },
-  { id: "pirate", name: "Bonk Pirate", image: bonkPirate, rarity: "rare", miningRate: "360-380" },
-  { id: "ninja", name: "Bonk Ninja", image: bonkNinja, rarity: "rare", miningRate: "350-375" },
-  { id: "wizard", name: "Bonk Wizard", image: bonkWizard, rarity: "epic", miningRate: "480-550" },
-  { id: "cyberpunk", name: "Bonk Cyberpunk", image: bonkCyberpunk, rarity: "epic", miningRate: "500-560" },
-  { id: "king", name: "Bonk King", image: bonkKing, rarity: "legendary", miningRate: "710-850" },
-  { id: "gold", name: "Bonk Gold", image: bonkGold, rarity: "legendary", miningRate: "800-1000" },
+  // 7 Common (22 BONK/hour)
+  { id: "builder", name: "Bonk Builder", image: bonkBuilder, rarity: "common", miningRate: 22 },
+  { id: "astronaut", name: "Bonk Astronaut", image: bonkAstronaut, rarity: "common", miningRate: 22 },
+  { id: "farmer", name: "Bonk Farmer", image: bonkBuilder, rarity: "common", miningRate: 22 },
+  { id: "chef", name: "Bonk Chef", image: bonkAstronaut, rarity: "common", miningRate: 22 },
+  { id: "mechanic", name: "Bonk Mechanic", image: bonkBuilder, rarity: "common", miningRate: 22 },
+  { id: "artist", name: "Bonk Artist", image: bonkAstronaut, rarity: "common", miningRate: 22 },
+  { id: "explorer", name: "Bonk Explorer", image: bonkBuilder, rarity: "common", miningRate: 22 },
+  
+  // 6 Rare (31 BONK/hour)
+  { id: "pirate", name: "Bonk Pirate", image: bonkPirate, rarity: "rare", miningRate: 31 },
+  { id: "ninja", name: "Bonk Ninja", image: bonkNinja, rarity: "rare", miningRate: 31 },
+  { id: "samurai", name: "Bonk Samurai", image: bonkPirate, rarity: "rare", miningRate: 31 },
+  { id: "knight", name: "Bonk Knight", image: bonkNinja, rarity: "rare", miningRate: 31 },
+  { id: "viking", name: "Bonk Viking", image: bonkPirate, rarity: "rare", miningRate: 31 },
+  { id: "gladiator", name: "Bonk Gladiator", image: bonkNinja, rarity: "rare", miningRate: 31 },
+  
+  // 4 Epic (40 BONK/hour)
+  { id: "wizard", name: "Bonk Wizard", image: bonkWizard, rarity: "epic", miningRate: 40 },
+  { id: "cyberpunk", name: "Bonk Cyberpunk", image: bonkCyberpunk, rarity: "epic", miningRate: 40 },
+  { id: "vampire", name: "Bonk Vampire", image: bonkWizard, rarity: "epic", miningRate: 40 },
+  { id: "phoenix", name: "Bonk Phoenix", image: bonkCyberpunk, rarity: "epic", miningRate: 40 },
+  
+  // 3 Legendary (50 BONK/hour)
+  { id: "king", name: "Bonk King", image: bonkKing, rarity: "legendary", miningRate: 50 },
+  { id: "gold", name: "Bonk Gold", image: bonkGold, rarity: "legendary", miningRate: 50 },
+  { id: "dragon", name: "Bonk Dragon", image: bonkKing, rarity: "legendary", miningRate: 50 },
 ];
 
 export const rarityConfig = {
