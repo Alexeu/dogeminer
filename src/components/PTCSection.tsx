@@ -103,23 +103,44 @@ export default function PTCSection() {
   const handleViewAd = async (ad: Ad) => {
     if (!user || viewedAds.has(ad.id)) return;
 
-    setViewingAd(ad.id);
-    setCountdown(10);
-
-    // Open the ad URL in a new tab
-    window.open(ad.url, "_blank");
-
-    // Countdown timer
-    const interval = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          completeView(ad);
-          return 0;
-        }
-        return prev - 1;
+    try {
+      // Start view session on server (records start time)
+      const { data, error } = await supabase.rpc('start_ad_view', {
+        p_ad_id: ad.id
       });
-    }, 1000);
+
+      if (error) throw error;
+
+      const result = data as { success: boolean; error?: string };
+      if (!result?.success) {
+        if (result?.error === 'Already viewed this ad') {
+          setViewedAds(new Set([...viewedAds, ad.id]));
+        }
+        toast.error(result?.error || "Error al iniciar visualización");
+        return;
+      }
+
+      setViewingAd(ad.id);
+      setCountdown(10);
+
+      // Open the ad URL in a new tab
+      window.open(ad.url, "_blank");
+
+      // Countdown timer (server will verify actual elapsed time)
+      const interval = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            completeView(ad);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (error) {
+      console.error("Error starting ad view:", error);
+      toast.error("Error al iniciar visualización");
+    }
   };
 
   const completeView = async (ad: Ad) => {
