@@ -246,6 +246,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "lottery_tickets_pool_id_fkey"
+            columns: ["pool_id"]
+            isOneToOne: false
+            referencedRelation: "lottery_pools_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "lottery_tickets_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -518,7 +525,45 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      lottery_pools_public: {
+        Row: {
+          character_id: string | null
+          character_name: string | null
+          character_rarity: string | null
+          completed_at: string | null
+          created_at: string | null
+          id: string | null
+          sold_tickets: number | null
+          status: string | null
+          ticket_price: number | null
+          total_tickets: number | null
+        }
+        Insert: {
+          character_id?: string | null
+          character_name?: string | null
+          character_rarity?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string | null
+          sold_tickets?: number | null
+          status?: string | null
+          ticket_price?: number | null
+          total_tickets?: number | null
+        }
+        Update: {
+          character_id?: string | null
+          character_name?: string | null
+          character_rarity?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string | null
+          sold_tickets?: number | null
+          status?: string | null
+          ticket_price?: number | null
+          total_tickets?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_user_character: {
