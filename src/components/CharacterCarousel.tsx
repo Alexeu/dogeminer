@@ -6,6 +6,19 @@ import dogeGold from "@/assets/doge-gold.png";
 import dogeNinja from "@/assets/doge-ninja.png";
 import dogeAstronaut from "@/assets/doge-astronaut.png";
 import dogeCyberpunk from "@/assets/doge-cyberpunk.png";
+import dogeFarmer from "@/assets/doge-farmer.png";
+import dogeChef from "@/assets/doge-chef.png";
+import dogeMechanic from "@/assets/doge-mechanic.png";
+import dogeArtist from "@/assets/doge-artist.png";
+import dogeExplorer from "@/assets/doge-explorer.png";
+import dogeSamurai from "@/assets/doge-samurai.png";
+import dogeKnight from "@/assets/doge-knight.png";
+import dogeViking from "@/assets/doge-viking.png";
+import dogeGladiator from "@/assets/doge-gladiator.png";
+import dogeVampire from "@/assets/doge-vampire.png";
+import dogePhoenix from "@/assets/doge-phoenix.png";
+import dogeDragon from "@/assets/doge-dragon.png";
+import dogeSupreme from "@/assets/doge-supreme.png";
 
 const characters = [
   { src: dogeKing, name: "Doge King" },
@@ -16,6 +29,19 @@ const characters = [
   { src: dogeNinja, name: "Doge Ninja" },
   { src: dogeAstronaut, name: "Doge Astronaut" },
   { src: dogeCyberpunk, name: "Doge Cyberpunk" },
+  { src: dogeFarmer, name: "Doge Farmer" },
+  { src: dogeChef, name: "Doge Chef" },
+  { src: dogeMechanic, name: "Doge Mechanic" },
+  { src: dogeArtist, name: "Doge Artist" },
+  { src: dogeExplorer, name: "Doge Explorer" },
+  { src: dogeSamurai, name: "Doge Samurai" },
+  { src: dogeKnight, name: "Doge Knight" },
+  { src: dogeViking, name: "Doge Viking" },
+  { src: dogeGladiator, name: "Doge Gladiator" },
+  { src: dogeVampire, name: "Doge Vampire" },
+  { src: dogePhoenix, name: "Doge Phoenix" },
+  { src: dogeDragon, name: "Doge Dragon" },
+  { src: dogeSupreme, name: "Doge Supreme" },
 ];
 
 const CharacterCarousel = () => {
