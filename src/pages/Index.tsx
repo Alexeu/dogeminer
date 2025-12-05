@@ -13,6 +13,7 @@ import CTASection from "@/components/CTASection";
 import BalanceHeader from "@/components/BalanceHeader";
 import InventorySection from "@/components/InventorySection";
 import FaucetPaySection from "@/components/FaucetPaySection";
+import PTCSection from "@/components/PTCSection";
 import { Loader2 } from "lucide-react";
 
 const Index = () => {
@@ -46,6 +47,7 @@ const Index = () => {
         <FeaturesSection />
         <MysteryBoxSection />
         <InventorySection />
+        <PTCSection />
         <FaucetPaySection />
         <ReferralSection />
         <HowItWorksSection />
