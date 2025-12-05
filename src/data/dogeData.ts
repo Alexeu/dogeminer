@@ -141,9 +141,9 @@ export const boxTypes: BoxType[] = [
     id: "rare",
     name: "Rare Box",
     price: 4,
-    dropRates: { starter: 0, common: 40, rare: 40, epic: 0, legendary: 20 },
+    dropRates: { starter: 0, common: 40, rare: 40, epic: 20, legendary: 0 },
     gradient: "from-blue-500 to-indigo-600",
-    description: "40% común, 40% raro, 20% legendario",
+    description: "40% común, 40% raro, 20% épico",
   },
   {
     id: "legendary",
