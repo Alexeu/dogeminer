@@ -19,7 +19,7 @@ import dogeGladiator from "@/assets/doge-gladiator.png";
 import dogeVampire from "@/assets/doge-vampire.png";
 import dogePhoenix from "@/assets/doge-phoenix.png";
 import dogeDragon from "@/assets/doge-dragon.png";
-import dogeSupreme from "@/assets/doge-supreme.png";
+
 
 export type Rarity = "starter" | "common" | "rare" | "epic" | "legendary";
 
@@ -79,17 +79,6 @@ export const characters: DogeCharacter[] = [
   { id: "dragon", name: "Doge Dragon", image: dogeDragon, rarity: "legendary", miningRate: 0.01 },
 ];
 
-// Personaje mítico ultra-raro (0.15% en caja legendaria)
-export const mythicCharacter: DogeCharacter = {
-  id: "doge-supreme",
-  name: "Doge Supreme",
-  image: dogeSupreme,
-  rarity: "legendary",
-  miningRate: 0.02, // Doble tasa de minado que legendario normal
-};
-
-// Check if a character is the mythic one
-export const isMythicCharacter = (id: string) => id === "doge-supreme";
 
 export const rarityConfig = {
   starter: {
@@ -167,14 +156,6 @@ export const boxTypes: BoxType[] = [
 ];
 
 export function getRandomCharacter(dropRates: Record<Rarity, number>, boxId?: string): DogeCharacter {
-  // Special case: 0.15% chance for mythic in legendary box
-  if (boxId === "legendary") {
-    const mythicRoll = Math.random() * 100;
-    if (mythicRoll <= 0.15) {
-      return mythicCharacter;
-    }
-  }
-
   const random = Math.random() * 100;
   let cumulative = 0;
   let selectedRarity: Rarity = "common";
