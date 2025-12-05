@@ -141,6 +141,95 @@ export type Database = {
           },
         ]
       }
+      lottery_pools: {
+        Row: {
+          character_id: string
+          character_name: string
+          character_rarity: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          sold_tickets: number
+          status: string
+          ticket_price: number
+          total_tickets: number
+          winner_user_id: string | null
+        }
+        Insert: {
+          character_id: string
+          character_name: string
+          character_rarity: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          sold_tickets?: number
+          status?: string
+          ticket_price: number
+          total_tickets?: number
+          winner_user_id?: string | null
+        }
+        Update: {
+          character_id?: string
+          character_name?: string
+          character_rarity?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          sold_tickets?: number
+          status?: string
+          ticket_price?: number
+          total_tickets?: number
+          winner_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lottery_pools_winner_user_id_fkey"
+            columns: ["winner_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lottery_tickets: {
+        Row: {
+          id: string
+          pool_id: string
+          purchased_at: string
+          ticket_count: number
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          pool_id: string
+          purchased_at?: string
+          ticket_count?: number
+          user_id: string
+        }
+        Update: {
+          id?: string
+          pool_id?: string
+          purchased_at?: string
+          ticket_count?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lottery_tickets_pool_id_fkey"
+            columns: ["pool_id"]
+            isOneToOne: false
+            referencedRelation: "lottery_pools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lottery_tickets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           balance: number | null
@@ -251,7 +340,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      buy_lottery_tickets: {
+        Args: { p_pool_id: string; p_ticket_count: number }
+        Returns: Json
+      }
       check_fingerprint_banned: { Args: { fp: string }; Returns: boolean }
+      draw_lottery_winner: { Args: { p_pool_id: string }; Returns: Json }
       get_users_by_fingerprint: {
         Args: { fp: string }
         Returns: {

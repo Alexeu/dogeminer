@@ -15,6 +15,7 @@ import InventorySection from "@/components/InventorySection";
 import FaucetPaySection from "@/components/FaucetPaySection";
 import PTCSection from "@/components/PTCSection";
 import CollectionSection from "@/components/CollectionSection";
+import LotterySection from "@/components/LotterySection";
 import { Loader2 } from "lucide-react";
 
 const Index = () => {
@@ -49,6 +50,7 @@ const Index = () => {
         <MysteryBoxSection />
         <InventorySection />
         <CollectionSection />
+        <LotterySection />
         <PTCSection />
         <FaucetPaySection />
         <ReferralSection />
