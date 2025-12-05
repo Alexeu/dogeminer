@@ -261,7 +261,7 @@ const FaucetPaySection = () => {
           await refreshBalance();
           toast({
             title: "¡Cuenta vinculada! Much success!",
-            description: `Recibiste ${formatDoge(result.bonus || 0.1)} DOGE de bienvenida por vincular tu cuenta`,
+            description: `Recibiste ${formatDoge(result.bonus || 0.05)} DOGE de bienvenida por vincular tu cuenta`,
           });
           setDepositAddress("");
           setAlreadyLinked(true);
