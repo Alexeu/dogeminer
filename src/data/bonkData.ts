@@ -66,6 +66,18 @@ export const characters: BonkCharacter[] = [
   { id: "dragon", name: "Bonk Dragon", image: bonkKing, rarity: "legendary", miningRate: 50 },
 ];
 
+// Ultra-rare mythic legendary (0.15% in legendary box)
+export const mythicCharacter: BonkCharacter = {
+  id: "bonk-supreme",
+  name: "Bonk Supreme",
+  image: bonkGold, // Uses gold image with special styling
+  rarity: "legendary",
+  miningRate: 100, // Double the normal legendary rate!
+};
+
+// Check if a character is the mythic one
+export const isMythicCharacter = (id: string) => id === "bonk-supreme";
+
 export const rarityConfig = {
   starter: {
     label: "Starter",
@@ -140,7 +152,15 @@ export const boxTypes: BoxType[] = [
   },
 ];
 
-export function getRandomCharacter(dropRates: Record<Rarity, number>): BonkCharacter {
+export function getRandomCharacter(dropRates: Record<Rarity, number>, boxId?: string): BonkCharacter {
+  // Special case: 0.15% chance for mythic in legendary box
+  if (boxId === "legendary") {
+    const mythicRoll = Math.random() * 100;
+    if (mythicRoll <= 0.15) {
+      return mythicCharacter;
+    }
+  }
+
   const random = Math.random() * 100;
   let cumulative = 0;
   let selectedRarity: Rarity = "common";

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { BoxType, BonkCharacter, getRandomCharacter, rarityConfig } from "@/data/bonkData";
+import { BoxType, BonkCharacter, getRandomCharacter, rarityConfig, isMythicCharacter } from "@/data/bonkData";
 import { useBonkBalance } from "@/contexts/BonkBalanceContext";
 import { useInventory } from "@/contexts/InventoryContext";
 import { Gift, Sparkles, AlertCircle } from "lucide-react";
@@ -50,14 +50,15 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
     }, 1500);
 
     setTimeout(() => {
-      const character = getRandomCharacter(boxType.dropRates);
+      const character = getRandomCharacter(boxType.dropRates, boxType.id);
       setRevealedCharacter(character);
       setPhase("revealing");
 
       // Add character to inventory
       addToInventory(character);
       
-      toast.success(`¡Nuevo personaje!`, {
+      const isMythic = isMythicCharacter(character.id);
+      toast.success(isMythic ? `🌟 ¡¡MYTHIC!! 🌟` : `¡Nuevo personaje!`, {
         description: `${character.name} añadido a tu colección`,
       });
     }, 2500);
@@ -180,25 +181,42 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
             <div className="relative z-10 flex flex-col items-center animate-slide-up">
               {/* Glow effect */}
               <div
-                className={`absolute w-64 h-64 rounded-full bg-gradient-radial ${config.color} opacity-30 blur-3xl`}
+                className={`absolute w-64 h-64 rounded-full bg-gradient-radial ${config.color} opacity-30 blur-3xl ${
+                  isMythicCharacter(revealedCharacter.id) ? "animate-pulse" : ""
+                }`}
               />
+
+              {/* Mythic rainbow border */}
+              {isMythicCharacter(revealedCharacter.id) && (
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 opacity-50 blur-xl animate-spin" style={{ animationDuration: "3s" }} />
+              )}
 
               {/* Character image */}
               <div className="relative">
                 <img
                   src={revealedCharacter.image}
                   alt={revealedCharacter.name}
-                  className={`w-40 h-40 object-contain drop-shadow-2xl animate-float`}
+                  className={`w-40 h-40 object-contain drop-shadow-2xl animate-float ${
+                    isMythicCharacter(revealedCharacter.id) ? "brightness-125 contrast-110" : ""
+                  }`}
                 />
               </div>
 
               {/* Character info */}
-              <h3 className="text-2xl font-bold mt-4">{revealedCharacter.name}</h3>
+              <h3 className={`text-2xl font-bold mt-4 ${
+                isMythicCharacter(revealedCharacter.id) ? "bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent" : ""
+              }`}>
+                {revealedCharacter.name}
+              </h3>
 
               <span
-                className={`inline-block px-4 py-1.5 rounded-full text-sm font-semibold ${config.bgColor} ${config.textColor} mt-2`}
+                className={`inline-block px-4 py-1.5 rounded-full text-sm font-semibold mt-2 ${
+                  isMythicCharacter(revealedCharacter.id) 
+                    ? "bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 text-white"
+                    : `${config.bgColor} ${config.textColor}`
+                }`}
               >
-                {config.label}
+                {isMythicCharacter(revealedCharacter.id) ? "✨ MYTHIC ✨" : config.label}
               </span>
 
               <p className="text-muted-foreground mt-2">
