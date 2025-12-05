@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useBonkBalance } from "@/contexts/BonkBalanceContext";
+import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Wallet, ArrowDownToLine, ArrowUpFromLine, Loader2, History, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { Wallet, ArrowDownToLine, ArrowUpFromLine, Loader2, History, Clock, CheckCircle, XCircle, AlertCircle, Dog } from "lucide-react";
+import { formatDoge } from "@/data/dogeData";
 
-const DAILY_LIMIT = 50000;
+const DAILY_LIMIT = 10.0000; // 10 DOGE daily limit
 
 interface Transaction {
   id: string;
@@ -18,7 +19,7 @@ interface Transaction {
 }
 
 const FaucetPaySection = () => {
-  const { balance, subtractBalance, addBalance, refreshBalance } = useBonkBalance();
+  const { balance, subtractBalance, addBalance, refreshBalance } = useDogeBalance();
   const { user } = useAuth();
   const { toast } = useToast();
   const [withdrawAddress, setWithdrawAddress] = useState("");
@@ -82,7 +83,7 @@ const FaucetPaySection = () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('faucetpay', {
-        body: { action: 'getBalance', currency: 'BONK' }
+        body: { action: 'getBalance', currency: 'DOGE' }
       });
 
       if (error) throw error;
@@ -91,7 +92,7 @@ const FaucetPaySection = () => {
         setFaucetPayBalance(parseFloat(data.balance));
         toast({
           title: "Balance actualizado",
-          description: `Balance FaucetPay: ${data.balance} BONK`,
+          description: `Balance FaucetPay: ${formatDoge(parseFloat(data.balance))} DOGE`,
         });
       } else {
         throw new Error(data.message || 'Error al obtener balance');
@@ -131,7 +132,7 @@ const FaucetPaySection = () => {
     if (amount > balance) {
       toast({
         title: "Balance insuficiente",
-        description: "No tienes suficiente BONK para retirar",
+        description: "No tienes suficiente DOGE para retirar",
         variant: "destructive",
       });
       return;
@@ -141,7 +142,7 @@ const FaucetPaySection = () => {
     if (dailyUsed + amount > DAILY_LIMIT) {
       toast({
         title: "Límite diario excedido",
-        description: `Solo puedes retirar ${formatNumber(DAILY_LIMIT - dailyUsed)} BONK más hoy`,
+        description: `Solo puedes retirar ${formatDoge(DAILY_LIMIT - dailyUsed)} DOGE más hoy`,
         variant: "destructive",
       });
       return;
@@ -151,7 +152,7 @@ const FaucetPaySection = () => {
     try {
       // First check if the address is valid
       const { data: checkData, error: checkError } = await supabase.functions.invoke('faucetpay', {
-        body: { action: 'checkAddress', address: withdrawAddress, currency: 'BONK' }
+        body: { action: 'checkAddress', address: withdrawAddress, currency: 'DOGE' }
       });
 
       if (checkError) throw checkError;
@@ -166,7 +167,7 @@ const FaucetPaySection = () => {
           action: 'send', 
           address: withdrawAddress, 
           amount: amount,
-          currency: 'BONK' 
+          currency: 'DOGE' 
         }
       });
 
@@ -174,8 +175,8 @@ const FaucetPaySection = () => {
 
       if (data.status === 200) {
         toast({
-          title: "¡Retiro exitoso!",
-          description: `Se enviaron ${amount} BONK a tu cuenta de FaucetPay`,
+          title: "¡Retiro exitoso! Much wow!",
+          description: `Se enviaron ${formatDoge(amount)} DOGE a tu cuenta de FaucetPay`,
         });
         setWithdrawAmount("");
         setWithdrawAddress("");
@@ -210,19 +211,19 @@ const FaucetPaySection = () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('faucetpay', {
-        body: { action: 'checkAddress', address: depositAddress, currency: 'BONK' }
+        body: { action: 'checkAddress', address: depositAddress, currency: 'DOGE' }
       });
 
       if (error) throw error;
 
       if (data.status === 200) {
         // Bonus for linking account
-        const depositAmount = 1000;
+        const depositAmount = 0.1000; // 0.1 DOGE bonus
         const success = await addBalance(depositAmount);
         if (success) {
           toast({
-            title: "¡Cuenta vinculada!",
-            description: `Recibiste ${depositAmount} BONK de bienvenida por vincular tu cuenta`,
+            title: "¡Cuenta vinculada! Much success!",
+            description: `Recibiste ${formatDoge(depositAmount)} DOGE de bienvenida por vincular tu cuenta`,
           });
           setDepositAddress("");
         }
@@ -239,10 +240,6 @@ const FaucetPaySection = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const formatNumber = (num: number) => {
-    return num.toLocaleString('en-US', { maximumFractionDigits: 2 });
   };
 
   const formatDate = (dateStr: string) => {
@@ -291,8 +288,8 @@ const FaucetPaySection = () => {
           <h2 className="text-3xl md:text-4xl font-bold mb-2">
             Depósitos y Retiros
           </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">
-            Conecta tu cuenta de FaucetPay para depositar y retirar tu BONK de forma segura
+          <p className="text-muted-foreground max-w-xl mx-auto font-comic">
+            Conecta tu cuenta de FaucetPay para depositar y retirar tu DOGE. Much secure! 🔐
           </p>
         </div>
 
@@ -302,7 +299,7 @@ const FaucetPaySection = () => {
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">Límite diario de retiro</span>
               <span className="text-sm text-muted-foreground">
-                {formatNumber(dailyUsed)} / {formatNumber(DAILY_LIMIT)} BONK
+                {formatDoge(dailyUsed)} / {formatDoge(DAILY_LIMIT)} DOGE
               </span>
             </div>
             <div className="w-full h-3 bg-secondary rounded-full overflow-hidden">
@@ -316,7 +313,7 @@ const FaucetPaySection = () => {
               />
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              Disponible hoy: <span className="font-semibold text-primary">{formatNumber(remainingDaily)} BONK</span>
+              Disponible hoy: <span className="font-semibold text-primary">{formatDoge(remainingDaily)} DOGE</span>
               {' '}• El límite se reinicia a medianoche UTC
             </p>
           </div>
@@ -330,14 +327,17 @@ const FaucetPaySection = () => {
                 <ArrowUpFromLine className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
-                <h3 className="text-xl font-bold">Retirar BONK</h3>
+                <h3 className="text-xl font-bold">Retirar DOGE</h3>
                 <p className="text-sm text-muted-foreground">Envía a tu FaucetPay</p>
               </div>
             </div>
 
             <div className="p-4 rounded-xl bg-secondary/50">
               <p className="text-sm text-muted-foreground mb-1">Tu balance disponible</p>
-              <p className="text-2xl font-bold text-gradient">{formatNumber(balance)} BONK</p>
+              <div className="flex items-center gap-2">
+                <Dog className="w-6 h-6 text-primary" />
+                <p className="text-2xl font-bold text-gradient">{formatDoge(balance)} DOGE</p>
+              </div>
             </div>
 
             <Input
@@ -349,6 +349,7 @@ const FaucetPaySection = () => {
 
             <Input
               type="number"
+              step="0.0001"
               placeholder="Cantidad a retirar"
               value={withdrawAmount}
               onChange={(e) => setWithdrawAmount(e.target.value)}
@@ -368,7 +369,7 @@ const FaucetPaySection = () => {
             </Button>
 
             <p className="text-xs text-muted-foreground text-center">
-              Mínimo: 100 BONK • Máximo diario: {formatNumber(DAILY_LIMIT)} BONK
+              Mínimo: 0.0100 DOGE • Máximo diario: {formatDoge(DAILY_LIMIT)} DOGE
             </p>
           </div>
 
@@ -379,7 +380,7 @@ const FaucetPaySection = () => {
                 <ArrowDownToLine className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-xl font-bold">Depositar BONK</h3>
+                <h3 className="text-xl font-bold">Depositar DOGE</h3>
                 <p className="text-sm text-muted-foreground">Vincula tu cuenta</p>
               </div>
             </div>
@@ -387,7 +388,7 @@ const FaucetPaySection = () => {
             {faucetPayBalance !== null && (
               <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
                 <p className="text-sm text-muted-foreground mb-1">Balance en FaucetPay</p>
-                <p className="text-2xl font-bold text-emerald-500">{formatNumber(faucetPayBalance)} BONK</p>
+                <p className="text-2xl font-bold text-emerald-500">{formatDoge(faucetPayBalance)} DOGE</p>
               </div>
             )}
 
@@ -396,7 +397,7 @@ const FaucetPaySection = () => {
               <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
                 <li>Ingresa tu email de FaucetPay</li>
                 <li>Verifica tu cuenta</li>
-                <li>Recibe bonus de bienvenida</li>
+                <li>Recibe bonus de bienvenida 🎁</li>
               </ol>
             </div>
 
@@ -452,7 +453,7 @@ const FaucetPaySection = () => {
             ) : transactions.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <History className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p>No hay transacciones aún</p>
+                <p>No hay transacciones aún. Such empty! 🐕</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -465,7 +466,7 @@ const FaucetPaySection = () => {
                       {getStatusIcon(tx.status)}
                       <div>
                         <p className="font-medium text-sm">
-                          -{formatNumber(tx.amount)} BONK
+                          -{formatDoge(tx.amount)} DOGE
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {tx.faucetpay_address ? `→ ${tx.faucetpay_address.slice(0, 20)}...` : 'FaucetPay'}

@@ -1,21 +1,21 @@
-import bonkKing from "@/assets/bonk-king.png";
-import bonkBuilder from "@/assets/bonk-builder.png";
-import bonkPirate from "@/assets/bonk-pirate.png";
-import bonkWizard from "@/assets/bonk-wizard.png";
-import bonkGold from "@/assets/bonk-gold.png";
-import bonkNinja from "@/assets/bonk-ninja.png";
-import bonkAstronaut from "@/assets/bonk-astronaut.png";
-import bonkCyberpunk from "@/assets/bonk-cyberpunk.png";
+import dogeKing from "@/assets/doge-king.png";
+import dogeBuilder from "@/assets/doge-builder.png";
+import dogePirate from "@/assets/doge-pirate.png";
+import dogeWizard from "@/assets/doge-wizard.png";
+import dogeGold from "@/assets/doge-gold.png";
+import dogeNinja from "@/assets/doge-ninja.png";
+import dogeAstronaut from "@/assets/doge-astronaut.png";
+import dogeCyberpunk from "@/assets/doge-cyberpunk.png";
 
 const characters = [
-  { src: bonkKing, name: "Bonk King" },
-  { src: bonkBuilder, name: "Bonk Builder" },
-  { src: bonkPirate, name: "Bonk Pirate" },
-  { src: bonkWizard, name: "Bonk Wizard" },
-  { src: bonkGold, name: "Bonk Gold" },
-  { src: bonkNinja, name: "Bonk Ninja" },
-  { src: bonkAstronaut, name: "Bonk Astronaut" },
-  { src: bonkCyberpunk, name: "Bonk Cyberpunk" },
+  { src: dogeKing, name: "Doge King" },
+  { src: dogeBuilder, name: "Doge Builder" },
+  { src: dogePirate, name: "Doge Pirate" },
+  { src: dogeWizard, name: "Doge Wizard" },
+  { src: dogeGold, name: "Doge Gold" },
+  { src: dogeNinja, name: "Doge Ninja" },
+  { src: dogeAstronaut, name: "Doge Astronaut" },
+  { src: dogeCyberpunk, name: "Doge Cyberpunk" },
 ];
 
 const CharacterCarousel = () => {
@@ -30,7 +30,7 @@ const CharacterCarousel = () => {
             key={`${char.name}-${index}`}
             className="flex-shrink-0 group"
           >
-            <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl glass p-2 transition-all duration-300 group-hover:scale-110 group-hover:shadow-bonk-lg">
+            <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl glass p-2 transition-all duration-300 group-hover:scale-110 group-hover:shadow-doge-lg">
               <img
                 src={char.src}
                 alt={char.name}
