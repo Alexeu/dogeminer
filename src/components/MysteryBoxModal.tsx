@@ -3,6 +3,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { BoxType, BonkCharacter, getRandomCharacter, rarityConfig } from "@/data/bonkData";
 import { useBonkBalance } from "@/contexts/BonkBalanceContext";
+import { useInventory } from "@/contexts/InventoryContext";
 import { Gift, Sparkles, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -17,7 +18,8 @@ type AnimationPhase = "idle" | "shaking" | "opening" | "revealing" | "revealed";
 const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => {
   const [phase, setPhase] = useState<AnimationPhase>("idle");
   const [revealedCharacter, setRevealedCharacter] = useState<BonkCharacter | null>(null);
-  const { balance, subtractBalance, setMiningRate, miningRate } = useBonkBalance();
+  const { balance, subtractBalance } = useBonkBalance();
+  const { addToInventory } = useInventory();
 
   useEffect(() => {
     if (!isOpen) {
@@ -52,17 +54,11 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
       setRevealedCharacter(character);
       setPhase("revealing");
 
-      // Bonus: Increase mining rate based on rarity
-      const rarityBonus = {
-        common: 1,
-        rare: 3,
-        epic: 7,
-        legendary: 15,
-      };
-      setMiningRate(miningRate + rarityBonus[character.rarity]);
+      // Add character to inventory
+      addToInventory(character);
       
-      toast.success(`Mining rate increased!`, {
-        description: `+${rarityBonus[character.rarity]} BONK/s from ${character.name}`,
+      toast.success(`¡Nuevo personaje!`, {
+        description: `${character.name} añadido a tu colección`,
       });
     }, 2500);
 
@@ -208,7 +204,7 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
               <p className="text-muted-foreground mt-2">
                 Mining Rate:{" "}
                 <span className="font-semibold text-gradient">
-                  {revealedCharacter.miningRate} BONK/day
+                  {revealedCharacter.miningRate} BONK/hora
                 </span>
               </p>
 
