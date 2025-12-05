@@ -14,6 +14,98 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_views: {
+        Row: {
+          ad_id: string
+          id: string
+          reward_amount: number
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          ad_id: string
+          id?: string
+          reward_amount?: number
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          ad_id?: string
+          id?: string
+          reward_amount?: number
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_views_ad_id_fkey"
+            columns: ["ad_id"]
+            isOneToOne: false
+            referencedRelation: "ads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_views_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ads: {
+        Row: {
+          cost_per_view: number
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          remaining_views: number
+          reward_per_view: number
+          title: string
+          total_views: number
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          cost_per_view?: number
+          created_at?: string
+          description: string
+          id?: string
+          is_active?: boolean
+          remaining_views?: number
+          reward_per_view?: number
+          title: string
+          total_views?: number
+          updated_at?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          cost_per_view?: number
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          remaining_views?: number
+          reward_per_view?: number
+          title?: string
+          total_views?: number
+          updated_at?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       device_fingerprints: {
         Row: {
           created_at: string | null
