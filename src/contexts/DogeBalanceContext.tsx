@@ -9,7 +9,6 @@ interface DogeBalanceContextType {
   referralCode: string;
   totalEarned: number;
   isLoading: boolean;
-  addBalance: (amount: number) => Promise<boolean>;
   subtractBalance: (amount: number) => Promise<boolean>;
   claimMiningReward: (amount: number, characterId: string) => Promise<boolean>;
   applyReferralCode: (code: string) => Promise<boolean>;
@@ -93,35 +92,6 @@ export function DogeBalanceProvider({ children }: { children: ReactNode }) {
       supabase.removeChannel(channel);
     };
   }, [user]);
-
-  const addBalance = async (amount: number): Promise<boolean> => {
-    if (!user) {
-      toast.error("Debes iniciar sesión");
-      return false;
-    }
-
-    try {
-      const { data, error } = await supabase.rpc('add_balance', { p_amount: amount });
-      
-      if (error) {
-        console.error('Error adding balance:', error);
-        toast.error("Error al añadir balance");
-        return false;
-      }
-
-      if (data && typeof data === 'object' && 'success' in data) {
-        const result = data as { success: boolean; new_balance?: number };
-        if (result.success) {
-          setBalance(result.new_balance || 0);
-          return true;
-        }
-      }
-      return false;
-    } catch (error) {
-      console.error('Error adding balance:', error);
-      return false;
-    }
-  };
 
   const subtractBalance = async (amount: number): Promise<boolean> => {
     if (!user) {
@@ -226,7 +196,6 @@ export function DogeBalanceProvider({ children }: { children: ReactNode }) {
         referralCode,
         totalEarned,
         isLoading,
-        addBalance,
         subtractBalance,
         claimMiningReward,
         applyReferralCode,

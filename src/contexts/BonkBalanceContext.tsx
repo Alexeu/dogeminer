@@ -17,7 +17,6 @@ interface BonkBalanceContextType {
   referralCode: string;
   totalEarned: number;
   isLoading: boolean;
-  addBalance: (amount: number) => Promise<boolean>;
   subtractBalance: (amount: number) => Promise<boolean>;
   claimMiningReward: (amount: number, characterId: string) => Promise<boolean>;
   applyReferralCode: (code: string) => Promise<boolean>;
@@ -99,30 +98,6 @@ export const BonkBalanceProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
-
-  const addBalance = useCallback(async (amount: number): Promise<boolean> => {
-    if (!user) return false;
-
-    try {
-      const { data, error } = await supabase.rpc('add_balance', { p_amount: amount });
-      
-      if (error) {
-        console.error('Error adding balance:', error);
-        return false;
-      }
-
-      const response = data as unknown as BalanceResponse;
-      if (response?.success) {
-        setBalance(Number(response.new_balance) || 0);
-        return true;
-      }
-      
-      return false;
-    } catch (error) {
-      console.error('Error adding balance:', error);
-      return false;
-    }
   }, [user]);
 
   const subtractBalance = useCallback(async (amount: number): Promise<boolean> => {
@@ -208,7 +183,6 @@ export const BonkBalanceProvider = ({ children }: { children: ReactNode }) => {
         referralCode,
         totalEarned,
         isLoading,
-        addBalance,
         subtractBalance,
         claimMiningReward,
         applyReferralCode,
