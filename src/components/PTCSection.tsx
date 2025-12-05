@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useBonkBalance } from "@/contexts/BonkBalanceContext";
+import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,8 +17,8 @@ import {
 import { toast } from "sonner";
 import { Eye, Plus, ExternalLink, Coins, Timer, CheckCircle, Loader2 } from "lucide-react";
 
-const COST_PER_VIEW = 55;
-const REWARD_PER_VIEW = 20;
+const COST_PER_VIEW = 0.011; // 55 BONK / 5000 = 0.011 DOGE
+const REWARD_PER_VIEW = 0.004; // 20 BONK / 5000 = 0.004 DOGE
 const MIN_VIEWS = 1000;
 
 interface Ad {
@@ -34,7 +34,7 @@ interface Ad {
 
 export default function PTCSection() {
   const { user } = useAuth();
-  const { balance, addBalance, subtractBalance } = useBonkBalance();
+  const { balance, addBalance, subtractBalance } = useDogeBalance();
   const [ads, setAds] = useState<Ad[]>([]);
   const [viewedAds, setViewedAds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -149,7 +149,7 @@ export default function PTCSection() {
           : a
       ).filter(a => a.remaining_views > 0));
 
-      toast.success(`¡Ganaste ${REWARD_PER_VIEW} BONK!`);
+      toast.success(`¡Ganaste ${REWARD_PER_VIEW.toFixed(4)} DOGE!`);
     } catch (error: any) {
       if (error.code === "23505") {
         toast.error("Ya has visto este anuncio");
@@ -172,7 +172,7 @@ export default function PTCSection() {
     }
 
     if (balance < totalCost) {
-      toast.error(`Necesitas ${totalCost.toLocaleString()} BONK para crear este anuncio`);
+      toast.error(`Necesitas ${totalCost.toFixed(4)} DOGE para crear este anuncio`);
       return;
     }
 
@@ -242,8 +242,8 @@ export default function PTCSection() {
             <span className="text-gradient">PTC</span> - Paid to Click
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Gana <span className="text-primary font-bold">{REWARD_PER_VIEW} BONK</span> por cada anuncio que veas, 
-            o crea tu propio anuncio por <span className="text-amber-500 font-bold">{COST_PER_VIEW} BONK</span> por visualización
+            Gana <span className="text-primary font-bold">{REWARD_PER_VIEW.toFixed(4)} DOGE</span> por cada anuncio que veas, 
+            o crea tu propio anuncio por <span className="text-amber-500 font-bold">{COST_PER_VIEW.toFixed(4)} DOGE</span> por visualización
           </p>
         </div>
 
@@ -265,7 +265,7 @@ export default function PTCSection() {
               <DialogHeader>
                 <DialogTitle>Crear Nuevo Anuncio</DialogTitle>
                 <DialogDescription>
-                  Costo: {COST_PER_VIEW} BONK por visualización (mín. {MIN_VIEWS} visualizaciones)
+                  Costo: {COST_PER_VIEW.toFixed(4)} DOGE por visualización (mín. {MIN_VIEWS} visualizaciones)
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleCreateAd} className="space-y-4">
@@ -322,11 +322,11 @@ export default function PTCSection() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Costo por vista:</span>
-                    <span className="font-medium">{COST_PER_VIEW} BONK</span>
+                    <span className="font-medium">{COST_PER_VIEW.toFixed(4)} DOGE</span>
                   </div>
                   <div className="flex justify-between font-bold border-t pt-2">
                     <span>Total:</span>
-                    <span className="text-primary">{totalCost.toLocaleString()} BONK</span>
+                    <span className="text-primary">{totalCost.toFixed(4)} DOGE</span>
                   </div>
                 </div>
 
@@ -338,7 +338,7 @@ export default function PTCSection() {
                   {creating ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : balance < totalCost ? (
-                    `Necesitas ${(totalCost - balance).toLocaleString()} BONK más`
+                    `Necesitas ${(totalCost - balance).toFixed(4)} DOGE más`
                   ) : (
                     "Crear Anuncio"
                   )}
@@ -370,7 +370,7 @@ export default function PTCSection() {
                   <h3 className="text-lg font-bold line-clamp-1">{ad.title}</h3>
                   <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-primary text-sm">
                     <Coins className="w-3 h-3" />
-                    <span>{REWARD_PER_VIEW}</span>
+                    <span>{REWARD_PER_VIEW.toFixed(4)}</span>
                   </div>
                 </div>
                 
@@ -400,7 +400,7 @@ export default function PTCSection() {
                     disabled={viewingAd !== null}
                   >
                     <ExternalLink className="w-4 h-4 mr-2" />
-                    Ver y Ganar {REWARD_PER_VIEW} BONK
+                    Ver y Ganar {REWARD_PER_VIEW.toFixed(4)} DOGE
                   </Button>
                 )}
               </div>

@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { boxTypes, BoxType } from "@/data/bonkData";
-import { useBonkBalance } from "@/contexts/BonkBalanceContext";
+import { boxTypes, BoxType } from "@/data/dogeData";
+import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import MysteryBoxModal from "@/components/MysteryBoxModal";
 import { Gift, Sparkles, Zap, Lock } from "lucide-react";
 
 const MysteryBoxSection = () => {
   const [selectedBox, setSelectedBox] = useState<BoxType | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { balance } = useBonkBalance();
+  const { balance } = useDogeBalance();
 
   const handleOpenBox = (box: BoxType) => {
     setSelectedBox(box);
@@ -16,13 +16,10 @@ const MysteryBoxSection = () => {
   };
 
   const formatPrice = (price: number) => {
-    if (price >= 1000000) {
-      return `${(price / 1000000).toFixed(1)}M`;
-    }
     if (price >= 1000) {
-      return `${(price / 1000).toFixed(0)}K`;
+      return `${(price / 1000).toFixed(1)}K`;
     }
-    return price.toString();
+    return price.toFixed(4);
   };
 
   return (
@@ -30,7 +27,7 @@ const MysteryBoxSection = () => {
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-bonk-amber/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-doge-amber/5 rounded-full blur-3xl" />
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
@@ -43,8 +40,8 @@ const MysteryBoxSection = () => {
             Open <span className="text-gradient">Mystery Boxes</span>
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Try your luck and discover rare BONK characters! Each box has different
-            drop rates for common to legendary BONKs.
+            Try your luck and discover rare DOGE characters! Each box has different
+            drop rates for common to legendary DOGEs.
           </p>
         </div>
 
@@ -56,7 +53,7 @@ const MysteryBoxSection = () => {
               <div
                 key={box.id}
                 className={`glass rounded-2xl p-6 text-center transition-all duration-300 animate-slide-up group ${
-                  canAfford ? "hover:shadow-bonk-lg hover:-translate-y-2" : "opacity-75"
+                  canAfford ? "hover:shadow-doge-lg hover:-translate-y-2" : "opacity-75"
                 }`}
                 style={{ animationDelay: `${index * 150}ms` }}
               >
@@ -138,7 +135,7 @@ const MysteryBoxSection = () => {
                   <span className={`text-2xl font-bold ${canAfford ? "text-gradient" : "text-muted-foreground"}`}>
                     {formatPrice(box.price)}
                   </span>
-                  <span className="text-muted-foreground">BONK</span>
+                  <span className="text-muted-foreground">DOGE</span>
                 </div>
 
                 <Button

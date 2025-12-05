@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Mail, Lock, Loader2, Shield } from "lucide-react";
-import bonkLogo from "@/assets/bonk-logo.png";
+import dogeLogo from "@/assets/doge-logo.png";
 
 const emailSchema = z.string().email("Email inválido");
 const passwordSchema = z.string().min(6, "La contraseña debe tener al menos 6 caracteres");
@@ -203,9 +203,9 @@ export default function Auth() {
       <div className="w-full max-w-md relative">
         <div className="bg-card/80 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
-            <img src={bonkLogo} alt="BONK Logo" className="w-20 h-20 mx-auto mb-4 rounded-2xl shadow-lg shadow-primary/30" />
+            <img src={dogeLogo} alt="DOGE Logo" className="w-20 h-20 mx-auto mb-4 rounded-2xl shadow-lg shadow-primary/30" />
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-amber-500 bg-clip-text text-transparent">
-              BONK Miner
+              DOGE Miner
             </h1>
             <p className="text-muted-foreground mt-2">
               {isLogin ? "Inicia sesión para continuar" : "Crea tu cuenta y empieza a minar"}

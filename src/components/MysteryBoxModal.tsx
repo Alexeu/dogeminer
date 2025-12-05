@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { BoxType, BonkCharacter, getRandomCharacter, rarityConfig, isMythicCharacter } from "@/data/bonkData";
-import { useBonkBalance } from "@/contexts/BonkBalanceContext";
+import { BoxType, DogeCharacter, getRandomCharacter, rarityConfig, isMythicCharacter } from "@/data/dogeData";
+import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { useInventory } from "@/contexts/InventoryContext";
 import { Gift, Sparkles, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -17,9 +17,9 @@ type AnimationPhase = "idle" | "shaking" | "opening" | "revealing" | "revealed";
 
 const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => {
   const [phase, setPhase] = useState<AnimationPhase>("idle");
-  const [revealedCharacter, setRevealedCharacter] = useState<BonkCharacter | null>(null);
+  const [revealedCharacter, setRevealedCharacter] = useState<DogeCharacter | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const { balance, subtractBalance } = useBonkBalance();
+  const { balance, subtractBalance } = useDogeBalance();
   const { addToInventory } = useInventory();
 
   useEffect(() => {
@@ -35,8 +35,8 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
 
     // Check if user has enough balance
     if (balance < boxType.price) {
-      toast.error("Not enough BONK!", {
-        description: `You need ${boxType.price.toLocaleString()} BONK to open this box.`,
+      toast.error("Not enough DOGE!", {
+        description: `You need ${boxType.price.toFixed(4)} DOGE to open this box.`,
       });
       return;
     }
@@ -151,7 +151,7 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
               {/* Price display */}
               <div className="flex items-center gap-2 mb-4">
                 <span className={`text-xl font-bold ${canAfford ? "text-gradient" : "text-destructive"}`}>
-                  {boxType.price.toLocaleString()} BONK
+                  {boxType.price.toFixed(4)} DOGE
                 </span>
                 {!canAfford && (
                   <AlertCircle className="w-5 h-5 text-destructive" />
@@ -167,7 +167,7 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
                   className={!canAfford ? "opacity-50 cursor-not-allowed" : ""}
                 >
                   <Gift className="w-5 h-5" />
-                  {canAfford ? "Open Box" : "Not Enough BONK"}
+                  {canAfford ? "Open Box" : "Not Enough DOGE"}
                 </Button>
               )}
 
@@ -232,7 +232,7 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
               <p className="text-muted-foreground mt-2">
                 Mining Rate:{" "}
                 <span className="font-semibold text-gradient">
-                  {revealedCharacter.miningRate} BONK/hora
+                  {revealedCharacter.miningRate} DOGE/hora
                 </span>
               </p>
 
