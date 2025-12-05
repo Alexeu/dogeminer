@@ -17,7 +17,8 @@ interface LotteryPool {
   total_tickets: number;
   sold_tickets: number;
   status: string;
-  winner_user_id: string | null;
+  created_at: string;
+  completed_at: string | null;
 }
 
 interface UserTickets {
@@ -45,10 +46,10 @@ const LotterySection = () => {
   }, [user]);
 
   const fetchPools = async () => {
+    // Use the public view that excludes winner_user_id for privacy
     const { data, error } = await supabase
-      .from("lottery_pools")
-      .select("*")
-      .in("status", ["active", "completed"]);
+      .from("lottery_pools_public")
+      .select("*");
 
     if (error) {
       console.error("Error fetching pools:", error);
