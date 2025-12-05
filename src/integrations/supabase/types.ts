@@ -381,12 +381,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_balance: { Args: { p_amount: number }; Returns: Json }
+      apply_referral_code: { Args: { p_code: string }; Returns: Json }
       buy_lottery_tickets: {
         Args: { p_pool_id: string; p_ticket_count: number }
         Returns: Json
       }
       check_fingerprint_banned: { Args: { fp: string }; Returns: boolean }
+      claim_mining_reward: {
+        Args: { p_amount: number; p_character_id: string }
+        Returns: Json
+      }
       draw_lottery_winner: { Args: { p_pool_id: string }; Returns: Json }
+      get_balance: { Args: never; Returns: Json }
       get_users_by_fingerprint: {
         Args: { fp: string }
         Returns: {
@@ -402,6 +409,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      subtract_balance: { Args: { p_amount: number }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

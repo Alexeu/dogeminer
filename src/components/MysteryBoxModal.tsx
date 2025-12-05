@@ -18,6 +18,7 @@ type AnimationPhase = "idle" | "shaking" | "opening" | "revealing" | "revealed";
 const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => {
   const [phase, setPhase] = useState<AnimationPhase>("idle");
   const [revealedCharacter, setRevealedCharacter] = useState<BonkCharacter | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const { balance, subtractBalance } = useBonkBalance();
   const { addToInventory } = useInventory();
 
@@ -25,11 +26,12 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
     if (!isOpen) {
       setPhase("idle");
       setRevealedCharacter(null);
+      setIsProcessing(false);
     }
   }, [isOpen]);
 
-  const handleOpen = () => {
-    if (!boxType) return;
+  const handleOpen = async () => {
+    if (!boxType || isProcessing) return;
 
     // Check if user has enough balance
     if (balance < boxType.price) {
@@ -39,9 +41,15 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
       return;
     }
 
-    // Subtract balance
-    const success = subtractBalance(boxType.price);
-    if (!success) return;
+    setIsProcessing(true);
+
+    // Subtract balance from database
+    const success = await subtractBalance(boxType.price);
+    if (!success) {
+      setIsProcessing(false);
+      toast.error("Failed to process payment");
+      return;
+    }
 
     setPhase("shaking");
 
@@ -65,12 +73,14 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
 
     setTimeout(() => {
       setPhase("revealed");
+      setIsProcessing(false);
     }, 3000);
   };
 
   const handleClose = () => {
     setPhase("idle");
     setRevealedCharacter(null);
+    setIsProcessing(false);
     onClose();
   };
 
@@ -153,7 +163,7 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
                   variant="hero"
                   size="lg"
                   onClick={handleOpen}
-                  disabled={!canAfford}
+                  disabled={!canAfford || isProcessing}
                   className={!canAfford ? "opacity-50 cursor-not-allowed" : ""}
                 >
                   <Gift className="w-5 h-5" />

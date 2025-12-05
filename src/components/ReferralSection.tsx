@@ -3,17 +3,50 @@ import { useBonkBalance } from "@/contexts/BonkBalanceContext";
 import { Button } from "@/components/ui/button";
 import { Copy, Users, Gift, Check, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const ReferralSection = () => {
-  const { referralCode, referralEarnings, referralCount, applyReferralCode } = useBonkBalance();
+  const { referralCode, totalEarned, applyReferralCode } = useBonkBalance();
+  const { user } = useAuth();
   const [inputCode, setInputCode] = useState("");
   const [copied, setCopied] = useState(false);
   const [hasAppliedCode, setHasAppliedCode] = useState(false);
+  const [referralCount, setReferralCount] = useState(0);
+  const [isApplying, setIsApplying] = useState(false);
 
+  // Check if user has already applied a referral code
   useEffect(() => {
-    const applied = localStorage.getItem("bonk_applied_referral");
-    setHasAppliedCode(!!applied);
-  }, []);
+    const checkReferralStatus = async () => {
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from('profiles')
+        .select('referred_by')
+        .eq('id', user.id)
+        .maybeSingle();
+      
+      setHasAppliedCode(!!data?.referred_by);
+    };
+    
+    checkReferralStatus();
+  }, [user]);
+
+  // Get referral count
+  useEffect(() => {
+    const fetchReferralCount = async () => {
+      if (!referralCode) return;
+      
+      const { count } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('referred_by', referralCode);
+      
+      setReferralCount(count || 0);
+    };
+    
+    fetchReferralCount();
+  }, [referralCode]);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(referralCode);
@@ -22,7 +55,7 @@ const ReferralSection = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleApplyCode = () => {
+  const handleApplyCode = async () => {
     if (!inputCode.trim()) {
       toast.error("Ingresa un código de referido");
       return;
@@ -36,7 +69,10 @@ const ReferralSection = () => {
       return;
     }
     
-    const success = applyReferralCode(inputCode.toUpperCase());
+    setIsApplying(true);
+    const success = await applyReferralCode(inputCode.toUpperCase());
+    setIsApplying(false);
+    
     if (success) {
       setHasAppliedCode(true);
       setInputCode("");
@@ -82,12 +118,13 @@ const ReferralSection = () => {
 
             <div className="flex gap-2">
               <div className="flex-1 bg-background/50 rounded-xl px-4 py-3 font-mono text-lg font-bold text-center border border-border">
-                {referralCode}
+                {referralCode || "Cargando..."}
               </div>
               <Button
                 onClick={copyToClipboard}
                 variant="outline"
                 className="px-4"
+                disabled={!referralCode}
               >
                 {copied ? <Check className="w-5 h-5 text-green-500" /> : <Copy className="w-5 h-5" />}
               </Button>
@@ -100,8 +137,8 @@ const ReferralSection = () => {
                 <div className="text-sm text-muted-foreground">Referidos</div>
               </div>
               <div className="bg-background/50 rounded-xl p-4 text-center border border-border">
-                <div className="text-2xl font-bold text-gradient">{formatNumber(Math.floor(referralEarnings))}</div>
-                <div className="text-sm text-muted-foreground">BONK Ganados</div>
+                <div className="text-2xl font-bold text-gradient">{formatNumber(Math.floor(totalEarned))}</div>
+                <div className="text-sm text-muted-foreground">BONK Totales</div>
               </div>
             </div>
           </div>
@@ -135,9 +172,10 @@ const ReferralSection = () => {
                 />
                 <Button
                   onClick={handleApplyCode}
+                  disabled={isApplying}
                   className="w-full gradient-primary hover:opacity-90 text-white font-bold py-3"
                 >
-                  Aplicar Código
+                  {isApplying ? "Aplicando..." : "Aplicar Código"}
                 </Button>
               </>
             )}

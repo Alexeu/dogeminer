@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { characters, starterCharacter, mythicCharacter, rarityConfig, BonkCharacter, isMythicCharacter } from "@/data/bonkData";
 import { useInventory } from "@/contexts/InventoryContext";
 import { useBonkBalance } from "@/contexts/BonkBalanceContext";
@@ -19,19 +19,27 @@ const CollectionSection = () => {
   const [rewardClaimed, setRewardClaimed] = useState(() => {
     return localStorage.getItem(COLLECTION_REWARD_KEY) === "true";
   });
+  const [isClaiming, setIsClaiming] = useState(false);
 
   // Get collected character IDs
   const collectedIds = new Set(inventory.map((item) => item.character.id));
   const collectedCount = collectedIds.size;
   const isCollectionComplete = collectedCount >= TOTAL_CHARACTERS;
 
-  const handleClaimReward = () => {
-    if (!isCollectionComplete || rewardClaimed) return;
+  const handleClaimReward = async () => {
+    if (!isCollectionComplete || rewardClaimed || isClaiming) return;
     
-    addBalance(COLLECTION_REWARD);
-    setRewardClaimed(true);
-    localStorage.setItem(COLLECTION_REWARD_KEY, "true");
-    toast.success(`¡Felicidades! Has recibido ${COLLECTION_REWARD.toLocaleString()} BONK por completar la colección!`);
+    setIsClaiming(true);
+    const success = await addBalance(COLLECTION_REWARD);
+    setIsClaiming(false);
+    
+    if (success) {
+      setRewardClaimed(true);
+      localStorage.setItem(COLLECTION_REWARD_KEY, "true");
+      toast.success(`¡Felicidades! Has recibido ${COLLECTION_REWARD.toLocaleString()} BONK por completar la colección!`);
+    } else {
+      toast.error("Error al reclamar la recompensa");
+    }
   };
 
   return (
@@ -94,10 +102,11 @@ const CollectionSection = () => {
             {isCollectionComplete && !rewardClaimed ? (
               <Button 
                 onClick={handleClaimReward}
+                disabled={isClaiming}
                 className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold"
               >
                 <Gift className="w-5 h-5 mr-2" />
-                ¡Reclamar {COLLECTION_REWARD.toLocaleString()} BONK!
+                {isClaiming ? "Reclamando..." : `¡Reclamar ${COLLECTION_REWARD.toLocaleString()} BONK!`}
               </Button>
             ) : isCollectionComplete && rewardClaimed ? (
               <div className="flex items-center gap-2 text-green-500 font-semibold">
