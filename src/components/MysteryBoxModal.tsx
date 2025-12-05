@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { BoxType, DogeCharacter, getRandomCharacter, rarityConfig, isMythicCharacter } from "@/data/dogeData";
+import { BoxType, DogeCharacter, rarityConfig, isMythicCharacter, characters, mythicCharacter } from "@/data/dogeData";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { useInventory } from "@/contexts/InventoryContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Gift, Sparkles, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -15,12 +16,21 @@ interface MysteryBoxModalProps {
 
 type AnimationPhase = "idle" | "shaking" | "opening" | "revealing" | "revealed";
 
+// Map character IDs to their images
+const getCharacterImage = (characterId: string): string => {
+  if (characterId === "doge-supreme") {
+    return mythicCharacter.image;
+  }
+  const char = characters.find(c => c.id === characterId);
+  return char?.image || characters[0].image;
+};
+
 const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => {
   const [phase, setPhase] = useState<AnimationPhase>("idle");
   const [revealedCharacter, setRevealedCharacter] = useState<DogeCharacter | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const { balance, subtractBalance } = useDogeBalance();
-  const { addToInventory } = useInventory();
+  const { balance, refreshBalance } = useDogeBalance();
+  const { refreshInventory } = useInventory();
 
   useEffect(() => {
     if (!isOpen) {
@@ -33,7 +43,7 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
   const handleOpen = async () => {
     if (!boxType || isProcessing) return;
 
-    // Check if user has enough balance
+    // Check if user has enough balance (client-side check for UX only)
     if (balance < boxType.price) {
       toast.error("Not enough DOGE!", {
         description: `You need ${boxType.price.toFixed(4)} DOGE to open this box.`,
@@ -42,39 +52,84 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
     }
 
     setIsProcessing(true);
-
-    // Subtract balance from database
-    const success = await subtractBalance(boxType.price);
-    if (!success) {
-      setIsProcessing(false);
-      toast.error("Failed to process payment");
-      return;
-    }
-
     setPhase("shaking");
 
-    setTimeout(() => {
+    try {
+      // Wait for animation then call server
+      await new Promise(resolve => setTimeout(resolve, 1500));
       setPhase("opening");
-    }, 1500);
 
-    setTimeout(() => {
-      const character = getRandomCharacter(boxType.dropRates, boxType.id);
+      // Call secure server-side RPC - handles payment AND character selection
+      const { data, error } = await supabase.rpc('open_mystery_box', {
+        p_box_id: boxType.id
+      });
+
+      if (error) {
+        console.error('Mystery box error:', error);
+        toast.error("Failed to open box", { description: error.message });
+        setPhase("idle");
+        setIsProcessing(false);
+        return;
+      }
+
+      const result = data as { 
+        success: boolean; 
+        error?: string; 
+        character?: { 
+          id: string; 
+          name: string; 
+          rarity: string; 
+          miningRate: number;
+          isMythic: boolean;
+        };
+        new_balance?: number;
+      };
+
+      if (!result.success) {
+        toast.error("Failed to open box", { description: result.error });
+        setPhase("idle");
+        setIsProcessing(false);
+        // Refresh balance in case it changed
+        refreshBalance();
+        return;
+      }
+
+      // Create character object from server response
+      const serverCharacter = result.character!;
+      const character: DogeCharacter = {
+        id: serverCharacter.id,
+        name: serverCharacter.name,
+        rarity: serverCharacter.rarity as DogeCharacter['rarity'],
+        miningRate: serverCharacter.miningRate,
+        image: getCharacterImage(serverCharacter.id),
+      };
+
+      // Show reveal animation
+      await new Promise(resolve => setTimeout(resolve, 1000));
       setRevealedCharacter(character);
       setPhase("revealing");
 
-      // Add character to inventory
-      addToInventory(character);
-      
-      const isMythic = isMythicCharacter(character.id);
+      // Refresh balance and inventory from server
+      refreshBalance();
+      refreshInventory();
+
+      const isMythic = serverCharacter.isMythic;
       toast.success(isMythic ? `🌟 ¡¡MYTHIC!! 🌟` : `¡Nuevo personaje!`, {
         description: `${character.name} añadido a tu colección`,
       });
-    }, 2500);
 
-    setTimeout(() => {
+      // Final reveal
+      await new Promise(resolve => setTimeout(resolve, 500));
       setPhase("revealed");
       setIsProcessing(false);
-    }, 3000);
+
+    } catch (err) {
+      console.error('Mystery box error:', err);
+      toast.error("Error opening box");
+      setPhase("idle");
+      setIsProcessing(false);
+      refreshBalance();
+    }
   };
 
   const handleClose = () => {
@@ -171,7 +226,7 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
                 </Button>
               )}
 
-              {phase === "shaking" && (
+              {(phase === "shaking" || phase === "opening") && (
                 <p className="text-primary font-semibold animate-pulse">Opening...</p>
               )}
             </div>

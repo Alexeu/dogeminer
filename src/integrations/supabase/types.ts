@@ -553,6 +553,7 @@ export type Database = {
         Args: { p_amount: number; p_user_id: string }
         Returns: boolean
       }
+      open_mystery_box: { Args: { p_box_id: string }; Returns: Json }
       start_mining: { Args: { p_character_id: string }; Returns: Json }
       subtract_balance: { Args: { p_amount: number }; Returns: Json }
     }
