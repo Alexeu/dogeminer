@@ -4,6 +4,7 @@ import { Coins, Pickaxe, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import bonkLogo from "@/assets/bonk-logo.png";
+import NotificationBell from "./NotificationBell";
 
 const BalanceHeader = () => {
   const { balance, miningRate } = useBonkBalance();
@@ -46,6 +47,9 @@ const BalanceHeader = () => {
               </span>
               <span className="text-sm text-muted-foreground hidden sm:inline">BONK</span>
             </div>
+
+            {/* Notifications */}
+            <NotificationBell />
 
             {/* User menu */}
             <div className="flex items-center gap-2">
