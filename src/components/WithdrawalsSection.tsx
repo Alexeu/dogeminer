@@ -1,16 +1,16 @@
 import { CheckCircle2 } from "lucide-react";
 
 const withdrawals = [
-  { email: "alex....com", time: "3 minutes ago", amount: "0.0150 DOGE" },
-  { email: "mike....com", time: "7 minutes ago", amount: "0.0469 DOGE" },
-  { email: "sara....com", time: "14 minutes ago", amount: "0.0024 DOGE" },
-  { email: "john....com", time: "21 minutes ago", amount: "0.0196 DOGE" },
-  { email: "emma....com", time: "28 minutes ago", amount: "0.0624 DOGE" },
-  { email: "luca....com", time: "45 minutes ago", amount: "0.0114 DOGE" },
-  { email: "yuki....jp", time: "about 1 hour ago", amount: "0.0850 DOGE" },
-  { email: "pedro...br", time: "about 1 hour ago", amount: "0.0378 DOGE" },
-  { email: "anna....de", time: "about 1 hour ago", amount: "0.3160 DOGE" },
-  { email: "omar....com", time: "about 2 hours ago", amount: "0.0300 DOGE" },
+  { email: "alex....com", time: "3 minutes ago", amount: "0.004875 DOGE" },
+  { email: "mike....com", time: "7 minutes ago", amount: "0.015243 DOGE" },
+  { email: "sara....com", time: "14 minutes ago", amount: "0.000780 DOGE" },
+  { email: "john....com", time: "21 minutes ago", amount: "0.006370 DOGE" },
+  { email: "emma....com", time: "28 minutes ago", amount: "0.020280 DOGE" },
+  { email: "luca....com", time: "45 minutes ago", amount: "0.003704 DOGE" },
+  { email: "yuki....jp", time: "about 1 hour ago", amount: "0.027625 DOGE" },
+  { email: "pedro...br", time: "about 1 hour ago", amount: "0.012285 DOGE" },
+  { email: "anna....de", time: "about 1 hour ago", amount: "0.102700 DOGE" },
+  { email: "omar....com", time: "about 2 hours ago", amount: "0.009750 DOGE" },
 ];
 
 const WithdrawalsSection = () => {

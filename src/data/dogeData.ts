@@ -15,16 +15,17 @@ export interface DogeCharacter {
   name: string;
   image: string;
   rarity: Rarity;
-  miningRate: number; // DOGE per hour (4 decimals)
+  miningRate: number; // DOGE per hour
 }
 
+// Conversion: 1 BONK = 0.000065 DOGE
 // Mining rates per hour by rarity (in DOGE)
 export const miningRatesByRarity: Record<Rarity, number> = {
-  starter: 0.0004,
-  common: 0.0044,
-  rare: 0.0062,
-  epic: 0.0080,
-  legendary: 0.0100,
+  starter: 0.00013,   // 2 BONK * 0.000065
+  common: 0.00143,    // 22 BONK * 0.000065
+  rare: 0.002015,     // 31 BONK * 0.000065
+  epic: 0.0026,       // 40 BONK * 0.000065
+  legendary: 0.00325, // 50 BONK * 0.000065
 };
 
 // Starter character given for free upon registration
@@ -33,37 +34,37 @@ export const starterCharacter: DogeCharacter = {
   name: "Doge Starter",
   image: dogeStarter,
   rarity: "starter",
-  miningRate: 0.0004,
+  miningRate: 0.00013,
 };
 
 export const characters: DogeCharacter[] = [
-  // 7 Common (0.0044 DOGE/hour)
-  { id: "builder", name: "Doge Builder", image: dogeBuilder, rarity: "common", miningRate: 0.0044 },
-  { id: "astronaut", name: "Doge Astronaut", image: dogeAstronaut, rarity: "common", miningRate: 0.0044 },
-  { id: "farmer", name: "Doge Farmer", image: dogeBuilder, rarity: "common", miningRate: 0.0044 },
-  { id: "chef", name: "Doge Chef", image: dogeAstronaut, rarity: "common", miningRate: 0.0044 },
-  { id: "mechanic", name: "Doge Mechanic", image: dogeBuilder, rarity: "common", miningRate: 0.0044 },
-  { id: "artist", name: "Doge Artist", image: dogeAstronaut, rarity: "common", miningRate: 0.0044 },
-  { id: "explorer", name: "Doge Explorer", image: dogeBuilder, rarity: "common", miningRate: 0.0044 },
+  // 7 Common (0.00143 DOGE/hour)
+  { id: "builder", name: "Doge Builder", image: dogeBuilder, rarity: "common", miningRate: 0.00143 },
+  { id: "astronaut", name: "Doge Astronaut", image: dogeAstronaut, rarity: "common", miningRate: 0.00143 },
+  { id: "farmer", name: "Doge Farmer", image: dogeBuilder, rarity: "common", miningRate: 0.00143 },
+  { id: "chef", name: "Doge Chef", image: dogeAstronaut, rarity: "common", miningRate: 0.00143 },
+  { id: "mechanic", name: "Doge Mechanic", image: dogeBuilder, rarity: "common", miningRate: 0.00143 },
+  { id: "artist", name: "Doge Artist", image: dogeAstronaut, rarity: "common", miningRate: 0.00143 },
+  { id: "explorer", name: "Doge Explorer", image: dogeBuilder, rarity: "common", miningRate: 0.00143 },
   
-  // 6 Rare (0.0062 DOGE/hour)
-  { id: "pirate", name: "Doge Pirate", image: dogePirate, rarity: "rare", miningRate: 0.0062 },
-  { id: "ninja", name: "Doge Ninja", image: dogeNinja, rarity: "rare", miningRate: 0.0062 },
-  { id: "samurai", name: "Doge Samurai", image: dogePirate, rarity: "rare", miningRate: 0.0062 },
-  { id: "knight", name: "Doge Knight", image: dogeNinja, rarity: "rare", miningRate: 0.0062 },
-  { id: "viking", name: "Doge Viking", image: dogePirate, rarity: "rare", miningRate: 0.0062 },
-  { id: "gladiator", name: "Doge Gladiator", image: dogeNinja, rarity: "rare", miningRate: 0.0062 },
+  // 6 Rare (0.002015 DOGE/hour)
+  { id: "pirate", name: "Doge Pirate", image: dogePirate, rarity: "rare", miningRate: 0.002015 },
+  { id: "ninja", name: "Doge Ninja", image: dogeNinja, rarity: "rare", miningRate: 0.002015 },
+  { id: "samurai", name: "Doge Samurai", image: dogePirate, rarity: "rare", miningRate: 0.002015 },
+  { id: "knight", name: "Doge Knight", image: dogeNinja, rarity: "rare", miningRate: 0.002015 },
+  { id: "viking", name: "Doge Viking", image: dogePirate, rarity: "rare", miningRate: 0.002015 },
+  { id: "gladiator", name: "Doge Gladiator", image: dogeNinja, rarity: "rare", miningRate: 0.002015 },
   
-  // 4 Epic (0.0080 DOGE/hour)
-  { id: "wizard", name: "Doge Wizard", image: dogeWizard, rarity: "epic", miningRate: 0.0080 },
-  { id: "cyberpunk", name: "Doge Cyberpunk", image: dogeCyberpunk, rarity: "epic", miningRate: 0.0080 },
-  { id: "vampire", name: "Doge Vampire", image: dogeWizard, rarity: "epic", miningRate: 0.0080 },
-  { id: "phoenix", name: "Doge Phoenix", image: dogeCyberpunk, rarity: "epic", miningRate: 0.0080 },
+  // 4 Epic (0.0026 DOGE/hour)
+  { id: "wizard", name: "Doge Wizard", image: dogeWizard, rarity: "epic", miningRate: 0.0026 },
+  { id: "cyberpunk", name: "Doge Cyberpunk", image: dogeCyberpunk, rarity: "epic", miningRate: 0.0026 },
+  { id: "vampire", name: "Doge Vampire", image: dogeWizard, rarity: "epic", miningRate: 0.0026 },
+  { id: "phoenix", name: "Doge Phoenix", image: dogeCyberpunk, rarity: "epic", miningRate: 0.0026 },
   
-  // 3 Legendary (0.0100 DOGE/hour)
-  { id: "king", name: "Doge King", image: dogeKing, rarity: "legendary", miningRate: 0.0100 },
-  { id: "gold", name: "Doge Gold", image: dogeGold, rarity: "legendary", miningRate: 0.0100 },
-  { id: "dragon", name: "Doge Dragon", image: dogeKing, rarity: "legendary", miningRate: 0.0100 },
+  // 3 Legendary (0.00325 DOGE/hour)
+  { id: "king", name: "Doge King", image: dogeKing, rarity: "legendary", miningRate: 0.00325 },
+  { id: "gold", name: "Doge Gold", image: dogeGold, rarity: "legendary", miningRate: 0.00325 },
+  { id: "dragon", name: "Doge Dragon", image: dogeKing, rarity: "legendary", miningRate: 0.00325 },
 ];
 
 // Ultra-rare mythic legendary (0.15% in legendary box)
@@ -72,7 +73,7 @@ export const mythicCharacter: DogeCharacter = {
   name: "Doge Supreme",
   image: dogeGold,
   rarity: "legendary",
-  miningRate: 0.0200, // Double the normal legendary rate!
+  miningRate: 0.0065, // 100 BONK * 0.000065 - Double the normal legendary rate!
 };
 
 // Check if a character is the mythic one
@@ -119,17 +120,18 @@ export const rarityConfig = {
 export interface BoxType {
   id: string;
   name: string;
-  price: number; // in DOGE (4 decimals)
+  price: number; // in DOGE
   dropRates: Record<Rarity, number>;
   gradient: string;
   description: string;
 }
 
+// 1 BONK = 0.000065 DOGE
 export const boxTypes: BoxType[] = [
   {
     id: "common",
     name: "Common Box",
-    price: 3.0000,
+    price: 0.975,    // 15000 BONK * 0.000065
     dropRates: { starter: 0, common: 100, rare: 0, epic: 0, legendary: 0 },
     gradient: "from-gray-500 to-gray-700",
     description: "Solo personajes comunes garantizados",
@@ -137,7 +139,7 @@ export const boxTypes: BoxType[] = [
   {
     id: "rare",
     name: "Rare Box",
-    price: 13.0000,
+    price: 4.225,    // 65000 BONK * 0.000065
     dropRates: { starter: 0, common: 40, rare: 40, epic: 0, legendary: 20 },
     gradient: "from-blue-500 to-indigo-600",
     description: "40% común, 40% raro, 20% legendario",
@@ -145,7 +147,7 @@ export const boxTypes: BoxType[] = [
   {
     id: "legendary",
     name: "Legendary Box",
-    price: 30.0000,
+    price: 9.75,     // 150000 BONK * 0.000065
     dropRates: { starter: 0, common: 0, rare: 40, epic: 40, legendary: 20 },
     gradient: "from-yellow-500 to-amber-600",
     description: "40% raro, 40% épico, 20% legendario",
@@ -177,7 +179,9 @@ export function getRandomCharacter(dropRates: Record<Rarity, number>, boxId?: st
   return charactersOfRarity[Math.floor(Math.random() * charactersOfRarity.length)];
 }
 
-// Format DOGE with 4 decimals
+// Format DOGE with appropriate decimals
 export const formatDoge = (amount: number): string => {
-  return amount.toFixed(4);
+  if (amount < 0.0001) return amount.toFixed(6);
+  if (amount < 1) return amount.toFixed(4);
+  return amount.toFixed(2);
 };
