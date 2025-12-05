@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Mail, Lock, Loader2, Shield } from "lucide-react";
+import { Mail, Lock, Loader2, Shield, AlertTriangle } from "lucide-react";
 import dogeLogo from "@/assets/doge-logo.png";
+import { useFingerprint } from "@/hooks/useFingerprint";
+import { supabase } from "@/integrations/supabase/client";
 
 const emailSchema = z.string().email("Email inválido");
 const passwordSchema = z.string().min(6, "La contraseña debe tener al menos 6 caracteres");
@@ -33,6 +35,11 @@ export default function Auth() {
   // Antibot: Track failed attempts
   const [attempts, setAttempts] = useState(0);
   const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
+  
+  // Fingerprint validation
+  const { fingerprintData, loading: fingerprintLoading } = useFingerprint();
+  const [fingerprintBlocked, setFingerprintBlocked] = useState(false);
+  const [blockReason, setBlockReason] = useState<string>("");
   
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
@@ -144,11 +151,61 @@ export default function Auth() {
     }
   };
 
+  // Validate fingerprint after successful auth
+  const validateAndRegisterFingerprint = async () => {
+    if (!fingerprintData) return { success: true };
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return { success: true };
+
+      // Check if fingerprint is banned
+      const { data: checkResult, error: checkError } = await supabase.functions.invoke('validate-fingerprint', {
+        body: {
+          action: 'check',
+          fingerprint: fingerprintData.fingerprint,
+          userAgent: fingerprintData.components.userAgent,
+        },
+      });
+
+      if (checkError) {
+        console.error('Fingerprint check error:', checkError);
+        return { success: true }; // Allow login on error to not block legitimate users
+      }
+
+      if (checkResult?.banned) {
+        return { success: false, reason: 'banned' };
+      }
+
+      if (checkResult?.tooManyAccounts) {
+        return { success: false, reason: 'too_many_accounts' };
+      }
+
+      // Register fingerprint
+      await supabase.functions.invoke('validate-fingerprint', {
+        body: {
+          action: 'register',
+          fingerprint: fingerprintData.fingerprint,
+          userAgent: fingerprintData.components.userAgent,
+        },
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error('Fingerprint validation error:', error);
+      return { success: true }; // Allow login on error
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!checkAntibot()) return;
     if (!validateForm()) return;
+    if (fingerprintBlocked) {
+      toast.error("Acceso denegado desde este dispositivo.");
+      return;
+    }
     
     setLoading(true);
     
@@ -163,7 +220,18 @@ export default function Auth() {
             toast.error(error.message);
           }
         } else {
-          // Reset attempts on successful login
+          // Validate fingerprint after successful login
+          const fpResult = await validateAndRegisterFingerprint();
+          if (!fpResult.success) {
+            await supabase.auth.signOut();
+            setFingerprintBlocked(true);
+            setBlockReason(fpResult.reason === 'banned' 
+              ? 'Este dispositivo está asociado a una cuenta baneada.' 
+              : 'Demasiadas cuentas desde esta IP.');
+            toast.error("Acceso denegado.");
+            return;
+          }
+          
           setAttempts(0);
           localStorage.removeItem("auth_attempts");
           toast.success("¡Bienvenido de vuelta!");
@@ -179,7 +247,18 @@ export default function Auth() {
             toast.error(error.message);
           }
         } else {
-          // Reset attempts on successful signup
+          // Validate fingerprint after successful signup
+          const fpResult = await validateAndRegisterFingerprint();
+          if (!fpResult.success) {
+            await supabase.auth.signOut();
+            setFingerprintBlocked(true);
+            setBlockReason(fpResult.reason === 'banned' 
+              ? 'Este dispositivo está asociado a una cuenta baneada.' 
+              : 'Demasiadas cuentas desde esta IP.');
+            toast.error("Acceso denegado.");
+            return;
+          }
+          
           setAttempts(0);
           localStorage.removeItem("auth_attempts");
           toast.success("¡Cuenta creada! Ya puedes empezar a jugar.");
@@ -192,6 +271,7 @@ export default function Auth() {
   };
 
   const isLocked = lockoutUntil && Date.now() < lockoutUntil;
+  const isDisabled = isLocked || fingerprintBlocked || fingerprintLoading;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/10 flex items-center justify-center p-4">
@@ -212,7 +292,17 @@ export default function Auth() {
             </p>
           </div>
 
-          {isLocked && (
+          {fingerprintBlocked && (
+            <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/30 flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-destructive" />
+              <div>
+                <p className="text-sm font-medium text-destructive">Acceso denegado</p>
+                <p className="text-xs text-muted-foreground">{blockReason}</p>
+              </div>
+            </div>
+          )}
+
+          {isLocked && !fingerprintBlocked && (
             <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/30 flex items-center gap-3">
               <Shield className="w-5 h-5 text-destructive" />
               <div>
@@ -250,7 +340,7 @@ export default function Auth() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10 bg-background/50 border-border/50 focus:border-primary"
-                  disabled={isLocked}
+                  disabled={isDisabled}
                 />
               </div>
               {errors.email && (
@@ -269,7 +359,7 @@ export default function Auth() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 bg-background/50 border-border/50 focus:border-primary"
-                  disabled={isLocked}
+                  disabled={isDisabled}
                 />
               </div>
               {errors.password && (
@@ -279,16 +369,23 @@ export default function Auth() {
 
             <Button
               type="submit"
-              disabled={loading || isLocked}
+              disabled={loading || isDisabled}
               className="w-full bg-gradient-to-r from-primary to-amber-500 hover:from-primary/90 hover:to-amber-500/90 text-primary-foreground font-semibold py-6"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
+              ) : fingerprintBlocked ? (
+                <span className="flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5" />
+                  Bloqueado
+                </span>
               ) : isLocked ? (
                 <span className="flex items-center gap-2">
                   <Shield className="w-5 h-5" />
                   Bloqueado
                 </span>
+              ) : fingerprintLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
               ) : isLogin ? (
                 "Iniciar Sesión"
               ) : (
@@ -305,7 +402,7 @@ export default function Auth() {
                 setErrors({});
               }}
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              disabled={isLocked}
+              disabled={isDisabled}
             >
               {isLogin ? (
                 <>¿No tienes cuenta? <span className="text-primary font-medium">Regístrate</span></>
@@ -318,7 +415,7 @@ export default function Auth() {
           {/* Security badge */}
           <div className="mt-6 pt-4 border-t border-border/30 flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <Shield className="w-3 h-3" />
-            <span>Protegido contra bots</span>
+            <span>Protegido con fingerprinting</span>
           </div>
         </div>
       </div>
