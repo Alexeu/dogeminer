@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Mail, Lock, Loader2, Sparkles, Shield } from "lucide-react";
+import { Mail, Lock, Loader2, Shield } from "lucide-react";
+import bonkLogo from "@/assets/bonk-logo.png";
 
 const emailSchema = z.string().email("Email inválido");
 const passwordSchema = z.string().min(6, "La contraseña debe tener al menos 6 caracteres");
@@ -202,9 +203,7 @@ export default function Auth() {
       <div className="w-full max-w-md relative">
         <div className="bg-card/80 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-amber-500 rounded-2xl mb-4 shadow-lg shadow-primary/30">
-              <Sparkles className="w-8 h-8 text-primary-foreground" />
-            </div>
+            <img src={bonkLogo} alt="BONK Logo" className="w-20 h-20 mx-auto mb-4 rounded-2xl shadow-lg shadow-primary/30" />
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-amber-500 bg-clip-text text-transparent">
               BONK Miner
             </h1>
