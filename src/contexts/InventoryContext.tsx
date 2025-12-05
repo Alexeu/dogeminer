@@ -1,62 +1,145 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { BonkCharacter, starterCharacter } from "@/data/bonkData";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { BonkCharacter, starterCharacter, characters } from "@/data/bonkData";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./AuthContext";
 
 export interface InventoryItem {
   character: BonkCharacter;
   quantity: number;
-  miningStartTime: number | null; // timestamp when mining started, null if not mining
-  accumulatedBonk: number; // accumulated BONK ready to claim
+  miningStartTime: number | null;
+  accumulatedBonk: number;
+}
+
+interface RpcResponse {
+  success: boolean;
+  error?: string;
+  character_id?: string;
+  expected_reward?: number;
+  new_balance?: number;
+  claimed_amount?: number;
 }
 
 interface InventoryContextType {
   inventory: InventoryItem[];
-  addToInventory: (character: BonkCharacter) => void;
-  startMining: (characterId: string) => void;
-  claimRewards: (characterId: string) => number;
+  isLoading: boolean;
+  addToInventory: (character: BonkCharacter) => Promise<boolean>;
+  startMining: (characterId: string) => Promise<boolean>;
+  claimRewards: (characterId: string) => Promise<number>;
   getTotalMiningRate: () => number;
   getClaimableAmount: (characterId: string) => number;
+  refreshInventory: () => Promise<void>;
 }
 
 const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
 
 const MINING_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
-const STARTER_GIFT_KEY = "bonk_starter_gift_received";
 
 export const InventoryProvider = ({ children }: { children: ReactNode }) => {
-  const [inventory, setInventory] = useState<InventoryItem[]>(() => {
-    const stored = localStorage.getItem("bonk_inventory");
-    return stored ? JSON.parse(stored) : [];
-  });
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
 
-  // Give starter character (Bonknus) to new users
-  useEffect(() => {
-    const hasReceivedStarterGift = localStorage.getItem(STARTER_GIFT_KEY);
-    if (!hasReceivedStarterGift) {
-      setInventory((prev) => {
-        const hasBonknus = prev.some((item) => item.character.id === "bonknus");
-        if (!hasBonknus) {
-          return [
-            ...prev,
-            {
-              character: starterCharacter,
-              quantity: 1,
-              miningStartTime: null,
-              accumulatedBonk: 0,
-            },
-          ];
-        }
-        return prev;
-      });
-      localStorage.setItem(STARTER_GIFT_KEY, "true");
+  // Fetch inventory from database
+  const refreshInventory = useCallback(async () => {
+    if (!user) {
+      setInventory([]);
+      setIsLoading(false);
+      return;
     }
-  }, []);
 
-  // Save to localStorage whenever inventory changes
+    try {
+      // Get user's characters
+      const { data: userChars, error: charsError } = await supabase
+        .from('user_characters')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (charsError) throw charsError;
+
+      // Get active mining sessions
+      const { data: miningSessions, error: miningError } = await supabase
+        .from('mining_sessions')
+        .select('*')
+        .eq('user_id', user.id)
+        .is('claimed_at', null);
+
+      if (miningError) throw miningError;
+
+      // Map to inventory items
+      const items: InventoryItem[] = (userChars || []).map((uc) => {
+        const miningSession = miningSessions?.find(
+          (ms) => ms.user_character_id === uc.id
+        );
+        
+        // Find character data from local data
+        const charData = characters.find(c => c.id === uc.character_id) || 
+          (uc.character_id === starterCharacter.id ? starterCharacter : null);
+        
+        if (!charData) {
+          // Create character from database data
+          return {
+            character: {
+              id: uc.character_id,
+              name: uc.character_name,
+              rarity: uc.character_rarity as BonkCharacter['rarity'],
+              miningRate: Number(uc.mining_rate),
+              image: '', // Will need to handle image mapping
+            },
+            quantity: uc.quantity,
+            miningStartTime: miningSession ? new Date(miningSession.started_at).getTime() : null,
+            accumulatedBonk: 0,
+          };
+        }
+
+        return {
+          character: charData,
+          quantity: uc.quantity,
+          miningStartTime: miningSession ? new Date(miningSession.started_at).getTime() : null,
+          accumulatedBonk: 0,
+        };
+      });
+
+      setInventory(items);
+    } catch (error) {
+      console.error('Error fetching inventory:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  // Claim starter gift when user first logs in
   useEffect(() => {
-    localStorage.setItem("bonk_inventory", JSON.stringify(inventory));
-  }, [inventory]);
+    const claimStarterGift = async () => {
+      if (!user) return;
 
-  // Update accumulated BONK every second
+      try {
+        const { data } = await supabase.rpc('claim_starter_gift', {
+          p_character_id: starterCharacter.id,
+          p_character_name: starterCharacter.name,
+          p_mining_rate: starterCharacter.miningRate,
+        });
+
+        const result = data as unknown as RpcResponse;
+        if (result?.success) {
+          console.log('Starter gift claimed!');
+          await refreshInventory();
+        }
+      } catch (error) {
+        // Silently handle - gift may already be claimed
+      }
+    };
+
+    if (user) {
+      claimStarterGift();
+    }
+  }, [user, refreshInventory]);
+
+  // Refresh inventory on user change
+  useEffect(() => {
+    refreshInventory();
+  }, [refreshInventory]);
+
+  // Update accumulated rewards every second (for UI only)
   useEffect(() => {
     const interval = setInterval(() => {
       setInventory((prev) =>
@@ -64,12 +147,17 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
           if (item.miningStartTime) {
             const elapsed = Date.now() - item.miningStartTime;
             if (elapsed >= MINING_DURATION) {
-              // Mining complete - calculate final reward
               const earnedBonk = item.character.miningRate * item.quantity;
               return {
                 ...item,
                 accumulatedBonk: earnedBonk,
-                miningStartTime: null, // Stop mining
+              };
+            } else {
+              const progress = elapsed / MINING_DURATION;
+              const earnedBonk = Math.floor(item.character.miningRate * item.quantity * progress);
+              return {
+                ...item,
+                accumulatedBonk: earnedBonk,
               };
             }
           }
@@ -81,50 +169,102 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     return () => clearInterval(interval);
   }, []);
 
-  const addToInventory = (character: BonkCharacter) => {
-    setInventory((prev) => {
-      const existing = prev.find((item) => item.character.id === character.id);
-      if (existing) {
-        return prev.map((item) =>
-          item.character.id === character.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
+  const addToInventory = async (character: BonkCharacter): Promise<boolean> => {
+    if (!user) return false;
+
+    try {
+      const { data, error } = await supabase.rpc('add_user_character', {
+        p_character_id: character.id,
+        p_character_name: character.name,
+        p_character_rarity: character.rarity,
+        p_mining_rate: character.miningRate,
+      });
+
+      if (error) {
+        console.error('Error adding character:', error);
+        return false;
       }
-      return [
-        ...prev,
-        {
-          character,
-          quantity: 1,
-          miningStartTime: null,
-          accumulatedBonk: 0,
-        },
-      ];
-    });
+
+      const result = data as unknown as RpcResponse;
+      if (result?.success) {
+        await refreshInventory();
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error adding character:', error);
+      return false;
+    }
   };
 
-  const startMining = (characterId: string) => {
-    setInventory((prev) =>
-      prev.map((item) =>
-        item.character.id === characterId
-          ? { ...item, miningStartTime: Date.now(), accumulatedBonk: 0 }
-          : item
-      )
-    );
+  const startMining = async (characterId: string): Promise<boolean> => {
+    if (!user) return false;
+
+    try {
+      const { data, error } = await supabase.rpc('start_mining', {
+        p_character_id: characterId,
+      });
+
+      if (error) {
+        console.error('Error starting mining:', error);
+        return false;
+      }
+
+      const result = data as unknown as RpcResponse;
+      if (result?.success) {
+        // Update local state immediately
+        setInventory((prev) =>
+          prev.map((item) =>
+            item.character.id === characterId
+              ? { ...item, miningStartTime: Date.now(), accumulatedBonk: 0 }
+              : item
+          )
+        );
+        return true;
+      }
+      console.error('Start mining failed:', result?.error);
+      return false;
+    } catch (error) {
+      console.error('Error starting mining:', error);
+      return false;
+    }
   };
 
-  const claimRewards = (characterId: string): number => {
-    let claimedAmount = 0;
-    setInventory((prev) =>
-      prev.map((item) => {
-        if (item.character.id === characterId && item.accumulatedBonk > 0) {
-          claimedAmount = item.accumulatedBonk;
-          return { ...item, accumulatedBonk: 0 };
-        }
-        return item;
-      })
-    );
-    return claimedAmount;
+  const claimRewards = async (characterId: string): Promise<number> => {
+    if (!user) return 0;
+
+    try {
+      const { data, error } = await supabase.rpc('claim_mining_reward', {
+        p_amount: 0, // This is now ignored - server calculates actual amount
+        p_character_id: characterId,
+      });
+
+      if (error) {
+        console.error('Error claiming rewards:', error);
+        return 0;
+      }
+
+      const result = data as unknown as RpcResponse;
+      if (result?.success && result.claimed_amount) {
+        const claimedAmount = result.claimed_amount;
+        
+        // Update local state
+        setInventory((prev) =>
+          prev.map((item) =>
+            item.character.id === characterId
+              ? { ...item, accumulatedBonk: 0, miningStartTime: null }
+              : item
+          )
+        );
+        
+        return claimedAmount;
+      }
+      console.error('Claim failed:', result?.error);
+      return 0;
+    } catch (error) {
+      console.error('Error claiming rewards:', error);
+      return 0;
+    }
   };
 
   const getClaimableAmount = (characterId: string): number => {
@@ -157,11 +297,13 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     <InventoryContext.Provider
       value={{
         inventory,
+        isLoading,
         addToInventory,
         startMining,
         claimRewards,
         getTotalMiningRate,
         getClaimableAmount,
+        refreshInventory,
       }}
     >
       {children}

@@ -230,6 +230,47 @@ export type Database = {
           },
         ]
       }
+      mining_sessions: {
+        Row: {
+          actual_reward: number | null
+          claimed_at: string | null
+          expected_reward: number
+          id: string
+          mining_duration_ms: number
+          started_at: string
+          user_character_id: string
+          user_id: string
+        }
+        Insert: {
+          actual_reward?: number | null
+          claimed_at?: string | null
+          expected_reward: number
+          id?: string
+          mining_duration_ms?: number
+          started_at?: string
+          user_character_id: string
+          user_id: string
+        }
+        Update: {
+          actual_reward?: number | null
+          claimed_at?: string | null
+          expected_reward?: number
+          id?: string
+          mining_duration_ms?: number
+          started_at?: string
+          user_character_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mining_sessions_user_character_id_fkey"
+            columns: ["user_character_id"]
+            isOneToOne: false
+            referencedRelation: "user_characters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -276,12 +317,14 @@ export type Database = {
           balance: number | null
           ban_reason: string | null
           banned_at: string | null
+          collection_reward_claimed_at: string | null
           created_at: string | null
           email: string | null
           id: string
           is_banned: boolean | null
           referral_code: string | null
           referred_by: string | null
+          starter_gift_received_at: string | null
           total_earned: number | null
           total_withdrawn: number | null
           updated_at: string | null
@@ -291,12 +334,14 @@ export type Database = {
           balance?: number | null
           ban_reason?: string | null
           banned_at?: string | null
+          collection_reward_claimed_at?: string | null
           created_at?: string | null
           email?: string | null
           id: string
           is_banned?: boolean | null
           referral_code?: string | null
           referred_by?: string | null
+          starter_gift_received_at?: string | null
           total_earned?: number | null
           total_withdrawn?: number | null
           updated_at?: string | null
@@ -306,12 +351,14 @@ export type Database = {
           balance?: number | null
           ban_reason?: string | null
           banned_at?: string | null
+          collection_reward_claimed_at?: string | null
           created_at?: string | null
           email?: string | null
           id?: string
           is_banned?: boolean | null
           referral_code?: string | null
           referred_by?: string | null
+          starter_gift_received_at?: string | null
           total_earned?: number | null
           total_withdrawn?: number | null
           updated_at?: string | null
@@ -388,6 +435,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_characters: {
+        Row: {
+          character_id: string
+          character_name: string
+          character_rarity: string
+          created_at: string
+          id: string
+          mining_rate: number
+          quantity: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          character_id: string
+          character_name: string
+          character_rarity: string
+          created_at?: string
+          id?: string
+          mining_rate: number
+          quantity?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          character_id?: string
+          character_name?: string
+          character_rarity?: string
+          created_at?: string
+          id?: string
+          mining_rate?: number
+          quantity?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -411,7 +494,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      add_balance: { Args: { p_amount: number }; Returns: Json }
+      add_user_character: {
+        Args: {
+          p_character_id: string
+          p_character_name: string
+          p_character_rarity: string
+          p_mining_rate: number
+        }
+        Returns: Json
+      }
+      admin_add_balance: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: Json
+      }
       apply_referral_code: { Args: { p_code: string }; Returns: Json }
       buy_lottery_tickets: {
         Args: { p_pool_id: string; p_ticket_count: number }
@@ -420,6 +515,14 @@ export type Database = {
       check_fingerprint_banned: { Args: { fp: string }; Returns: boolean }
       claim_mining_reward: {
         Args: { p_amount: number; p_character_id: string }
+        Returns: Json
+      }
+      claim_starter_gift: {
+        Args: {
+          p_character_id: string
+          p_character_name: string
+          p_mining_rate: number
+        }
         Returns: Json
       }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
@@ -440,6 +543,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      internal_add_balance: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: boolean
+      }
+      start_mining: { Args: { p_character_id: string }; Returns: Json }
       subtract_balance: { Args: { p_amount: number }; Returns: Json }
     }
     Enums: {

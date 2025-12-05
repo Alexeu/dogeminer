@@ -1,5 +1,4 @@
 import { useInventory } from "@/contexts/InventoryContext";
-import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { rarityConfig } from "@/data/dogeData";
 import { Button } from "@/components/ui/button";
 import { Play, Gift, Clock, Coins } from "lucide-react";
@@ -10,26 +9,30 @@ const MINING_DURATION = 60 * 60 * 1000; // 1 hour
 
 const InventorySection = () => {
   const { inventory, startMining, claimRewards, getClaimableAmount } = useInventory();
-  const { claimMiningReward } = useDogeBalance();
   const [claimingId, setClaimingId] = useState<string | null>(null);
+  const [startingId, setStartingId] = useState<string | null>(null);
 
-  const handleStartMining = (characterId: string) => {
-    startMining(characterId);
-    toast.success("¡Minado iniciado! Vuelve en 1 hora para reclamar.");
+  const handleStartMining = async (characterId: string) => {
+    setStartingId(characterId);
+    const success = await startMining(characterId);
+    setStartingId(null);
+    
+    if (success) {
+      toast.success("¡Minado iniciado! Vuelve en 1 hora para reclamar.");
+    } else {
+      toast.error("Error al iniciar minado");
+    }
   };
 
   const handleClaim = async (characterId: string) => {
-    const amount = claimRewards(characterId);
+    setClaimingId(characterId);
+    const amount = await claimRewards(characterId);
+    setClaimingId(null);
+    
     if (amount > 0) {
-      setClaimingId(characterId);
-      const success = await claimMiningReward(amount, characterId);
-      setClaimingId(null);
-      
-      if (success) {
-        toast.success(`¡Has reclamado ${amount.toFixed(4)} DOGE!`);
-      } else {
-        toast.error("Error al reclamar recompensas");
-      }
+      toast.success(`¡Has reclamado ${amount.toFixed(4)} DOGE!`);
+    } else {
+      toast.error("Error al reclamar recompensas");
     }
   };
 
@@ -82,6 +85,7 @@ const InventorySection = () => {
             const canClaim = item.accumulatedBonk > 0;
             const claimableAmount = getClaimableAmount(item.character.id);
             const isClaiming = claimingId === item.character.id;
+            const isStarting = startingId === item.character.id;
 
             return (
               <div
@@ -157,11 +161,12 @@ const InventorySection = () => {
                   ) : (
                     <Button
                       onClick={() => handleStartMining(item.character.id)}
+                      disabled={isStarting}
                       variant="outline"
                       className="w-full"
                     >
                       <Play className="w-4 h-4 mr-2" />
-                      Iniciar Minado
+                      {isStarting ? "Iniciando..." : "Iniciar Minado"}
                     </Button>
                   )}
                 </div>
