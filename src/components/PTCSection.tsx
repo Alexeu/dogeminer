@@ -17,8 +17,8 @@ import {
 import { toast } from "sonner";
 import { Eye, Plus, ExternalLink, Coins, Timer, CheckCircle, Loader2 } from "lucide-react";
 
-const COST_PER_VIEW = 0.003575; // 55 BONK * 0.000065 DOGE
-const REWARD_PER_VIEW = 0.0013; // 20 BONK * 0.000065 DOGE
+const COST_PER_VIEW = 0.003575; // Costo por vista en DOGE
+const REWARD_PER_VIEW = 0.0013; // Recompensa por vista en DOGE
 const MIN_VIEWS = 1000;
 
 interface Ad {

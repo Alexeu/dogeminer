@@ -31,14 +31,13 @@ export interface DogeCharacter {
   miningRate: number; // DOGE per hour
 }
 
-// Conversion: 1 BONK = 0.000065 DOGE
-// Mining rates per hour by rarity (in DOGE)
+// Tasas de minado por hora por rareza (en DOGE)
 export const miningRatesByRarity: Record<Rarity, number> = {
-  starter: 0.00013,   // 2 BONK * 0.000065
-  common: 0.00143,    // 22 BONK * 0.000065
-  rare: 0.002015,     // 31 BONK * 0.000065
-  epic: 0.0026,       // 40 BONK * 0.000065
-  legendary: 0.00325, // 50 BONK * 0.000065
+  starter: 0.00013,
+  common: 0.00143,
+  rare: 0.002015,
+  epic: 0.0026,
+  legendary: 0.00325,
 };
 
 // Starter character given for free upon registration
@@ -80,13 +79,13 @@ export const characters: DogeCharacter[] = [
   { id: "dragon", name: "Doge Dragon", image: dogeDragon, rarity: "legendary", miningRate: 0.00325 },
 ];
 
-// Ultra-rare mythic legendary (0.15% in legendary box)
+// Personaje mítico ultra-raro (0.15% en caja legendaria)
 export const mythicCharacter: DogeCharacter = {
   id: "doge-supreme",
   name: "Doge Supreme",
   image: dogeSupreme,
   rarity: "legendary",
-  miningRate: 0.0065, // 100 BONK * 0.000065 - Double the normal legendary rate!
+  miningRate: 0.0065, // Doble tasa de minado que legendario normal
 };
 
 // Check if a character is the mythic one
@@ -139,12 +138,12 @@ export interface BoxType {
   description: string;
 }
 
-// 1 BONK = 0.000065 DOGE
+// Precios en DOGE
 export const boxTypes: BoxType[] = [
   {
     id: "common",
     name: "Common Box",
-    price: 0.975,    // 15000 BONK * 0.000065
+    price: 0.975,
     dropRates: { starter: 0, common: 100, rare: 0, epic: 0, legendary: 0 },
     gradient: "from-gray-500 to-gray-700",
     description: "Solo personajes comunes garantizados",
@@ -152,7 +151,7 @@ export const boxTypes: BoxType[] = [
   {
     id: "rare",
     name: "Rare Box",
-    price: 4.225,    // 65000 BONK * 0.000065
+    price: 4.225,
     dropRates: { starter: 0, common: 40, rare: 40, epic: 0, legendary: 20 },
     gradient: "from-blue-500 to-indigo-600",
     description: "40% común, 40% raro, 20% legendario",
@@ -160,7 +159,7 @@ export const boxTypes: BoxType[] = [
   {
     id: "legendary",
     name: "Legendary Box",
-    price: 9.75,     // 150000 BONK * 0.000065
+    price: 9.75,
     dropRates: { starter: 0, common: 0, rare: 40, epic: 40, legendary: 20 },
     gradient: "from-yellow-500 to-amber-600",
     description: "40% raro, 40% épico, 20% legendario",
