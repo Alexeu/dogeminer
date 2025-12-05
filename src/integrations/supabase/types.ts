@@ -14,12 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      device_fingerprints: {
+        Row: {
+          created_at: string | null
+          fingerprint: string
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          fingerprint: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          fingerprint?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_fingerprints_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           balance: number | null
+          ban_reason: string | null
+          banned_at: string | null
           created_at: string | null
           email: string | null
           id: string
+          is_banned: boolean | null
           referral_code: string | null
           referred_by: string | null
           total_earned: number | null
@@ -29,9 +67,12 @@ export type Database = {
         }
         Insert: {
           balance?: number | null
+          ban_reason?: string | null
+          banned_at?: string | null
           created_at?: string | null
           email?: string | null
           id: string
+          is_banned?: boolean | null
           referral_code?: string | null
           referred_by?: string | null
           total_earned?: number | null
@@ -41,9 +82,12 @@ export type Database = {
         }
         Update: {
           balance?: number | null
+          ban_reason?: string | null
+          banned_at?: string | null
           created_at?: string | null
           email?: string | null
           id?: string
+          is_banned?: boolean | null
           referral_code?: string | null
           referred_by?: string | null
           total_earned?: number | null
@@ -123,6 +167,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_fingerprint_banned: { Args: { fp: string }; Returns: boolean }
+      get_users_by_fingerprint: {
+        Args: { fp: string }
+        Returns: {
+          email: string
+          is_banned: boolean
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
