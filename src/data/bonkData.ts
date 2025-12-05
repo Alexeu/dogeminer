@@ -115,28 +115,28 @@ export interface BoxType {
 
 export const boxTypes: BoxType[] = [
   {
-    id: "basic",
-    name: "Basic Box",
-    price: 5000,
-    dropRates: { starter: 0, common: 70, rare: 22, epic: 7, legendary: 1 },
+    id: "common",
+    name: "Common Box",
+    price: 15000,
+    dropRates: { starter: 0, common: 100, rare: 0, epic: 0, legendary: 0 },
     gradient: "from-gray-500 to-gray-700",
-    description: "Standard mystery box with decent drop rates",
+    description: "Solo personajes comunes garantizados",
   },
   {
-    id: "premium",
-    name: "Premium Box",
-    price: 80000,
-    dropRates: { starter: 0, common: 45, rare: 35, epic: 15, legendary: 5 },
+    id: "rare",
+    name: "Rare Box",
+    price: 65000,
+    dropRates: { starter: 0, common: 40, rare: 40, epic: 0, legendary: 20 },
     gradient: "from-blue-500 to-indigo-600",
-    description: "Better chances for rare and epic BONKs",
+    description: "40% común, 40% raro, 20% legendario",
   },
   {
     id: "legendary",
     name: "Legendary Box",
-    price: 250000,
-    dropRates: { starter: 0, common: 20, rare: 35, epic: 30, legendary: 15 },
+    price: 150000,
+    dropRates: { starter: 0, common: 0, rare: 40, epic: 40, legendary: 20 },
     gradient: "from-amber-500 to-orange-600",
-    description: "Highest chance for legendary BONKs!",
+    description: "40% raro, 40% épico, 20% legendario",
   },
 ];
 
