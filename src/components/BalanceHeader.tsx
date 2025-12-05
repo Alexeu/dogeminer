@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Coins, Pickaxe, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import bonkLogo from "@/assets/bonk-logo.png";
 
 const BalanceHeader = () => {
   const { balance, miningRate } = useBonkBalance();
@@ -23,9 +24,7 @@ const BalanceHeader = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center shadow-bonk-sm">
-              <span className="text-xl">🐕</span>
-            </div>
+            <img src={bonkLogo} alt="BONK Logo" className="w-10 h-10 rounded-xl shadow-bonk-sm" />
             <span className="text-xl font-bold">
               <span className="text-gradient">BONK</span>Miner
             </span>
