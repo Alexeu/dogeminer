@@ -4,6 +4,15 @@ import { boxTypes, BoxType } from "@/data/dogeData";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import MysteryBoxModal from "@/components/MysteryBoxModal";
 import { Gift, Sparkles, Zap, Lock } from "lucide-react";
+import boxCommon from "@/assets/box-common.png";
+import boxRare from "@/assets/box-rare.png";
+import boxLegendary from "@/assets/box-legendary.png";
+
+const boxImages: Record<string, string> = {
+  common: boxCommon,
+  rare: boxRare,
+  legendary: boxLegendary,
+};
 
 const MysteryBoxSection = () => {
   const [selectedBox, setSelectedBox] = useState<BoxType | null>(null);
@@ -61,30 +70,21 @@ const MysteryBoxSection = () => {
                 <div className="relative mb-6">
                   <div
                     className={`
-                      w-32 h-32 mx-auto rounded-2xl bg-gradient-to-br ${box.gradient}
-                      flex items-center justify-center shadow-lg
+                      w-36 h-36 mx-auto
+                      flex items-center justify-center
                       transform transition-transform duration-300 
-                      ${canAfford ? "group-hover:scale-105 group-hover:rotate-3" : "grayscale-[30%]"}
+                      ${canAfford ? "group-hover:scale-110 group-hover:rotate-3" : "grayscale-[30%] opacity-70"}
                     `}
                   >
-                    {/* Box lid */}
-                    <div
-                      className={`
-                        absolute -top-3 left-2 right-2 h-8 rounded-t-xl bg-gradient-to-br ${box.gradient}
-                        shadow-md
-                      `}
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent rounded-t-xl" />
-                    </div>
-
-                    {/* Shine effect */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent rounded-2xl" />
-
-                    {/* Icon */}
-                    {canAfford ? (
-                      <Gift className="w-12 h-12 text-white/90 drop-shadow-lg" />
-                    ) : (
-                      <Lock className="w-12 h-12 text-white/70 drop-shadow-lg" />
+                    <img 
+                      src={boxImages[box.id]} 
+                      alt={box.name}
+                      className="w-full h-full object-contain drop-shadow-xl"
+                    />
+                    {!canAfford && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Lock className="w-10 h-10 text-white/80 drop-shadow-lg" />
+                      </div>
                     )}
                   </div>
 
