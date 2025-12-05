@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { characters, starterCharacter, mythicCharacter, rarityConfig, DogeCharacter, isMythicCharacter } from "@/data/dogeData";
+import { characters, starterCharacter, rarityConfig, DogeCharacter } from "@/data/dogeData";
 import { useInventory } from "@/contexts/InventoryContext";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,8 +9,8 @@ import { toast } from "sonner";
 
 const COLLECTION_REWARD = 45.5; // Recompensa por colección completa en DOGE
 
-// All characters including starter and mythic
-const allCharacters: DogeCharacter[] = [starterCharacter, ...characters, mythicCharacter];
+// All characters including starter
+const allCharacters: DogeCharacter[] = [starterCharacter, ...characters];
 const TOTAL_CHARACTERS = allCharacters.length;
 
 interface ClaimResponse {
@@ -166,35 +166,23 @@ const CollectionSection = () => {
             const config = rarityConfig[character.rarity];
             const inventoryItem = inventory.find(item => item.character.id === character.id);
             const quantity = inventoryItem?.quantity || 0;
-            const isMythic = isMythicCharacter(character.id);
 
             return (
               <div
                 key={character.id}
                 className={`relative group rounded-xl overflow-hidden transition-all duration-300 ${
-                  isMythic && isCollected
-                    ? "bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-cyan-500/20 border-2 border-pink-500 hover:scale-110 shadow-lg shadow-purple-500/30"
-                    : isCollected 
+                  isCollected 
                     ? "bg-card border-2 border-border hover:border-primary/50 hover:scale-105" 
-                    : isMythic
-                    ? "bg-gradient-to-br from-pink-900/30 via-purple-900/30 to-cyan-900/30 border-2 border-purple-500/30"
                     : "bg-secondary/50 border-2 border-border/50"
                 }`}
               >
-                {/* Mythic glow effect */}
-                {isMythic && isCollected && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-cyan-500/20 animate-pulse" />
-                )}
-                
                 {/* Character Image */}
                 <div className="aspect-square p-2 relative">
                   <img
                     src={character.image}
                     alt={character.name}
                     className={`w-full h-full object-contain transition-all duration-300 ${
-                      isCollected 
-                        ? isMythic ? "brightness-125 contrast-110" : "" 
-                        : "grayscale brightness-[0.3] contrast-50"
+                      isCollected ? "" : "grayscale brightness-[0.3] contrast-50"
                     }`}
                   />
                   
@@ -221,26 +209,18 @@ const CollectionSection = () => {
                 </div>
 
                 {/* Character Info */}
-                <div className={`p-2 text-center border-t ${
-                  isMythic ? "border-purple-500/50" : isCollected ? "border-border" : "border-border/30"
-                }`}>
+                <div className={`p-2 text-center border-t ${isCollected ? "border-border" : "border-border/30"}`}>
                   <p className={`text-xs font-medium truncate ${
-                    isMythic && isCollected 
-                      ? "bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent"
-                      : isCollected ? "text-foreground" : "text-muted-foreground/50"
+                    isCollected ? "text-foreground" : "text-muted-foreground/50"
                   }`}>
-                    {isCollected ? character.name : isMythic ? "???" : "???"}
+                    {isCollected ? character.name : "???"}
                   </p>
                   <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded-full mt-1 ${
-                    isMythic && isCollected
-                      ? "bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 text-white"
-                      : isMythic && !isCollected
-                      ? "bg-gradient-to-r from-pink-900/50 via-purple-900/50 to-cyan-900/50 text-purple-300/50"
-                      : isCollected 
+                    isCollected 
                       ? `bg-gradient-to-r ${config.color} text-white` 
                       : "bg-secondary text-muted-foreground/50"
                   }`}>
-                    {isMythic ? (isCollected ? "✨ MYTHIC" : "0.15%") : (isCollected ? config.label : "?????")}
+                    {isCollected ? config.label : "?????"}
                   </span>
                 </div>
               </div>

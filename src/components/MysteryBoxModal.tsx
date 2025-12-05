@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { BoxType, DogeCharacter, rarityConfig, isMythicCharacter, characters, mythicCharacter } from "@/data/dogeData";
+import { BoxType, DogeCharacter, rarityConfig, characters } from "@/data/dogeData";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { useInventory } from "@/contexts/InventoryContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,9 +18,6 @@ type AnimationPhase = "idle" | "shaking" | "opening" | "revealing" | "revealed";
 
 // Map character IDs to their images
 const getCharacterImage = (characterId: string): string => {
-  if (characterId === "doge-supreme") {
-    return mythicCharacter.image;
-  }
   const char = characters.find(c => c.id === characterId);
   return char?.image || characters[0].image;
 };
@@ -80,7 +77,6 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
           name: string; 
           rarity: string; 
           miningRate: number;
-          isMythic: boolean;
         };
         new_balance?: number;
       };
@@ -113,8 +109,7 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
       refreshBalance();
       refreshInventory();
 
-      const isMythic = serverCharacter.isMythic;
-      toast.success(isMythic ? `🌟 ¡¡MYTHIC!! 🌟` : `¡Nuevo personaje!`, {
+      toast.success(`¡Nuevo personaje!`, {
         description: `${character.name} añadido a tu colección`,
       });
 
@@ -246,42 +241,27 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
             <div className="relative z-10 flex flex-col items-center animate-slide-up">
               {/* Glow effect */}
               <div
-                className={`absolute w-64 h-64 rounded-full bg-gradient-radial ${config.color} opacity-30 blur-3xl ${
-                  isMythicCharacter(revealedCharacter.id) ? "animate-pulse" : ""
-                }`}
+                className={`absolute w-64 h-64 rounded-full bg-gradient-radial ${config.color} opacity-30 blur-3xl`}
               />
-
-              {/* Mythic rainbow border */}
-              {isMythicCharacter(revealedCharacter.id) && (
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 opacity-50 blur-xl animate-spin" style={{ animationDuration: "3s" }} />
-              )}
 
               {/* Character image */}
               <div className="relative">
                 <img
                   src={revealedCharacter.image}
                   alt={revealedCharacter.name}
-                  className={`w-40 h-40 object-contain drop-shadow-2xl animate-float ${
-                    isMythicCharacter(revealedCharacter.id) ? "brightness-125 contrast-110" : ""
-                  }`}
+                  className="w-40 h-40 object-contain drop-shadow-2xl animate-float"
                 />
               </div>
 
               {/* Character info */}
-              <h3 className={`text-2xl font-bold mt-4 ${
-                isMythicCharacter(revealedCharacter.id) ? "bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent" : ""
-              }`}>
+              <h3 className="text-2xl font-bold mt-4">
                 {revealedCharacter.name}
               </h3>
 
               <span
-                className={`inline-block px-4 py-1.5 rounded-full text-sm font-semibold mt-2 ${
-                  isMythicCharacter(revealedCharacter.id) 
-                    ? "bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 text-white"
-                    : `${config.bgColor} ${config.textColor}`
-                }`}
+                className={`inline-block px-4 py-1.5 rounded-full text-sm font-semibold mt-2 ${config.bgColor} ${config.textColor}`}
               >
-                {isMythicCharacter(revealedCharacter.id) ? "✨ MYTHIC ✨" : config.label}
+                {config.label}
               </span>
 
               <p className="text-muted-foreground mt-2">
