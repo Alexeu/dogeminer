@@ -116,6 +116,13 @@ const checkIPRateLimit = async (
 };
 
 // Input validation
+const SUPPORTED_CURRENCIES = ['DOGE'] as const;
+type SupportedCurrency = typeof SUPPORTED_CURRENCIES[number];
+
+const validateCurrency = (currency: string): currency is SupportedCurrency => {
+  return SUPPORTED_CURRENCIES.includes(currency as SupportedCurrency);
+};
+
 const validateEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email) && email.length <= 255;
@@ -196,8 +203,19 @@ serve(async (req) => {
     const userId = user.id;
     console.log(`Authenticated user: ${userId}`);
 
-    const { action, address, amount, currency = 'BONK' } = await req.json();
+    const { action, address, amount, currency = 'DOGE' } = await req.json();
     console.log(`FaucetPay action: ${action}, currency: ${currency}`);
+
+    // Validate currency against whitelist
+    if (!validateCurrency(currency)) {
+      return new Response(JSON.stringify({ 
+        status: 400, 
+        message: `Unsupported currency. Supported currencies: ${SUPPORTED_CURRENCIES.join(', ')}` 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     if (!FAUCETPAY_API_KEY) {
       console.error('FaucetPay API key not configured');
