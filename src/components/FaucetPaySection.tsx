@@ -1,19 +1,82 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useBonkBalance } from "@/contexts/BonkBalanceContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Wallet, ArrowDownToLine, ArrowUpFromLine, Loader2 } from "lucide-react";
+import { Wallet, ArrowDownToLine, ArrowUpFromLine, Loader2, History, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+
+const DAILY_LIMIT = 50000;
+
+interface Transaction {
+  id: string;
+  amount: number;
+  status: string;
+  faucetpay_address: string | null;
+  created_at: string;
+}
 
 const FaucetPaySection = () => {
-  const { balance, subtractBalance, addBalance } = useBonkBalance();
+  const { balance, subtractBalance, addBalance, refreshBalance } = useBonkBalance();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [withdrawAddress, setWithdrawAddress] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [depositAddress, setDepositAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [faucetPayBalance, setFaucetPayBalance] = useState<number | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [dailyUsed, setDailyUsed] = useState(0);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+
+  // Fetch transaction history and daily usage
+  useEffect(() => {
+    if (user) {
+      fetchTransactions();
+    }
+  }, [user]);
+
+  const fetchTransactions = async () => {
+    if (!user) return;
+    
+    setLoadingHistory(true);
+    try {
+      // Fetch recent transactions
+      const { data: txData, error: txError } = await supabase
+        .from('transactions')
+        .select('id, amount, status, faucetpay_address, created_at')
+        .eq('user_id', user.id)
+        .eq('type', 'withdrawal')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (txError) throw txError;
+      setTransactions(txData || []);
+
+      // Calculate daily usage
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayISO = today.toISOString();
+
+      const { data: dailyData, error: dailyError } = await supabase
+        .from('transactions')
+        .select('amount')
+        .eq('user_id', user.id)
+        .eq('type', 'withdrawal')
+        .in('status', ['pending', 'completed'])
+        .gte('created_at', todayISO);
+
+      if (dailyError) throw dailyError;
+      
+      const total = dailyData?.reduce((sum, tx) => sum + Number(tx.amount), 0) || 0;
+      setDailyUsed(total);
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
 
   const checkFaucetPayBalance = async () => {
     setIsLoading(true);
@@ -74,6 +137,16 @@ const FaucetPaySection = () => {
       return;
     }
 
+    // Check daily limit
+    if (dailyUsed + amount > DAILY_LIMIT) {
+      toast({
+        title: "Límite diario excedido",
+        description: `Solo puedes retirar ${formatNumber(DAILY_LIMIT - dailyUsed)} BONK más hoy`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       // First check if the address is valid
@@ -100,15 +173,15 @@ const FaucetPaySection = () => {
       if (error) throw error;
 
       if (data.status === 200) {
-        const success = await subtractBalance(amount);
-        if (success) {
-          toast({
-            title: "¡Retiro exitoso!",
-            description: `Se enviaron ${amount} BONK a tu cuenta de FaucetPay`,
-          });
-          setWithdrawAmount("");
-          setWithdrawAddress("");
-        }
+        toast({
+          title: "¡Retiro exitoso!",
+          description: `Se enviaron ${amount} BONK a tu cuenta de FaucetPay`,
+        });
+        setWithdrawAmount("");
+        setWithdrawAddress("");
+        // Refresh balance and transactions
+        await refreshBalance();
+        await fetchTransactions();
       } else {
         throw new Error(data.message || 'Error al procesar el retiro');
       }
@@ -172,6 +245,41 @@ const FaucetPaySection = () => {
     return num.toLocaleString('en-US', { maximumFractionDigits: 2 });
   };
 
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('es-ES', { 
+      day: '2-digit', 
+      month: 'short', 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <CheckCircle className="w-4 h-4 text-emerald-500" />;
+      case 'failed':
+        return <XCircle className="w-4 h-4 text-destructive" />;
+      case 'pending':
+        return <Clock className="w-4 h-4 text-amber-500 animate-pulse" />;
+      default:
+        return <AlertCircle className="w-4 h-4 text-muted-foreground" />;
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'completed': return 'Completado';
+      case 'failed': return 'Fallido';
+      case 'pending': return 'Pendiente';
+      default: return status;
+    }
+  };
+
+  const dailyPercentage = Math.min((dailyUsed / DAILY_LIMIT) * 100, 100);
+  const remainingDaily = Math.max(DAILY_LIMIT - dailyUsed, 0);
+
   return (
     <section id="faucetpay" className="py-20 bg-gradient-to-b from-background to-secondary/20">
       <div className="container mx-auto px-4">
@@ -186,6 +294,32 @@ const FaucetPaySection = () => {
           <p className="text-muted-foreground max-w-xl mx-auto">
             Conecta tu cuenta de FaucetPay para depositar y retirar tu BONK de forma segura
           </p>
+        </div>
+
+        {/* Daily Limit Progress */}
+        <div className="max-w-4xl mx-auto mb-8">
+          <div className="glass rounded-2xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">Límite diario de retiro</span>
+              <span className="text-sm text-muted-foreground">
+                {formatNumber(dailyUsed)} / {formatNumber(DAILY_LIMIT)} BONK
+              </span>
+            </div>
+            <div className="w-full h-3 bg-secondary rounded-full overflow-hidden">
+              <div 
+                className={`h-full transition-all duration-500 ${
+                  dailyPercentage >= 90 ? 'bg-destructive' : 
+                  dailyPercentage >= 70 ? 'bg-amber-500' : 
+                  'bg-gradient-to-r from-primary to-emerald-500'
+                }`}
+                style={{ width: `${dailyPercentage}%` }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Disponible hoy: <span className="font-semibold text-primary">{formatNumber(remainingDaily)} BONK</span>
+              {' '}• El límite se reinicia a medianoche UTC
+            </p>
+          </div>
         </div>
 
         <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-6">
@@ -234,7 +368,7 @@ const FaucetPaySection = () => {
             </Button>
 
             <p className="text-xs text-muted-foreground text-center">
-              Mínimo: 100 BONK • Máximo: 1,000,000 BONK
+              Mínimo: 100 BONK • Máximo diario: {formatNumber(DAILY_LIMIT)} BONK
             </p>
           </div>
 
@@ -295,6 +429,65 @@ const FaucetPaySection = () => {
               <Wallet className="w-4 h-4 mr-2" />
               Ver Balance FaucetPay
             </Button>
+          </div>
+        </div>
+
+        {/* Transaction History */}
+        <div className="max-w-4xl mx-auto mt-8">
+          <div className="glass rounded-2xl p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                <History className="w-5 h-5 text-foreground" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold">Historial de Retiros</h3>
+                <p className="text-sm text-muted-foreground">Tus últimas transacciones</p>
+              </div>
+            </div>
+
+            {loadingHistory ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              </div>
+            ) : transactions.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <History className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p>No hay transacciones aún</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {transactions.map((tx) => (
+                  <div 
+                    key={tx.id}
+                    className="flex items-center justify-between p-3 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      {getStatusIcon(tx.status)}
+                      <div>
+                        <p className="font-medium text-sm">
+                          -{formatNumber(tx.amount)} BONK
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {tx.faucetpay_address ? `→ ${tx.faucetpay_address.slice(0, 20)}...` : 'FaucetPay'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        tx.status === 'completed' ? 'bg-emerald-500/20 text-emerald-500' :
+                        tx.status === 'failed' ? 'bg-destructive/20 text-destructive' :
+                        'bg-amber-500/20 text-amber-500'
+                      }`}>
+                        {getStatusLabel(tx.status)}
+                      </span>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {formatDate(tx.created_at)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
