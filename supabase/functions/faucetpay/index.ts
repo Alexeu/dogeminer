@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -6,7 +7,19 @@ const corsHeaders = {
 };
 
 const FAUCETPAY_API_URL = 'https://faucetpay.io/api/v1';
-const API_KEY = Deno.env.get('FAUCETPAY_API_KEY');
+const FAUCETPAY_API_KEY = Deno.env.get('FAUCETPAY_API_KEY');
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+// Input validation
+const validateEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length <= 255;
+};
+
+const validateAmount = (amount: number): boolean => {
+  return typeof amount === 'number' && amount > 0 && amount <= 10000000 && Number.isFinite(amount);
+};
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -15,16 +28,58 @@ serve(async (req) => {
   }
 
   try {
-    const { action, address, amount, currency = 'BONK' } = await req.json();
-    console.log(`FaucetPay action: ${action}, address: ${address}, amount: ${amount}, currency: ${currency}`);
+    // Extract and verify JWT token
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.error('Missing or invalid authorization header');
+      return new Response(JSON.stringify({ 
+        status: 401, 
+        message: 'Authentication required' 
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-    if (!API_KEY) {
-      throw new Error('FaucetPay API key not configured');
+    const token = authHeader.replace('Bearer ', '');
+    
+    // Create Supabase client with service role for admin operations
+    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    
+    // Verify the user's JWT and get user info
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error('JWT verification failed:', authError?.message);
+      return new Response(JSON.stringify({ 
+        status: 401, 
+        message: 'Invalid or expired token' 
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const userId = user.id;
+    console.log(`Authenticated user: ${userId}`);
+
+    const { action, address, amount, currency = 'BONK' } = await req.json();
+    console.log(`FaucetPay action: ${action}, currency: ${currency}`);
+
+    if (!FAUCETPAY_API_KEY) {
+      console.error('FaucetPay API key not configured');
+      return new Response(JSON.stringify({ 
+        status: 500, 
+        message: 'FaucetPay API key not configured' 
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     let endpoint = '';
     let body: Record<string, string> = {
-      api_key: API_KEY,
+      api_key: FAUCETPAY_API_KEY,
     };
 
     switch (action) {
@@ -34,17 +89,225 @@ serve(async (req) => {
         break;
       
       case 'checkAddress':
+        // Validate email/address format
+        if (!address || typeof address !== 'string') {
+          return new Response(JSON.stringify({ 
+            status: 400, 
+            message: 'Address is required' 
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        
+        if (!validateEmail(address)) {
+          return new Response(JSON.stringify({ 
+            status: 400, 
+            message: 'Invalid email format' 
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        
         endpoint = '/checkaddress';
         body.address = address;
         body.currency = currency;
         break;
       
       case 'send':
+        // CRITICAL: Validate inputs
+        if (!address || typeof address !== 'string') {
+          return new Response(JSON.stringify({ 
+            status: 400, 
+            message: 'Address is required' 
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        
+        if (!validateEmail(address)) {
+          return new Response(JSON.stringify({ 
+            status: 400, 
+            message: 'Invalid email format' 
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        
+        if (!validateAmount(amount)) {
+          return new Response(JSON.stringify({ 
+            status: 400, 
+            message: 'Invalid amount. Must be a positive number.' 
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Minimum withdrawal amount
+        if (amount < 100) {
+          return new Response(JSON.stringify({ 
+            status: 400, 
+            message: 'Minimum withdrawal is 100 BONK' 
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // CRITICAL: Check user's database balance before withdrawal
+        const { data: profile, error: profileError } = await supabaseAdmin
+          .from('profiles')
+          .select('balance')
+          .eq('id', userId)
+          .single();
+
+        if (profileError || !profile) {
+          console.error('Failed to fetch user profile:', profileError?.message);
+          return new Response(JSON.stringify({ 
+            status: 500, 
+            message: 'Failed to verify user balance' 
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const userBalance = Number(profile.balance) || 0;
+        console.log(`User ${userId} balance: ${userBalance}, requested: ${amount}`);
+
+        if (userBalance < amount) {
+          return new Response(JSON.stringify({ 
+            status: 400, 
+            message: 'Insufficient balance' 
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Create pending transaction record BEFORE sending
+        const { data: transaction, error: txError } = await supabaseAdmin
+          .from('transactions')
+          .insert({
+            user_id: userId,
+            type: 'withdrawal',
+            amount: amount,
+            faucetpay_address: address,
+            status: 'pending',
+            notes: `FaucetPay withdrawal to ${address}`
+          })
+          .select()
+          .single();
+
+        if (txError || !transaction) {
+          console.error('Failed to create transaction record:', txError?.message);
+          return new Response(JSON.stringify({ 
+            status: 500, 
+            message: 'Failed to process withdrawal' 
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        console.log(`Created pending transaction: ${transaction.id}`);
+
+        // Deduct balance from user's profile
+        const { error: deductError } = await supabaseAdmin
+          .from('profiles')
+          .update({ 
+            balance: userBalance - amount,
+            total_withdrawn: (profile as any).total_withdrawn ? Number((profile as any).total_withdrawn) + amount : amount
+          })
+          .eq('id', userId);
+
+        if (deductError) {
+          console.error('Failed to deduct balance:', deductError.message);
+          // Mark transaction as failed
+          await supabaseAdmin
+            .from('transactions')
+            .update({ status: 'failed', notes: 'Failed to deduct balance' })
+            .eq('id', transaction.id);
+          
+          return new Response(JSON.stringify({ 
+            status: 500, 
+            message: 'Failed to process withdrawal' 
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Now send via FaucetPay
         endpoint = '/send';
         body.to = address;
         body.amount = String(amount);
         body.currency = currency;
-        break;
+
+        // Make FaucetPay API call
+        const formData = new URLSearchParams();
+        Object.entries(body).forEach(([key, value]) => {
+          formData.append(key, value);
+        });
+
+        console.log(`Calling FaucetPay API: ${FAUCETPAY_API_URL}${endpoint}`);
+
+        const fpResponse = await fetch(`${FAUCETPAY_API_URL}${endpoint}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: formData.toString(),
+        });
+
+        const fpData = await fpResponse.json();
+        console.log('FaucetPay send response status:', fpData.status);
+
+        if (fpData.status === 200) {
+          // Update transaction as completed
+          await supabaseAdmin
+            .from('transactions')
+            .update({ 
+              status: 'completed', 
+              tx_hash: fpData.payout_id || null,
+              notes: `Successfully sent ${amount} BONK to ${address}`
+            })
+            .eq('id', transaction.id);
+
+          return new Response(JSON.stringify(fpData), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        } else {
+          // FaucetPay failed - refund the user
+          console.error('FaucetPay send failed:', fpData.message);
+          
+          await supabaseAdmin
+            .from('profiles')
+            .update({ 
+              balance: userBalance // Restore original balance
+            })
+            .eq('id', userId);
+
+          await supabaseAdmin
+            .from('transactions')
+            .update({ 
+              status: 'failed', 
+              notes: `FaucetPay error: ${fpData.message}` 
+            })
+            .eq('id', transaction.id);
+
+          return new Response(JSON.stringify({ 
+            status: fpData.status || 400, 
+            message: fpData.message || 'FaucetPay withdrawal failed' 
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
       
       case 'getFaucetList':
         endpoint = '/faucetlist';
@@ -52,35 +315,51 @@ serve(async (req) => {
         break;
 
       default:
-        throw new Error(`Unknown action: ${action}`);
+        return new Response(JSON.stringify({ 
+          status: 400, 
+          message: `Unknown action: ${action}` 
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
     }
 
-    console.log(`Calling FaucetPay API: ${FAUCETPAY_API_URL}${endpoint}`);
+    // For non-send actions, make the API call
+    if (action !== 'send') {
+      const formData = new URLSearchParams();
+      Object.entries(body).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
 
-    const formData = new URLSearchParams();
-    Object.entries(body).forEach(([key, value]) => {
-      formData.append(key, value);
-    });
+      console.log(`Calling FaucetPay API: ${FAUCETPAY_API_URL}${endpoint}`);
 
-    const response = await fetch(`${FAUCETPAY_API_URL}${endpoint}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: formData.toString(),
-    });
+      const response = await fetch(`${FAUCETPAY_API_URL}${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString(),
+      });
 
-    const data = await response.json();
-    console.log('FaucetPay response:', JSON.stringify(data));
+      const data = await response.json();
+      console.log('FaucetPay response status:', data.status);
 
-    return new Response(JSON.stringify(data), {
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // This shouldn't be reached, but just in case
+    return new Response(JSON.stringify({ status: 400, message: 'Invalid request' }), {
+      status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
+
   } catch (error: unknown) {
     console.error('FaucetPay error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Error processing request';
     return new Response(JSON.stringify({ 
-      status: 400, 
+      status: 500, 
       message: errorMessage 
     }), {
       status: 500,
