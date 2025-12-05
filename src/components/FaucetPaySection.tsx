@@ -18,8 +18,15 @@ interface Transaction {
   created_at: string;
 }
 
+interface BonusResponse {
+  success: boolean;
+  error?: string;
+  new_balance?: number;
+  bonus?: number;
+}
+
 const FaucetPaySection = () => {
-  const { balance, subtractBalance, addBalance, refreshBalance } = useDogeBalance();
+  const { balance, subtractBalance, refreshBalance } = useDogeBalance();
   const { user } = useAuth();
   const { toast } = useToast();
   const [withdrawAddress, setWithdrawAddress] = useState("");
@@ -30,13 +37,30 @@ const FaucetPaySection = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [dailyUsed, setDailyUsed] = useState(0);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const [alreadyLinked, setAlreadyLinked] = useState(false);
 
-  // Fetch transaction history and daily usage
+  // Fetch transaction history, daily usage, and check if already linked
   useEffect(() => {
     if (user) {
       fetchTransactions();
+      checkIfLinked();
     }
   }, [user]);
+
+  const checkIfLinked = async () => {
+    if (!user) return;
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('faucetpay_linked_at')
+        .eq('id', user.id)
+        .single();
+      
+      setAlreadyLinked(!!data?.faucetpay_linked_at);
+    } catch (error) {
+      console.error('Error checking link status:', error);
+    }
+  };
 
   const fetchTransactions = async () => {
     if (!user) return;
@@ -217,15 +241,28 @@ const FaucetPaySection = () => {
       if (error) throw error;
 
       if (data.status === 200) {
-        // Bonus for linking account
-        const depositAmount = 0.1000; // 0.1 DOGE bonus
-        const success = await addBalance(depositAmount);
-        if (success) {
+        // Claim welcome bonus securely via RPC
+        const { data: bonusData, error: bonusError } = await supabase.rpc('claim_faucetpay_bonus');
+        
+        if (bonusError) throw bonusError;
+        
+        const result = bonusData as unknown as BonusResponse;
+        if (result?.success) {
+          await refreshBalance();
           toast({
             title: "¡Cuenta vinculada! Much success!",
-            description: `Recibiste ${formatDoge(depositAmount)} DOGE de bienvenida por vincular tu cuenta`,
+            description: `Recibiste ${formatDoge(result.bonus || 0.1)} DOGE de bienvenida por vincular tu cuenta`,
           });
           setDepositAddress("");
+          setAlreadyLinked(true);
+        } else if (result?.error === 'Welcome bonus already claimed') {
+          toast({
+            title: "Cuenta ya vinculada",
+            description: "Ya has recibido tu bonus de bienvenida anteriormente",
+          });
+          setAlreadyLinked(true);
+        } else {
+          throw new Error(result?.error || 'Error al vincular cuenta');
         }
       } else {
         throw new Error(data.message || 'Dirección no encontrada en FaucetPay');
@@ -406,16 +443,19 @@ const FaucetPaySection = () => {
               value={depositAddress}
               onChange={(e) => setDepositAddress(e.target.value)}
               className="bg-background/50"
+              disabled={alreadyLinked}
             />
 
             <Button 
               onClick={handleCheckDeposit} 
               variant="outline"
               className="w-full border-emerald-500 text-emerald-500 hover:bg-emerald-500/10"
-              disabled={isLoading}
+              disabled={isLoading || alreadyLinked}
             >
               {isLoading ? (
                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verificando...</>
+              ) : alreadyLinked ? (
+                <><CheckCircle className="w-4 h-4 mr-2" /> Cuenta ya vinculada</>
               ) : (
                 <><ArrowDownToLine className="w-4 h-4 mr-2" /> Vincular Cuenta</>
               )}

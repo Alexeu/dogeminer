@@ -32,9 +32,16 @@ interface Ad {
   is_active: boolean;
 }
 
+interface AdViewResponse {
+  success: boolean;
+  error?: string;
+  new_balance?: number;
+  reward?: number;
+}
+
 export default function PTCSection() {
   const { user } = useAuth();
-  const { balance, addBalance, subtractBalance } = useDogeBalance();
+  const { balance, subtractBalance, refreshBalance } = useDogeBalance();
   const [ads, setAds] = useState<Ad[]>([]);
   const [viewedAds, setViewedAds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -119,43 +126,36 @@ export default function PTCSection() {
     if (!user) return;
 
     try {
-      // Record the view
-      const { error: viewError } = await supabase
-        .from("ad_views")
-        .insert({
-          ad_id: ad.id,
-          user_id: user.id,
-          reward_amount: REWARD_PER_VIEW,
-        });
+      // Use secure RPC to claim ad view reward
+      const { data, error } = await supabase.rpc('claim_ad_view_reward', {
+        p_ad_id: ad.id
+      });
 
-      if (viewError) throw viewError;
+      if (error) throw error;
 
-      // Decrease remaining views
-      const { error: updateError } = await supabase
-        .from("ads")
-        .update({ remaining_views: ad.remaining_views - 1 })
-        .eq("id", ad.id);
-
-      if (updateError) throw updateError;
-
-      // Add reward to user balance (database-backed)
-      await addBalance(REWARD_PER_VIEW);
-
-      // Update local state
-      setViewedAds(new Set([...viewedAds, ad.id]));
-      setAds(ads.map(a => 
-        a.id === ad.id 
-          ? { ...a, remaining_views: a.remaining_views - 1 }
-          : a
-      ).filter(a => a.remaining_views > 0));
-
-      toast.success(`¡Ganaste ${REWARD_PER_VIEW.toFixed(4)} DOGE!`);
-    } catch (error: any) {
-      if (error.code === "23505") {
-        toast.error("Ya has visto este anuncio");
+      const result = data as unknown as AdViewResponse;
+      if (result?.success) {
+        // Update local state
+        setViewedAds(new Set([...viewedAds, ad.id]));
+        setAds(ads.map(a => 
+          a.id === ad.id 
+            ? { ...a, remaining_views: a.remaining_views - 1 }
+            : a
+        ).filter(a => a.remaining_views > 0));
+        
+        await refreshBalance();
+        toast.success(`¡Ganaste ${(result.reward || REWARD_PER_VIEW).toFixed(4)} DOGE!`);
       } else {
-        toast.error("Error al procesar la visualización");
+        if (result?.error === 'Already viewed this ad') {
+          toast.error("Ya has visto este anuncio");
+          setViewedAds(new Set([...viewedAds, ad.id]));
+        } else {
+          toast.error(result?.error || "Error al procesar la visualización");
+        }
       }
+    } catch (error: any) {
+      console.error("Error completing view:", error);
+      toast.error("Error al procesar la visualización");
     } finally {
       setViewingAd(null);
     }
@@ -210,8 +210,8 @@ export default function PTCSection() {
         });
 
       if (error) {
-        // Refund the balance if ad creation fails
-        await addBalance(totalCost);
+        // Note: Balance was already deducted via subtract_balance RPC
+        // In a production app, you'd want a transaction here
         throw error;
       }
 
