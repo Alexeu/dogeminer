@@ -12,7 +12,8 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 // Rate limiting constants
-const DAILY_WITHDRAWAL_LIMIT = 50000; // Max 50,000 BONK per day
+const DAILY_WITHDRAWAL_LIMIT = 5; // Max 5 DOGE per day
+const MIN_WITHDRAWAL_AMOUNT = 0.5; // Min 0.5 DOGE per withdrawal
 const IP_RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute window
 const IP_RATE_LIMIT_MAX_REQUESTS = 10; // Max 10 requests per minute per IP
 const IP_WITHDRAWAL_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour window
@@ -305,10 +306,10 @@ serve(async (req) => {
         }
 
         // Minimum withdrawal amount
-        if (amount < 100) {
+        if (amount < MIN_WITHDRAWAL_AMOUNT) {
           return new Response(JSON.stringify({ 
             status: 400, 
-            message: 'Minimum withdrawal is 100 BONK' 
+            message: `Minimum withdrawal is ${MIN_WITHDRAWAL_AMOUNT} DOGE` 
           }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -378,7 +379,7 @@ serve(async (req) => {
         if (todayTotal + amount > DAILY_WITHDRAWAL_LIMIT) {
           return new Response(JSON.stringify({ 
             status: 429, 
-            message: `Daily withdrawal limit exceeded. You can withdraw up to ${remainingLimit.toLocaleString()} BONK today. Limit resets at midnight UTC.` 
+            message: `Daily withdrawal limit exceeded. You can withdraw up to ${remainingLimit} DOGE today. Limit resets at midnight UTC.` 
           }), {
             status: 429,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },

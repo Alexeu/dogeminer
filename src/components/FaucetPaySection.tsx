@@ -8,7 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Wallet, ArrowDownToLine, ArrowUpFromLine, Loader2, History, Clock, CheckCircle, XCircle, AlertCircle, Dog } from "lucide-react";
 import { formatDoge } from "@/data/dogeData";
 
-const DAILY_LIMIT = 10.0000; // 10 DOGE daily limit
+const DAILY_LIMIT = 5.0000; // 5 DOGE daily limit
+const MIN_WITHDRAWAL = 0.5; // 0.5 DOGE minimum
 
 interface Transaction {
   id: string;
@@ -148,6 +149,15 @@ const FaucetPaySection = () => {
       toast({
         title: "Error",
         description: "Ingresa una cantidad válida",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (amount < MIN_WITHDRAWAL) {
+      toast({
+        title: "Monto mínimo no alcanzado",
+        description: `El mínimo de retiro es ${MIN_WITHDRAWAL} DOGE`,
         variant: "destructive",
       });
       return;
@@ -406,7 +416,7 @@ const FaucetPaySection = () => {
             </Button>
 
             <p className="text-xs text-muted-foreground text-center">
-              Mínimo: 0.0100 DOGE • Máximo diario: {formatDoge(DAILY_LIMIT)} DOGE
+              Mínimo: {MIN_WITHDRAWAL} DOGE • Máximo diario: {formatDoge(DAILY_LIMIT)} DOGE
             </p>
           </div>
 
