@@ -33,20 +33,20 @@ export interface DogeCharacter {
 
 // Tasas de minado por hora por rareza (en DOGE)
 export const miningRatesByRarity: Record<Rarity, number> = {
-  starter: 0.00013,
+  starter: 0.005,
   common: 0.00143,
   rare: 0.002015,
   epic: 0.0026,
   legendary: 0.00325,
 };
 
-// Starter character given for free upon registration
+// Personaje starter gratuito al registrarse
 export const starterCharacter: DogeCharacter = {
   id: "doge-starter",
-  name: "Doge Starter",
+  name: "DOGNUS",
   image: dogeStarter,
   rarity: "starter",
-  miningRate: 0.00013,
+  miningRate: 0.005,
 };
 
 export const characters: DogeCharacter[] = [
