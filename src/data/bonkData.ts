@@ -6,6 +6,7 @@ import bonkKing from "@/assets/bonk-king.png";
 import bonkNinja from "@/assets/bonk-ninja.png";
 import bonkAstronaut from "@/assets/bonk-astronaut.png";
 import bonkCyberpunk from "@/assets/bonk-cyberpunk.png";
+import bonkBonknus from "@/assets/bonk-bonknus.png";
 
 export type Rarity = "starter" | "common" | "rare" | "epic" | "legendary";
 
@@ -30,7 +31,7 @@ export const miningRatesByRarity: Record<Rarity, number> = {
 export const starterCharacter: BonkCharacter = {
   id: "bonknus",
   name: "Bonknus",
-  image: bonkBuilder,
+  image: bonkBonknus,
   rarity: "starter",
   miningRate: 2,
 };
