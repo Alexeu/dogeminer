@@ -5,6 +5,7 @@ import MysteryBoxSection from "@/components/MysteryBoxSection";
 import HowItWorksSection from "@/components/HowItWorksSection";
 import WithdrawalsSection from "@/components/WithdrawalsSection";
 import RaritySection from "@/components/RaritySection";
+import ReferralSection from "@/components/ReferralSection";
 import CTASection from "@/components/CTASection";
 import BalanceHeader from "@/components/BalanceHeader";
 
@@ -12,11 +13,12 @@ const Index = () => {
   return (
     <main className="min-h-screen">
       <BalanceHeader />
-      <div className="pt-16"> {/* Offset for fixed header */}
+      <div className="pt-16">
         <HeroSection />
         <CharacterCarousel />
         <FeaturesSection />
         <MysteryBoxSection />
+        <ReferralSection />
         <HowItWorksSection />
         <WithdrawalsSection />
         <RaritySection />
