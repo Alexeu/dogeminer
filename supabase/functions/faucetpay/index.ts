@@ -11,6 +11,9 @@ const FAUCETPAY_API_KEY = Deno.env.get('FAUCETPAY_API_KEY');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
+// Rate limiting constants
+const DAILY_WITHDRAWAL_LIMIT = 50000; // Max 50,000 BONK per day
+
 // Input validation
 const validateEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -185,6 +188,45 @@ serve(async (req) => {
             message: 'Insufficient balance' 
           }), {
             status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // RATE LIMITING: Check daily withdrawal limit
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayISO = today.toISOString();
+
+        const { data: dailyWithdrawals, error: withdrawalError } = await supabaseAdmin
+          .from('transactions')
+          .select('amount')
+          .eq('user_id', userId)
+          .eq('type', 'withdrawal')
+          .in('status', ['pending', 'completed'])
+          .gte('created_at', todayISO);
+
+        if (withdrawalError) {
+          console.error('Failed to check daily withdrawals:', withdrawalError.message);
+          return new Response(JSON.stringify({ 
+            status: 500, 
+            message: 'Failed to verify withdrawal limits' 
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const todayTotal = dailyWithdrawals?.reduce((sum, tx) => sum + Number(tx.amount), 0) || 0;
+        const remainingLimit = DAILY_WITHDRAWAL_LIMIT - todayTotal;
+        
+        console.log(`User ${userId} daily withdrawals: ${todayTotal}, remaining: ${remainingLimit}, requested: ${amount}`);
+
+        if (todayTotal + amount > DAILY_WITHDRAWAL_LIMIT) {
+          return new Response(JSON.stringify({ 
+            status: 429, 
+            message: `Daily withdrawal limit exceeded. You can withdraw up to ${remainingLimit.toLocaleString()} BONK today. Limit resets at midnight UTC.` 
+          }), {
+            status: 429,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
