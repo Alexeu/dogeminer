@@ -158,7 +158,7 @@ const LotterySection = () => {
               </div>
               <div>
                 <p className="font-bold text-blue-400">Personajes Raros</p>
-                <p className="text-muted-foreground">0.02 DOGE / ticket</p>
+                <p className="text-muted-foreground">0.0065 DOGE / ticket</p>
               </div>
             </CardContent>
           </Card>
@@ -169,7 +169,7 @@ const LotterySection = () => {
               </div>
               <div>
                 <p className="font-bold text-purple-400">Personajes Épicos</p>
-                <p className="text-muted-foreground">0.04 DOGE / ticket</p>
+                <p className="text-muted-foreground">0.013 DOGE / ticket</p>
               </div>
             </CardContent>
           </Card>

@@ -76,7 +76,7 @@ const ReferralSection = () => {
     if (success) {
       setHasAppliedCode(true);
       setInputCode("");
-      toast.success("¡Código aplicado! Recibirás 0.1 DOGE de bienvenida");
+      toast.success("¡Código aplicado! Recibirás 0.0325 DOGE de bienvenida");
     } else {
       toast.error("Código de referido inválido");
     }
@@ -151,7 +151,7 @@ const ReferralSection = () => {
               </div>
               <div>
                 <h3 className="text-xl font-bold">¿Tienes un Código?</h3>
-                <p className="text-sm text-muted-foreground">Aplícalo y recibe 0.1 DOGE</p>
+                <p className="text-sm text-muted-foreground">Aplícalo y recibe 0.0325 DOGE</p>
               </div>
             </div>
 
@@ -185,7 +185,7 @@ const ReferralSection = () => {
               <p className="text-sm font-medium text-muted-foreground">Cómo funciona:</p>
               <ul className="text-sm text-muted-foreground space-y-1">
                 <li>• Tu referidor gana 5% de tu minado</li>
-                <li>• Tú recibes 0.1 DOGE de bienvenida</li>
+                <li>• Tú recibes 0.0325 DOGE de bienvenida</li>
                 <li>• ¡Las ganancias son permanentes!</li>
               </ul>
             </div>

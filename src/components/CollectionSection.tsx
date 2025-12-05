@@ -6,7 +6,7 @@ import { Trophy, Gift, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-const COLLECTION_REWARD = 140; // 700000 BONK / 5000 = 140 DOGE
+const COLLECTION_REWARD = 45.5; // 700000 BONK * 0.000065 = 45.5 DOGE
 const COLLECTION_REWARD_KEY = "doge_collection_reward_claimed";
 
 // All characters including starter and mythic
