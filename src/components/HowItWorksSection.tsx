@@ -1,21 +1,21 @@
 const steps = [
   {
     number: "1",
-    title: "Sign Up & Get Free BONK",
+    title: "Regístrate & Obtén DOGE Gratis",
     description:
-      "Create your account and receive a free Common BONK to start mining immediately.",
+      "Crea tu cuenta y recibe un DOGE Starter gratis para comenzar a minar inmediatamente.",
   },
   {
     number: "2",
-    title: "Open Mystery Boxes",
+    title: "Abre Mystery Boxes",
     description:
-      "Use your earnings to open boxes and expand your collection with rare BONKs.",
+      "Usa tus ganancias para abrir cajas y expandir tu colección con DOGEs raros.",
   },
   {
     number: "3",
-    title: "Mine BONK Automatically",
+    title: "Mina DOGE Automáticamente",
     description:
-      "Watch your balance grow as your BONKs mine passively. Withdraw anytime!",
+      "Mira cómo crece tu balance mientras tus DOGEs minan pasivamente. ¡Retira cuando quieras!",
   },
 ];
 
@@ -24,7 +24,7 @@ const HowItWorksSection = () => {
     <section className="py-20 bg-secondary/30">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
-          How It Works
+          Cómo Funciona
         </h2>
 
         <div className="grid md:grid-cols-3 gap-8 relative">
@@ -38,7 +38,7 @@ const HowItWorksSection = () => {
               style={{ animationDelay: `${index * 200}ms` }}
             >
               <div className="text-center">
-                <div className="w-16 h-16 gradient-primary rounded-full flex items-center justify-center mx-auto mb-6 shadow-bonk-lg text-2xl font-bold text-primary-foreground relative z-10">
+                <div className="w-16 h-16 gradient-primary rounded-full flex items-center justify-center mx-auto mb-6 shadow-doge-lg text-2xl font-bold text-primary-foreground relative z-10">
                   {step.number}
                 </div>
                 <h3 className="text-xl font-bold mb-3">{step.title}</h3>

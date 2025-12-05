@@ -82,7 +82,7 @@ const InventorySection = () => {
             const progress = getMiningProgress(item);
             const timeRemaining = getTimeRemaining(item);
             const isMining = item.miningStartTime !== null;
-            const canClaim = item.accumulatedBonk > 0;
+            const canClaim = item.accumulatedDoge > 0;
             const claimableAmount = getClaimableAmount(item.character.id);
             const isClaiming = claimingId === item.character.id;
             const isStarting = startingId === item.character.id;
@@ -156,7 +156,7 @@ const InventorySection = () => {
                       className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
                     >
                       <Gift className="w-4 h-4 mr-2" />
-                      {isClaiming ? "Reclamando..." : `Reclamar ${item.accumulatedBonk.toFixed(4)} DOGE`}
+                      {isClaiming ? "Reclamando..." : `Reclamar ${item.accumulatedDoge.toFixed(4)} DOGE`}
                     </Button>
                   ) : (
                     <Button

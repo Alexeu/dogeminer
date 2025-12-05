@@ -1,13 +1,13 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
-import { BonkCharacter, starterCharacter, characters } from "@/data/bonkData";
+import { DogeCharacter, starterCharacter, characters } from "@/data/dogeData";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./AuthContext";
 
 export interface InventoryItem {
-  character: BonkCharacter;
+  character: DogeCharacter;
   quantity: number;
   miningStartTime: number | null;
-  accumulatedBonk: number;
+  accumulatedDoge: number;
 }
 
 interface RpcResponse {
@@ -22,7 +22,7 @@ interface RpcResponse {
 interface InventoryContextType {
   inventory: InventoryItem[];
   isLoading: boolean;
-  addToInventory: (character: BonkCharacter) => Promise<boolean>;
+  addToInventory: (character: DogeCharacter) => Promise<boolean>;
   startMining: (characterId: string) => Promise<boolean>;
   claimRewards: (characterId: string) => Promise<number>;
   getTotalMiningRate: () => number;
@@ -81,13 +81,13 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
             character: {
               id: uc.character_id,
               name: uc.character_name,
-              rarity: uc.character_rarity as BonkCharacter['rarity'],
+              rarity: uc.character_rarity as DogeCharacter['rarity'],
               miningRate: Number(uc.mining_rate),
-              image: '', // Will need to handle image mapping
+              image: '',
             },
             quantity: uc.quantity,
             miningStartTime: miningSession ? new Date(miningSession.started_at).getTime() : null,
-            accumulatedBonk: 0,
+            accumulatedDoge: 0,
           };
         }
 
@@ -95,7 +95,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
           character: charData,
           quantity: uc.quantity,
           miningStartTime: miningSession ? new Date(miningSession.started_at).getTime() : null,
-          accumulatedBonk: 0,
+          accumulatedDoge: 0,
         };
       });
 
@@ -147,17 +147,17 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
           if (item.miningStartTime) {
             const elapsed = Date.now() - item.miningStartTime;
             if (elapsed >= MINING_DURATION) {
-              const earnedBonk = item.character.miningRate * item.quantity;
+              const earnedDoge = item.character.miningRate * item.quantity;
               return {
                 ...item,
-                accumulatedBonk: earnedBonk,
+                accumulatedDoge: earnedDoge,
               };
             } else {
               const progress = elapsed / MINING_DURATION;
-              const earnedBonk = Math.floor(item.character.miningRate * item.quantity * progress);
+              const earnedDoge = Math.floor(item.character.miningRate * item.quantity * progress);
               return {
                 ...item,
-                accumulatedBonk: earnedBonk,
+                accumulatedDoge: earnedDoge,
               };
             }
           }
@@ -169,7 +169,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     return () => clearInterval(interval);
   }, []);
 
-  const addToInventory = async (character: BonkCharacter): Promise<boolean> => {
+  const addToInventory = async (character: DogeCharacter): Promise<boolean> => {
     if (!user) return false;
 
     try {
@@ -216,7 +216,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
         setInventory((prev) =>
           prev.map((item) =>
             item.character.id === characterId
-              ? { ...item, miningStartTime: Date.now(), accumulatedBonk: 0 }
+              ? { ...item, miningStartTime: Date.now(), accumulatedDoge: 0 }
               : item
           )
         );
@@ -252,7 +252,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
         setInventory((prev) =>
           prev.map((item) =>
             item.character.id === characterId
-              ? { ...item, accumulatedBonk: 0, miningStartTime: null }
+              ? { ...item, accumulatedDoge: 0, miningStartTime: null }
               : item
           )
         );
@@ -271,8 +271,8 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     const item = inventory.find((i) => i.character.id === characterId);
     if (!item) return 0;
     
-    if (item.accumulatedBonk > 0) {
-      return item.accumulatedBonk;
+    if (item.accumulatedDoge > 0) {
+      return item.accumulatedDoge;
     }
     
     if (item.miningStartTime) {

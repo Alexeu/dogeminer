@@ -1,45 +1,45 @@
-import bonkBuilder from "@/assets/bonk-builder.png";
-import bonkPirate from "@/assets/bonk-pirate.png";
-import bonkWizard from "@/assets/bonk-wizard.png";
-import bonkGold from "@/assets/bonk-gold.png";
+import dogeBuilder from "@/assets/doge-builder.png";
+import dogePirate from "@/assets/doge-pirate.png";
+import dogeWizard from "@/assets/doge-wizard.png";
+import dogeGold from "@/assets/doge-gold.png";
 
 const rarities = [
   {
-    image: bonkBuilder,
-    name: "Bonk Builder",
+    image: dogeBuilder,
+    name: "Doge Builder",
     rarity: "Common",
     dropRate: "60-85%",
-    miningRate: "220-245 BONK/day",
+    miningRate: "0.034 DOGE/día",
     color: "from-gray-400 to-gray-500",
     bgColor: "bg-gray-100",
     textColor: "text-gray-600",
   },
   {
-    image: bonkPirate,
-    name: "Bonk Pirate",
+    image: dogePirate,
+    name: "Doge Pirate",
     rarity: "Rare",
     dropRate: "7-30%",
-    miningRate: "360-380 BONK/day",
+    miningRate: "0.048 DOGE/día",
     color: "from-blue-400 to-blue-600",
     bgColor: "bg-blue-100",
     textColor: "text-blue-600",
   },
   {
-    image: bonkWizard,
-    name: "Bonk Wizard",
+    image: dogeWizard,
+    name: "Doge Wizard",
     rarity: "Epic",
     dropRate: "5-10%",
-    miningRate: "480-550 BONK/day",
+    miningRate: "0.062 DOGE/día",
     color: "from-purple-400 to-purple-600",
     bgColor: "bg-purple-100",
     textColor: "text-purple-600",
   },
   {
-    image: bonkGold,
-    name: "Bonk Gold",
+    image: dogeGold,
+    name: "Doge Gold",
     rarity: "Legendary",
     dropRate: "1-5%",
-    miningRate: "710-1000 BONK/day",
+    miningRate: "0.078 DOGE/día",
     color: "from-amber-400 to-orange-500",
     bgColor: "bg-amber-100",
     textColor: "text-amber-600",
@@ -51,14 +51,14 @@ const RaritySection = () => {
     <section className="py-20 bg-secondary/30">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
-          Rarity System
+          Sistema de Rareza
         </h2>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {rarities.map((rarity, index) => (
             <div
               key={rarity.name}
-              className="glass rounded-2xl p-6 text-center hover:shadow-bonk-lg transition-all duration-300 hover:-translate-y-2 animate-slide-up"
+              className="glass rounded-2xl p-6 text-center hover:shadow-doge-lg transition-all duration-300 hover:-translate-y-2 animate-slide-up"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="relative mb-4">
