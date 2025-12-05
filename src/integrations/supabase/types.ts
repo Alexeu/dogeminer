@@ -319,6 +319,36 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          created_at: string
+          endpoint: string
+          id: string
+          ip_address: string
+          request_count: number
+          updated_at: string
+          window_start: string
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          id?: string
+          ip_address: string
+          request_count?: number
+          updated_at?: string
+          window_start?: string
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          id?: string
+          ip_address?: string
+          request_count?: number
+          updated_at?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -392,6 +422,7 @@ export type Database = {
         Args: { p_amount: number; p_character_id: string }
         Returns: Json
       }
+      cleanup_old_rate_limits: { Args: never; Returns: undefined }
       draw_lottery_winner: { Args: { p_pool_id: string }; Returns: Json }
       get_balance: { Args: never; Returns: Json }
       get_users_by_fingerprint: {
