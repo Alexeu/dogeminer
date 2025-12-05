@@ -132,7 +132,7 @@ export const boxTypes: BoxType[] = [
   {
     id: "common",
     name: "Common Box",
-    price: 0.975,
+    price: 1,
     dropRates: { starter: 0, common: 100, rare: 0, epic: 0, legendary: 0 },
     gradient: "from-gray-500 to-gray-700",
     description: "Solo personajes comunes garantizados",
@@ -140,7 +140,7 @@ export const boxTypes: BoxType[] = [
   {
     id: "rare",
     name: "Rare Box",
-    price: 4.225,
+    price: 4,
     dropRates: { starter: 0, common: 40, rare: 40, epic: 0, legendary: 20 },
     gradient: "from-blue-500 to-indigo-600",
     description: "40% común, 40% raro, 20% legendario",
@@ -148,7 +148,7 @@ export const boxTypes: BoxType[] = [
   {
     id: "legendary",
     name: "Legendary Box",
-    price: 9.75,
+    price: 9,
     dropRates: { starter: 0, common: 0, rare: 40, epic: 40, legendary: 20 },
     gradient: "from-yellow-500 to-amber-600",
     description: "40% raro, 40% épico, 20% legendario",
