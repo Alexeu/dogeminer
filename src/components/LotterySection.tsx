@@ -3,7 +3,7 @@ import { Ticket, Trophy, Users, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { characters, rarityConfig, BonkCharacter } from "@/data/bonkData";
+import { characters, rarityConfig, DogeCharacter } from "@/data/dogeData";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -113,7 +113,7 @@ const LotterySection = () => {
     return character?.image || "";
   };
 
-  const getCharacterByPool = (pool: LotteryPool): BonkCharacter | undefined => {
+  const getCharacterByPool = (pool: LotteryPool): DogeCharacter | undefined => {
     return characters.find(c => c.id === pool.character_id);
   };
 
@@ -138,7 +138,7 @@ const LotterySection = () => {
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4">
             <Ticket className="w-5 h-5 text-primary" />
-            <span className="text-primary font-medium">Lotería BONK</span>
+            <span className="text-primary font-medium">Lotería DOGE</span>
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
             ¡Gana Personajes en la Lotería!
@@ -158,7 +158,7 @@ const LotterySection = () => {
               </div>
               <div>
                 <p className="font-bold text-blue-400">Personajes Raros</p>
-                <p className="text-muted-foreground">100 BONK / ticket</p>
+                <p className="text-muted-foreground">0.02 DOGE / ticket</p>
               </div>
             </CardContent>
           </Card>
@@ -169,7 +169,7 @@ const LotterySection = () => {
               </div>
               <div>
                 <p className="font-bold text-purple-400">Personajes Épicos</p>
-                <p className="text-muted-foreground">200 BONK / ticket</p>
+                <p className="text-muted-foreground">0.04 DOGE / ticket</p>
               </div>
             </CardContent>
           </Card>
@@ -217,7 +217,7 @@ const LotterySection = () => {
                       </span>
                       <h3 className="font-bold text-lg text-foreground">{pool.character_name}</h3>
                       <p className="text-sm text-muted-foreground">
-                        {character?.miningRate} BONK/hora
+                        {character?.miningRate} DOGE/hora
                       </p>
                     </div>
 
@@ -288,7 +288,7 @@ const LotterySection = () => {
                         ) : (
                           <Ticket className="w-4 h-4 mr-2" />
                         )}
-                        Comprar ({(pool.ticket_price * ticketAmount).toLocaleString()} BONK)
+                        Comprar ({(pool.ticket_price * ticketAmount).toFixed(4)} DOGE)
                       </Button>
                     </div>
                   </CardContent>

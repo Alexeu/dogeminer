@@ -1,21 +1,21 @@
 import { useState } from "react";
-import { characters, starterCharacter, mythicCharacter, rarityConfig, BonkCharacter, isMythicCharacter } from "@/data/bonkData";
+import { characters, starterCharacter, mythicCharacter, rarityConfig, DogeCharacter, isMythicCharacter } from "@/data/dogeData";
 import { useInventory } from "@/contexts/InventoryContext";
-import { useBonkBalance } from "@/contexts/BonkBalanceContext";
+import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { Trophy, Gift, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-const COLLECTION_REWARD = 700000;
-const COLLECTION_REWARD_KEY = "bonk_collection_reward_claimed";
+const COLLECTION_REWARD = 140; // 700000 BONK / 5000 = 140 DOGE
+const COLLECTION_REWARD_KEY = "doge_collection_reward_claimed";
 
 // All characters including starter and mythic
-const allCharacters: BonkCharacter[] = [starterCharacter, ...characters, mythicCharacter];
+const allCharacters: DogeCharacter[] = [starterCharacter, ...characters, mythicCharacter];
 const TOTAL_CHARACTERS = allCharacters.length;
 
 const CollectionSection = () => {
   const { inventory } = useInventory();
-  const { addBalance } = useBonkBalance();
+  const { addBalance } = useDogeBalance();
   const [rewardClaimed, setRewardClaimed] = useState(() => {
     return localStorage.getItem(COLLECTION_REWARD_KEY) === "true";
   });
@@ -36,7 +36,7 @@ const CollectionSection = () => {
     if (success) {
       setRewardClaimed(true);
       localStorage.setItem(COLLECTION_REWARD_KEY, "true");
-      toast.success(`¡Felicidades! Has recibido ${COLLECTION_REWARD.toLocaleString()} BONK por completar la colección!`);
+      toast.success(`¡Felicidades! Has recibido ${COLLECTION_REWARD} DOGE por completar la colección!`);
     } else {
       toast.error("Error al reclamar la recompensa");
     }
@@ -55,7 +55,7 @@ const CollectionSection = () => {
             Tu Colección
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto mb-4">
-            Colecciona los {TOTAL_CHARACTERS} personajes únicos de BONK. ¡Completa la colección para obtener una recompensa especial!
+            Colecciona los {TOTAL_CHARACTERS} personajes únicos de DOGE. ¡Completa la colección para obtener una recompensa especial!
           </p>
           
           {/* Progress */}
@@ -95,7 +95,7 @@ const CollectionSection = () => {
                 <p className="text-muted-foreground">
                   {isCollectionComplete && rewardClaimed 
                     ? "¡Ya has reclamado tu recompensa!" 
-                    : `Obtén ${COLLECTION_REWARD.toLocaleString()} BONK al completar los ${TOTAL_CHARACTERS} personajes`}
+                    : `Obtén ${COLLECTION_REWARD} DOGE al completar los ${TOTAL_CHARACTERS} personajes`}
                 </p>
               </div>
             </div>
@@ -106,7 +106,7 @@ const CollectionSection = () => {
                 className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold"
               >
                 <Gift className="w-5 h-5 mr-2" />
-                {isClaiming ? "Reclamando..." : `¡Reclamar ${COLLECTION_REWARD.toLocaleString()} BONK!`}
+                {isClaiming ? "Reclamando..." : `¡Reclamar ${COLLECTION_REWARD} DOGE!`}
               </Button>
             ) : isCollectionComplete && rewardClaimed ? (
               <div className="flex items-center gap-2 text-green-500 font-semibold">

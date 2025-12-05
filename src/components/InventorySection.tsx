@@ -1,6 +1,6 @@
 import { useInventory } from "@/contexts/InventoryContext";
-import { useBonkBalance } from "@/contexts/BonkBalanceContext";
-import { rarityConfig } from "@/data/bonkData";
+import { useDogeBalance } from "@/contexts/DogeBalanceContext";
+import { rarityConfig } from "@/data/dogeData";
 import { Button } from "@/components/ui/button";
 import { Play, Gift, Clock, Coins } from "lucide-react";
 import { toast } from "sonner";
@@ -10,7 +10,7 @@ const MINING_DURATION = 60 * 60 * 1000; // 1 hour
 
 const InventorySection = () => {
   const { inventory, startMining, claimRewards, getClaimableAmount } = useInventory();
-  const { claimMiningReward } = useBonkBalance();
+  const { claimMiningReward } = useDogeBalance();
   const [claimingId, setClaimingId] = useState<string | null>(null);
 
   const handleStartMining = (characterId: string) => {
@@ -26,7 +26,7 @@ const InventorySection = () => {
       setClaimingId(null);
       
       if (success) {
-        toast.success(`¡Has reclamado ${amount} BONK!`);
+        toast.success(`¡Has reclamado ${amount.toFixed(4)} DOGE!`);
       } else {
         toast.error("Error al reclamar recompensas");
       }
@@ -122,7 +122,7 @@ const InventorySection = () => {
                     </span>
                     <span className="text-xs text-muted-foreground flex items-center gap-1">
                       <Coins className="w-3 h-3" />
-                      {item.character.miningRate * item.quantity} BONK/hora
+                      {(item.character.miningRate * item.quantity).toFixed(4)} DOGE/hora
                     </span>
                   </div>
 
@@ -135,7 +135,7 @@ const InventorySection = () => {
                           {timeRemaining}
                         </span>
                         <span className="text-primary font-medium">
-                          +{claimableAmount} BONK
+                          +{claimableAmount.toFixed(4)} DOGE
                         </span>
                       </div>
                       <div className="w-full bg-background rounded-full h-2 overflow-hidden">
@@ -152,7 +152,7 @@ const InventorySection = () => {
                       className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
                     >
                       <Gift className="w-4 h-4 mr-2" />
-                      {isClaiming ? "Reclamando..." : `Reclamar ${item.accumulatedBonk} BONK`}
+                      {isClaiming ? "Reclamando..." : `Reclamar ${item.accumulatedBonk.toFixed(4)} DOGE`}
                     </Button>
                   ) : (
                     <Button

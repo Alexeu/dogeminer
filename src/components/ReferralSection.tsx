@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useBonkBalance } from "@/contexts/BonkBalanceContext";
+import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { Button } from "@/components/ui/button";
 import { Copy, Users, Gift, Check, UserPlus } from "lucide-react";
 import { toast } from "sonner";
@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 const ReferralSection = () => {
-  const { referralCode, totalEarned, applyReferralCode } = useBonkBalance();
+  const { referralCode, totalEarned, applyReferralCode } = useDogeBalance();
   const { user } = useAuth();
   const [inputCode, setInputCode] = useState("");
   const [copied, setCopied] = useState(false);
@@ -76,13 +76,13 @@ const ReferralSection = () => {
     if (success) {
       setHasAppliedCode(true);
       setInputCode("");
-      toast.success("¡Código aplicado! Recibirás 500 BONK de bienvenida");
+      toast.success("¡Código aplicado! Recibirás 0.1 DOGE de bienvenida");
     } else {
       toast.error("Código de referido inválido");
     }
   };
 
-  const formatNumber = (num: number) => num.toLocaleString("en-US");
+  const formatNumber = (num: number) => num.toFixed(4);
 
   return (
     <section className="py-20 relative overflow-hidden">
@@ -96,10 +96,10 @@ const ReferralSection = () => {
             <span className="text-sm font-medium">Programa de Referidos</span>
           </div>
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Invita Amigos, <span className="text-gradient">Gana BONK</span>
+            Invita Amigos, <span className="text-gradient">Gana DOGE</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Gana el <span className="text-primary font-bold">5%</span> de todo el BONK que tus referidos generen por minado pasivo. ¡Sin límites!
+            Gana el <span className="text-primary font-bold">5%</span> de todo el DOGE que tus referidos generen por minado pasivo. ¡Sin límites!
           </p>
         </div>
 
@@ -137,8 +137,8 @@ const ReferralSection = () => {
                 <div className="text-sm text-muted-foreground">Referidos</div>
               </div>
               <div className="bg-background/50 rounded-xl p-4 text-center border border-border">
-                <div className="text-2xl font-bold text-gradient">{formatNumber(Math.floor(totalEarned))}</div>
-                <div className="text-sm text-muted-foreground">BONK Totales</div>
+                <div className="text-2xl font-bold text-gradient">{formatNumber(totalEarned)}</div>
+                <div className="text-sm text-muted-foreground">DOGE Totales</div>
               </div>
             </div>
           </div>
@@ -151,7 +151,7 @@ const ReferralSection = () => {
               </div>
               <div>
                 <h3 className="text-xl font-bold">¿Tienes un Código?</h3>
-                <p className="text-sm text-muted-foreground">Aplícalo y recibe 500 BONK</p>
+                <p className="text-sm text-muted-foreground">Aplícalo y recibe 0.1 DOGE</p>
               </div>
             </div>
 
@@ -185,7 +185,7 @@ const ReferralSection = () => {
               <p className="text-sm font-medium text-muted-foreground">Cómo funciona:</p>
               <ul className="text-sm text-muted-foreground space-y-1">
                 <li>• Tu referidor gana 5% de tu minado</li>
-                <li>• Tú recibes 500 BONK de bienvenida</li>
+                <li>• Tú recibes 0.1 DOGE de bienvenida</li>
                 <li>• ¡Las ganancias son permanentes!</li>
               </ul>
             </div>
