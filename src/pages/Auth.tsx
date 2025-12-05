@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -6,10 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Mail, Lock, Loader2, Sparkles } from "lucide-react";
+import { Mail, Lock, Loader2, Sparkles, Shield } from "lucide-react";
 
 const emailSchema = z.string().email("Email inválido");
 const passwordSchema = z.string().min(6, "La contraseña debe tener al menos 6 caracteres");
+
+// Minimum time in ms a human would take to fill the form
+const MIN_FORM_TIME_MS = 3000;
+// Max attempts before temporary lockout
+const MAX_ATTEMPTS = 5;
+// Lockout duration in ms (2 minutes)
+const LOCKOUT_DURATION_MS = 120000;
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -18,14 +25,70 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   
+  // Antibot: Honeypot field (bots will fill this)
+  const [honeypot, setHoneypot] = useState("");
+  // Antibot: Track form load time
+  const formLoadTime = useRef<number>(Date.now());
+  // Antibot: Track failed attempts
+  const [attempts, setAttempts] = useState(0);
+  const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
+  
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
+
+  // Reset form load time when switching between login/signup
+  useEffect(() => {
+    formLoadTime.current = Date.now();
+  }, [isLogin]);
+
+  // Check lockout from localStorage on mount
+  useEffect(() => {
+    const storedLockout = localStorage.getItem("auth_lockout");
+    const storedAttempts = localStorage.getItem("auth_attempts");
+    
+    if (storedLockout) {
+      const lockoutTime = parseInt(storedLockout, 10);
+      if (Date.now() < lockoutTime) {
+        setLockoutUntil(lockoutTime);
+      } else {
+        localStorage.removeItem("auth_lockout");
+        localStorage.removeItem("auth_attempts");
+      }
+    }
+    
+    if (storedAttempts) {
+      setAttempts(parseInt(storedAttempts, 10));
+    }
+  }, []);
 
   useEffect(() => {
     if (user) {
       navigate("/");
     }
   }, [user, navigate]);
+
+  // Countdown for lockout
+  const [lockoutRemaining, setLockoutRemaining] = useState(0);
+  useEffect(() => {
+    if (!lockoutUntil) {
+      setLockoutRemaining(0);
+      return;
+    }
+    
+    const interval = setInterval(() => {
+      const remaining = Math.max(0, lockoutUntil - Date.now());
+      setLockoutRemaining(remaining);
+      
+      if (remaining === 0) {
+        setLockoutUntil(null);
+        setAttempts(0);
+        localStorage.removeItem("auth_lockout");
+        localStorage.removeItem("auth_attempts");
+      }
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [lockoutUntil]);
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -44,9 +107,46 @@ export default function Auth() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const checkAntibot = (): boolean => {
+    // Check if locked out
+    if (lockoutUntil && Date.now() < lockoutUntil) {
+      toast.error(`Demasiados intentos. Espera ${Math.ceil(lockoutRemaining / 1000)} segundos.`);
+      return false;
+    }
+    
+    // Honeypot check - if filled, it's likely a bot
+    if (honeypot) {
+      // Silently fail for bots
+      return false;
+    }
+    
+    // Time check - form filled too fast
+    const timeSpent = Date.now() - formLoadTime.current;
+    if (timeSpent < MIN_FORM_TIME_MS) {
+      toast.error("Por favor, tómate tu tiempo para completar el formulario.");
+      return false;
+    }
+    
+    return true;
+  };
+
+  const recordFailedAttempt = () => {
+    const newAttempts = attempts + 1;
+    setAttempts(newAttempts);
+    localStorage.setItem("auth_attempts", newAttempts.toString());
+    
+    if (newAttempts >= MAX_ATTEMPTS) {
+      const lockout = Date.now() + LOCKOUT_DURATION_MS;
+      setLockoutUntil(lockout);
+      localStorage.setItem("auth_lockout", lockout.toString());
+      toast.error("Demasiados intentos fallidos. Bloqueado por 2 minutos.");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!checkAntibot()) return;
     if (!validateForm()) return;
     
     setLoading(true);
@@ -55,24 +155,32 @@ export default function Auth() {
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) {
+          recordFailedAttempt();
           if (error.message.includes("Invalid login credentials")) {
             toast.error("Credenciales inválidas. Verifica tu email y contraseña.");
           } else {
             toast.error(error.message);
           }
         } else {
+          // Reset attempts on successful login
+          setAttempts(0);
+          localStorage.removeItem("auth_attempts");
           toast.success("¡Bienvenido de vuelta!");
           navigate("/");
         }
       } else {
         const { error } = await signUp(email, password);
         if (error) {
+          recordFailedAttempt();
           if (error.message.includes("User already registered")) {
             toast.error("Este email ya está registrado. Intenta iniciar sesión.");
           } else {
             toast.error(error.message);
           }
         } else {
+          // Reset attempts on successful signup
+          setAttempts(0);
+          localStorage.removeItem("auth_attempts");
           toast.success("¡Cuenta creada! Ya puedes empezar a jugar.");
           navigate("/");
         }
@@ -81,6 +189,8 @@ export default function Auth() {
       setLoading(false);
     }
   };
+
+  const isLocked = lockoutUntil && Date.now() < lockoutUntil;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/10 flex items-center justify-center p-4">
@@ -103,7 +213,33 @@ export default function Auth() {
             </p>
           </div>
 
+          {isLocked && (
+            <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/30 flex items-center gap-3">
+              <Shield className="w-5 h-5 text-destructive" />
+              <div>
+                <p className="text-sm font-medium text-destructive">Cuenta bloqueada temporalmente</p>
+                <p className="text-xs text-muted-foreground">
+                  Espera {Math.ceil(lockoutRemaining / 1000)} segundos
+                </p>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Honeypot field - hidden from humans, visible to bots */}
+            <div className="absolute -left-[9999px] opacity-0 pointer-events-none" aria-hidden="true">
+              <label htmlFor="website">Website</label>
+              <input
+                type="text"
+                id="website"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="email" className="text-foreground">Email</Label>
               <div className="relative">
@@ -115,6 +251,7 @@ export default function Auth() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10 bg-background/50 border-border/50 focus:border-primary"
+                  disabled={isLocked}
                 />
               </div>
               {errors.email && (
@@ -133,6 +270,7 @@ export default function Auth() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 bg-background/50 border-border/50 focus:border-primary"
+                  disabled={isLocked}
                 />
               </div>
               {errors.password && (
@@ -142,11 +280,16 @@ export default function Auth() {
 
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || isLocked}
               className="w-full bg-gradient-to-r from-primary to-amber-500 hover:from-primary/90 hover:to-amber-500/90 text-primary-foreground font-semibold py-6"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
+              ) : isLocked ? (
+                <span className="flex items-center gap-2">
+                  <Shield className="w-5 h-5" />
+                  Bloqueado
+                </span>
               ) : isLogin ? (
                 "Iniciar Sesión"
               ) : (
@@ -163,6 +306,7 @@ export default function Auth() {
                 setErrors({});
               }}
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              disabled={isLocked}
             >
               {isLogin ? (
                 <>¿No tienes cuenta? <span className="text-primary font-medium">Regístrate</span></>
@@ -170,6 +314,12 @@ export default function Auth() {
                 <>¿Ya tienes cuenta? <span className="text-primary font-medium">Inicia sesión</span></>
               )}
             </button>
+          </div>
+
+          {/* Security badge */}
+          <div className="mt-6 pt-4 border-t border-border/30 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+            <Shield className="w-3 h-3" />
+            <span>Protegido contra bots</span>
           </div>
         </div>
       </div>
