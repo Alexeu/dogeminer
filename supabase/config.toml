@@ -1,1 +1,7 @@
 project_id = "gigjjgxntulqxmbqxcpe"
+
+[functions.faucetpay]
+verify_jwt = true
+
+[functions.validate-fingerprint]
+verify_jwt = true
