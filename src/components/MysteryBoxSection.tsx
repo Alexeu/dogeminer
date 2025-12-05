@@ -123,6 +123,12 @@ const MysteryBoxSection = () => {
                       <span className="text-amber-600">Legendary</span>
                       <span className="font-semibold">{box.dropRates.legendary}%</span>
                     </div>
+                    {box.id === "legendary" && (
+                      <div className="col-span-2 flex justify-between px-2 py-1 rounded bg-gradient-to-r from-pink-100 via-purple-100 to-cyan-100">
+                        <span className="bg-gradient-to-r from-pink-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent font-semibold">✨ Mythic</span>
+                        <span className="font-semibold text-purple-600">0.15%</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
