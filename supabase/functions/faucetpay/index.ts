@@ -13,6 +13,106 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 // Rate limiting constants
 const DAILY_WITHDRAWAL_LIMIT = 50000; // Max 50,000 BONK per day
+const IP_RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute window
+const IP_RATE_LIMIT_MAX_REQUESTS = 10; // Max 10 requests per minute per IP
+const IP_WITHDRAWAL_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour window
+const IP_WITHDRAWAL_LIMIT_MAX = 5; // Max 5 withdrawal attempts per hour per IP
+
+// Helper to get client IP
+const getClientIP = (req: Request): string => {
+  // Check various headers for the real IP (in order of preference)
+  const forwardedFor = req.headers.get('x-forwarded-for');
+  if (forwardedFor) {
+    // x-forwarded-for can contain multiple IPs, take the first one (client IP)
+    return forwardedFor.split(',')[0].trim();
+  }
+  
+  const realIP = req.headers.get('x-real-ip');
+  if (realIP) return realIP;
+  
+  const cfConnectingIP = req.headers.get('cf-connecting-ip');
+  if (cfConnectingIP) return cfConnectingIP;
+  
+  // Fallback - should not reach in production
+  return 'unknown';
+};
+
+// IP-based rate limiting check
+const checkIPRateLimit = async (
+  supabase: any,
+  ip: string,
+  endpoint: string,
+  maxRequests: number,
+  windowMs: number
+): Promise<{ allowed: boolean; remaining: number; resetAt: Date }> => {
+  const windowStart = new Date(Date.now() - windowMs);
+  
+  // Try to get existing rate limit record
+  const { data: existing, error: fetchError } = await supabase
+    .from('rate_limits')
+    .select('*')
+    .eq('ip_address', ip)
+    .eq('endpoint', endpoint)
+    .single();
+
+  if (fetchError && fetchError.code !== 'PGRST116') {
+    console.error('Rate limit fetch error:', fetchError.message);
+    // On error, allow the request but log it
+    return { allowed: true, remaining: maxRequests, resetAt: new Date(Date.now() + windowMs) };
+  }
+
+  // If no existing record or window has expired, create/reset
+  if (!existing || new Date(existing.window_start) < windowStart) {
+    const newWindowStart = new Date();
+    
+    const { error: upsertError } = await supabase
+      .from('rate_limits')
+      .upsert({
+        ip_address: ip,
+        endpoint: endpoint,
+        request_count: 1,
+        window_start: newWindowStart.toISOString(),
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'ip_address,endpoint'
+      });
+
+    if (upsertError) {
+      console.error('Rate limit upsert error:', upsertError.message);
+    }
+
+    return { 
+      allowed: true, 
+      remaining: maxRequests - 1, 
+      resetAt: new Date(newWindowStart.getTime() + windowMs) 
+    };
+  }
+
+  // Check if limit exceeded
+  if (existing.request_count >= maxRequests) {
+    const resetAt = new Date(new Date(existing.window_start).getTime() + windowMs);
+    return { allowed: false, remaining: 0, resetAt };
+  }
+
+  // Increment counter
+  const { error: updateError } = await supabase
+    .from('rate_limits')
+    .update({ 
+      request_count: existing.request_count + 1,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', existing.id);
+
+  if (updateError) {
+    console.error('Rate limit update error:', updateError.message);
+  }
+
+  return { 
+    allowed: true, 
+    remaining: maxRequests - existing.request_count - 1, 
+    resetAt: new Date(new Date(existing.window_start).getTime() + windowMs) 
+  };
+};
 
 // Input validation
 const validateEmail = (email: string): boolean => {
@@ -30,7 +130,39 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Create Supabase client with service role for admin operations
+  const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  
+  // Get client IP for rate limiting
+  const clientIP = getClientIP(req);
+  console.log(`Request from IP: ${clientIP}`);
+
   try {
+    // General IP rate limit check (applies to all requests)
+    const generalRateLimit = await checkIPRateLimit(
+      supabaseAdmin,
+      clientIP,
+      'faucetpay_general',
+      IP_RATE_LIMIT_MAX_REQUESTS,
+      IP_RATE_LIMIT_WINDOW_MS
+    );
+
+    if (!generalRateLimit.allowed) {
+      console.warn(`IP rate limit exceeded for ${clientIP}`);
+      return new Response(JSON.stringify({ 
+        status: 429, 
+        message: `Too many requests. Please try again in ${Math.ceil((generalRateLimit.resetAt.getTime() - Date.now()) / 1000)} seconds.`
+      }), {
+        status: 429,
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json',
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': generalRateLimit.resetAt.toISOString()
+        },
+      });
+    }
+
     // Extract and verify JWT token
     const authHeader = req.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -45,9 +177,6 @@ serve(async (req) => {
     }
 
     const token = authHeader.replace('Bearer ', '');
-    
-    // Create Supabase client with service role for admin operations
-    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     
     // Verify the user's JWT and get user info
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
@@ -119,6 +248,31 @@ serve(async (req) => {
         break;
       
       case 'send':
+        // ADDITIONAL IP RATE LIMIT FOR WITHDRAWALS
+        const withdrawalRateLimit = await checkIPRateLimit(
+          supabaseAdmin,
+          clientIP,
+          'faucetpay_withdrawal',
+          IP_WITHDRAWAL_LIMIT_MAX,
+          IP_WITHDRAWAL_LIMIT_WINDOW_MS
+        );
+
+        if (!withdrawalRateLimit.allowed) {
+          console.warn(`Withdrawal rate limit exceeded for IP ${clientIP}`);
+          return new Response(JSON.stringify({ 
+            status: 429, 
+            message: `Too many withdrawal attempts. Please try again in ${Math.ceil((withdrawalRateLimit.resetAt.getTime() - Date.now()) / 60000)} minutes.`
+          }), {
+            status: 429,
+            headers: { 
+              ...corsHeaders, 
+              'Content-Type': 'application/json',
+              'X-RateLimit-Remaining': '0',
+              'X-RateLimit-Reset': withdrawalRateLimit.resetAt.toISOString()
+            },
+          });
+        }
+
         // CRITICAL: Validate inputs
         if (!address || typeof address !== 'string') {
           return new Response(JSON.stringify({ 
