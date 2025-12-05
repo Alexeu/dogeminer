@@ -14,7 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        outfit: ["Outfit", "sans-serif"],
+        fredoka: ["Fredoka", "sans-serif"],
+        comic: ["Comic Neue", "cursive"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -51,12 +52,12 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        bonk: {
-          orange: "hsl(var(--bonk-orange))",
-          amber: "hsl(var(--bonk-amber))",
-          gold: "hsl(var(--bonk-gold))",
-          cream: "hsl(var(--bonk-cream))",
-          dark: "hsl(var(--bonk-dark))",
+        doge: {
+          yellow: "hsl(var(--doge-yellow))",
+          gold: "hsl(var(--doge-gold))",
+          amber: "hsl(var(--doge-amber))",
+          cream: "hsl(var(--doge-cream))",
+          brown: "hsl(var(--doge-brown))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
