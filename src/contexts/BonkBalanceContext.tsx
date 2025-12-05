@@ -1,119 +1,204 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./AuthContext";
+
+interface BalanceResponse {
+  success: boolean;
+  balance?: number;
+  referral_code?: string;
+  total_earned?: number;
+  new_balance?: number;
+  error?: string;
+}
 
 interface BonkBalanceContextType {
   balance: number;
   miningRate: number;
   referralCode: string;
-  referralEarnings: number;
-  referralCount: number;
-  addBalance: (amount: number) => void;
-  subtractBalance: (amount: number) => boolean;
-  setMiningRate: (rate: number) => void;
-  applyReferralCode: (code: string) => boolean;
+  totalEarned: number;
+  isLoading: boolean;
+  addBalance: (amount: number) => Promise<boolean>;
+  subtractBalance: (amount: number) => Promise<boolean>;
+  claimMiningReward: (amount: number, characterId: string) => Promise<boolean>;
+  applyReferralCode: (code: string) => Promise<boolean>;
+  refreshBalance: () => Promise<void>;
 }
 
 const BonkBalanceContext = createContext<BonkBalanceContextType | undefined>(undefined);
 
-const INITIAL_BALANCE = 10000;
 const BASE_MINING_RATE = 5;
-const REFERRAL_PERCENTAGE = 0.05; // 5%
-
-// Generate a unique referral code
-const generateReferralCode = () => {
-  const stored = localStorage.getItem("bonk_referral_code");
-  if (stored) return stored;
-  const code = "BONK" + Math.random().toString(36).substring(2, 6).toUpperCase();
-  localStorage.setItem("bonk_referral_code", code);
-  return code;
-};
-
-// Simple referral storage (simulated - in production use a database)
-const getReferrals = (): Record<string, string[]> => {
-  const stored = localStorage.getItem("bonk_referrals");
-  return stored ? JSON.parse(stored) : {};
-};
-
-const addReferral = (referrerCode: string, refereeCode: string) => {
-  const referrals = getReferrals();
-  if (!referrals[referrerCode]) {
-    referrals[referrerCode] = [];
-  }
-  if (!referrals[referrerCode].includes(refereeCode)) {
-    referrals[referrerCode].push(refereeCode);
-  }
-  localStorage.setItem("bonk_referrals", JSON.stringify(referrals));
-};
 
 export const BonkBalanceProvider = ({ children }: { children: ReactNode }) => {
-  const [balance, setBalance] = useState(INITIAL_BALANCE);
-  const [miningRate, setMiningRate] = useState(BASE_MINING_RATE);
-  const [referralCode] = useState(generateReferralCode);
-  const [referralEarnings, setReferralEarnings] = useState(0);
-  const [referralCount, setReferralCount] = useState(0);
-  const [referrerCode, setReferrerCode] = useState<string | null>(null);
+  const { user } = useAuth();
+  const [balance, setBalance] = useState(0);
+  const [referralCode, setReferralCode] = useState("");
+  const [totalEarned, setTotalEarned] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [miningRate] = useState(BASE_MINING_RATE);
 
-  // Load referrer code on mount
-  useEffect(() => {
-    const storedReferrer = localStorage.getItem("bonk_referrer");
-    if (storedReferrer) {
-      setReferrerCode(storedReferrer);
+  // Fetch balance from database
+  const refreshBalance = useCallback(async () => {
+    if (!user) {
+      setBalance(0);
+      setReferralCode("");
+      setTotalEarned(0);
+      setIsLoading(false);
+      return;
     }
-    // Count referrals
-    const referrals = getReferrals();
-    setReferralCount(referrals[referralCode]?.length || 0);
-  }, [referralCode]);
 
-  // Passive mining effect with referral bonus
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setBalance((prev) => prev + miningRate);
+    try {
+      const { data, error } = await supabase.rpc('get_balance');
       
-      // If user has a referrer, add 5% to that referrer's earnings
-      if (referrerCode) {
-        // Simulate referrer earning (in production, this would be server-side)
-        const referrerEarnings = JSON.parse(localStorage.getItem("bonk_referrer_earnings") || "{}");
-        referrerEarnings[referrerCode] = (referrerEarnings[referrerCode] || 0) + (miningRate * REFERRAL_PERCENTAGE);
-        localStorage.setItem("bonk_referrer_earnings", JSON.stringify(referrerEarnings));
+      if (error) {
+        console.error('Error fetching balance:', error);
+        return;
       }
 
-      // Check if we have referral earnings
-      const allEarnings = JSON.parse(localStorage.getItem("bonk_referrer_earnings") || "{}");
-      const myEarnings = allEarnings[referralCode] || 0;
-      if (myEarnings > 0) {
-        setReferralEarnings(myEarnings);
-        // Add referral earnings to balance
-        setBalance((prev) => prev + (myEarnings * REFERRAL_PERCENTAGE));
+      const response = data as unknown as BalanceResponse;
+      if (response?.success) {
+        setBalance(Number(response.balance) || 0);
+        setReferralCode(response.referral_code || "");
+        setTotalEarned(Number(response.total_earned) || 0);
       }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [miningRate, referrerCode, referralCode]);
-
-  const addBalance = (amount: number) => {
-    setBalance((prev) => prev + amount);
-  };
-
-  const subtractBalance = (amount: number): boolean => {
-    if (balance >= amount) {
-      setBalance((prev) => prev - amount);
-      return true;
+    } catch (error) {
+      console.error('Error fetching balance:', error);
+    } finally {
+      setIsLoading(false);
     }
-    return false;
-  };
+  }, [user]);
 
-  const applyReferralCode = (code: string): boolean => {
-    // Check if code exists (simulate validation)
-    if (code.startsWith("BONK") && code.length === 8) {
-      localStorage.setItem("bonk_referrer", code);
-      localStorage.setItem("bonk_applied_referral", "true");
-      setReferrerCode(code);
-      addReferral(code, referralCode);
-      // Welcome bonus
-      setBalance((prev) => prev + 500);
-      return true;
+  // Load balance on mount and when user changes
+  useEffect(() => {
+    refreshBalance();
+  }, [refreshBalance]);
+
+  // Subscribe to realtime balance updates
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('profile-balance-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user.id}`
+        },
+        (payload) => {
+          if (payload.new) {
+            const newData = payload.new as { balance?: number; total_earned?: number };
+            setBalance(Number(newData.balance) || 0);
+            setTotalEarned(Number(newData.total_earned) || 0);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  const addBalance = useCallback(async (amount: number): Promise<boolean> => {
+    if (!user) return false;
+
+    try {
+      const { data, error } = await supabase.rpc('add_balance', { p_amount: amount });
+      
+      if (error) {
+        console.error('Error adding balance:', error);
+        return false;
+      }
+
+      const response = data as unknown as BalanceResponse;
+      if (response?.success) {
+        setBalance(Number(response.new_balance) || 0);
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error adding balance:', error);
+      return false;
     }
-    return false;
-  };
+  }, [user]);
+
+  const subtractBalance = useCallback(async (amount: number): Promise<boolean> => {
+    if (!user) return false;
+
+    try {
+      const { data, error } = await supabase.rpc('subtract_balance', { p_amount: amount });
+      
+      if (error) {
+        console.error('Error subtracting balance:', error);
+        return false;
+      }
+
+      const response = data as unknown as BalanceResponse;
+      if (response?.success) {
+        setBalance(Number(response.new_balance) || 0);
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error subtracting balance:', error);
+      return false;
+    }
+  }, [user]);
+
+  const claimMiningReward = useCallback(async (amount: number, characterId: string): Promise<boolean> => {
+    if (!user) return false;
+
+    try {
+      const { data, error } = await supabase.rpc('claim_mining_reward', { 
+        p_amount: amount, 
+        p_character_id: characterId 
+      });
+      
+      if (error) {
+        console.error('Error claiming mining reward:', error);
+        return false;
+      }
+
+      const response = data as unknown as BalanceResponse;
+      if (response?.success) {
+        setBalance(Number(response.new_balance) || 0);
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error claiming mining reward:', error);
+      return false;
+    }
+  }, [user]);
+
+  const applyReferralCode = useCallback(async (code: string): Promise<boolean> => {
+    if (!user) return false;
+
+    try {
+      const { data, error } = await supabase.rpc('apply_referral_code', { p_code: code });
+      
+      if (error) {
+        console.error('Error applying referral code:', error);
+        return false;
+      }
+
+      const response = data as unknown as BalanceResponse;
+      if (response?.success) {
+        setBalance(Number(response.new_balance) || 0);
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error applying referral code:', error);
+      return false;
+    }
+  }, [user]);
 
   return (
     <BonkBalanceContext.Provider
@@ -121,12 +206,13 @@ export const BonkBalanceProvider = ({ children }: { children: ReactNode }) => {
         balance,
         miningRate,
         referralCode,
-        referralEarnings,
-        referralCount,
+        totalEarned,
+        isLoading,
         addBalance,
         subtractBalance,
-        setMiningRate,
+        claimMiningReward,
         applyReferralCode,
+        refreshBalance,
       }}
     >
       {children}

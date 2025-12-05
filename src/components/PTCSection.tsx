@@ -138,8 +138,8 @@ export default function PTCSection() {
 
       if (updateError) throw updateError;
 
-      // Add reward to user balance
-      addBalance(REWARD_PER_VIEW);
+      // Add reward to user balance (database-backed)
+      await addBalance(REWARD_PER_VIEW);
 
       // Update local state
       setViewedAds(new Set([...viewedAds, ad.id]));
@@ -187,10 +187,11 @@ export default function PTCSection() {
     setCreating(true);
 
     try {
-      // Subtract balance first
-      const success = subtractBalance(totalCost);
+      // Subtract balance first (database-backed)
+      const success = await subtractBalance(totalCost);
       if (!success) {
         toast.error("Balance insuficiente");
+        setCreating(false);
         return;
       }
 
@@ -208,7 +209,11 @@ export default function PTCSection() {
           reward_per_view: REWARD_PER_VIEW,
         });
 
-      if (error) throw error;
+      if (error) {
+        // Refund the balance if ad creation fails
+        await addBalance(totalCost);
+        throw error;
+      }
 
       toast.success("¡Anuncio creado exitosamente!");
       setIsCreateOpen(false);
@@ -220,8 +225,6 @@ export default function PTCSection() {
     } catch (error) {
       console.error("Error creating ad:", error);
       toast.error("Error al crear el anuncio");
-      // Refund the balance
-      addBalance(totalCost);
     } finally {
       setCreating(false);
     }

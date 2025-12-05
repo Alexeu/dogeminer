@@ -4,23 +4,32 @@ import { rarityConfig } from "@/data/bonkData";
 import { Button } from "@/components/ui/button";
 import { Play, Gift, Clock, Coins } from "lucide-react";
 import { toast } from "sonner";
+import { useState } from "react";
 
 const MINING_DURATION = 60 * 60 * 1000; // 1 hour
 
 const InventorySection = () => {
   const { inventory, startMining, claimRewards, getClaimableAmount } = useInventory();
-  const { addBalance } = useBonkBalance();
+  const { claimMiningReward } = useBonkBalance();
+  const [claimingId, setClaimingId] = useState<string | null>(null);
 
   const handleStartMining = (characterId: string) => {
     startMining(characterId);
     toast.success("¡Minado iniciado! Vuelve en 1 hora para reclamar.");
   };
 
-  const handleClaim = (characterId: string) => {
+  const handleClaim = async (characterId: string) => {
     const amount = claimRewards(characterId);
     if (amount > 0) {
-      addBalance(amount);
-      toast.success(`¡Has reclamado ${amount} BONK!`);
+      setClaimingId(characterId);
+      const success = await claimMiningReward(amount, characterId);
+      setClaimingId(null);
+      
+      if (success) {
+        toast.success(`¡Has reclamado ${amount} BONK!`);
+      } else {
+        toast.error("Error al reclamar recompensas");
+      }
     }
   };
 
@@ -72,6 +81,7 @@ const InventorySection = () => {
             const isMining = item.miningStartTime !== null;
             const canClaim = item.accumulatedBonk > 0;
             const claimableAmount = getClaimableAmount(item.character.id);
+            const isClaiming = claimingId === item.character.id;
 
             return (
               <div
@@ -138,10 +148,11 @@ const InventorySection = () => {
                   ) : canClaim ? (
                     <Button
                       onClick={() => handleClaim(item.character.id)}
+                      disabled={isClaiming}
                       className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
                     >
                       <Gift className="w-4 h-4 mr-2" />
-                      Reclamar {item.accumulatedBonk} BONK
+                      {isClaiming ? "Reclamando..." : `Reclamar ${item.accumulatedBonk} BONK`}
                     </Button>
                   ) : (
                     <Button

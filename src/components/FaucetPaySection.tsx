@@ -100,13 +100,15 @@ const FaucetPaySection = () => {
       if (error) throw error;
 
       if (data.status === 200) {
-        subtractBalance(amount);
-        toast({
-          title: "¡Retiro exitoso!",
-          description: `Se enviaron ${amount} BONK a tu cuenta de FaucetPay`,
-        });
-        setWithdrawAmount("");
-        setWithdrawAddress("");
+        const success = await subtractBalance(amount);
+        if (success) {
+          toast({
+            title: "¡Retiro exitoso!",
+            description: `Se enviaron ${amount} BONK a tu cuenta de FaucetPay`,
+          });
+          setWithdrawAmount("");
+          setWithdrawAddress("");
+        }
       } else {
         throw new Error(data.message || 'Error al procesar el retiro');
       }
@@ -141,14 +143,16 @@ const FaucetPaySection = () => {
       if (error) throw error;
 
       if (data.status === 200) {
-        // Simulated deposit - in production this would verify actual deposits
-        const depositAmount = 1000; // Bonus for linking account
-        addBalance(depositAmount);
-        toast({
-          title: "¡Cuenta vinculada!",
-          description: `Recibiste ${depositAmount} BONK de bienvenida por vincular tu cuenta`,
-        });
-        setDepositAddress("");
+        // Bonus for linking account
+        const depositAmount = 1000;
+        const success = await addBalance(depositAmount);
+        if (success) {
+          toast({
+            title: "¡Cuenta vinculada!",
+            description: `Recibiste ${depositAmount} BONK de bienvenida por vincular tu cuenta`,
+          });
+          setDepositAddress("");
+        }
       } else {
         throw new Error(data.message || 'Dirección no encontrada en FaucetPay');
       }
