@@ -130,6 +130,42 @@ export type Database = {
           },
         ]
       }
+      deposits: {
+        Row: {
+          amount: number
+          created_at: string
+          expires_at: string
+          faucetpay_email: string
+          id: string
+          status: string
+          user_id: string
+          verification_code: string
+          verified_at: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          expires_at?: string
+          faucetpay_email: string
+          id?: string
+          status?: string
+          user_id: string
+          verification_code: string
+          verified_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          expires_at?: string
+          faucetpay_email?: string
+          id?: string
+          status?: string
+          user_id?: string
+          verification_code?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       device_fingerprints: {
         Row: {
           created_at: string | null
@@ -601,6 +637,14 @@ export type Database = {
         Returns: Json
       }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      complete_deposit: {
+        Args: { p_deposit_id: string; p_tx_hash?: string }
+        Returns: Json
+      }
+      create_deposit_request: {
+        Args: { p_amount: number; p_faucetpay_email: string }
+        Returns: Json
+      }
       draw_lottery_winner: { Args: { p_pool_id: string }; Returns: Json }
       get_balance: { Args: never; Returns: Json }
       get_users_by_fingerprint: {
