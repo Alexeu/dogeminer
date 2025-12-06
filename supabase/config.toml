@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.validate-fingerprint]
 verify_jwt = true
+
+[functions.verify-deposit]
+verify_jwt = true

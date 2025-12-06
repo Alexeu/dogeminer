@@ -5,11 +5,14 @@ import { useToast } from "@/hooks/use-toast";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Wallet, ArrowDownToLine, ArrowUpFromLine, Loader2, History, Clock, CheckCircle, XCircle, AlertCircle, Dog } from "lucide-react";
+import { Wallet, ArrowDownToLine, ArrowUpFromLine, Loader2, History, Clock, CheckCircle, XCircle, AlertCircle, Dog, Copy, ExternalLink } from "lucide-react";
 import { formatDoge } from "@/data/dogeData";
 
-const DAILY_LIMIT = 5.0000; // 5 DOGE daily limit
-const MIN_WITHDRAWAL = 0.5; // 0.5 DOGE minimum
+const DAILY_LIMIT = 5.0000;
+const MIN_WITHDRAWAL = 0.5;
+const MIN_DEPOSIT = 0.1;
+const MAX_DEPOSIT = 100;
+const FAUCETPAY_DEPOSIT_EMAIL = "dogeminer@proton.me"; // Email de FaucetPay donde recibimos depósitos
 
 interface Transaction {
   id: string;
@@ -17,6 +20,7 @@ interface Transaction {
   status: string;
   faucetpay_address: string | null;
   created_at: string;
+  type?: string;
 }
 
 interface BonusResponse {
@@ -26,25 +30,46 @@ interface BonusResponse {
   bonus?: number;
 }
 
+interface DepositRequest {
+  success: boolean;
+  error?: string;
+  deposit_id?: string;
+  verification_code?: string;
+  amount?: number;
+  expires_in_minutes?: number;
+}
+
+interface PendingDeposit {
+  id: string;
+  amount: number;
+  verification_code: string;
+  status: string;
+  created_at: string;
+  expires_at: string;
+}
+
 const FaucetPaySection = () => {
-  const { balance, subtractBalance, refreshBalance } = useDogeBalance();
+  const { balance, refreshBalance } = useDogeBalance();
   const { user } = useAuth();
   const { toast } = useToast();
   const [withdrawAddress, setWithdrawAddress] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [depositAddress, setDepositAddress] = useState("");
+  const [depositAmount, setDepositAmount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [faucetPayBalance, setFaucetPayBalance] = useState<number | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [dailyUsed, setDailyUsed] = useState(0);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [alreadyLinked, setAlreadyLinked] = useState(false);
+  const [pendingDeposit, setPendingDeposit] = useState<PendingDeposit | null>(null);
+  const [depositTab, setDepositTab] = useState<'link' | 'deposit'>('link');
 
-  // Fetch transaction history, daily usage, and check if already linked
   useEffect(() => {
     if (user) {
       fetchTransactions();
       checkIfLinked();
+      fetchPendingDeposit();
     }
   }, [user]);
 
@@ -63,24 +88,44 @@ const FaucetPaySection = () => {
     }
   };
 
+  const fetchPendingDeposit = async () => {
+    if (!user) return;
+    try {
+      const { data } = await supabase
+        .from('deposits')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'pending')
+        .gt('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (data) {
+        setPendingDeposit(data as PendingDeposit);
+        setDepositTab('deposit');
+      }
+    } catch (error) {
+      // No pending deposit
+    }
+  };
+
   const fetchTransactions = async () => {
     if (!user) return;
     
     setLoadingHistory(true);
     try {
-      // Fetch recent transactions
       const { data: txData, error: txError } = await supabase
         .from('transactions')
-        .select('id, amount, status, faucetpay_address, created_at')
+        .select('id, amount, status, faucetpay_address, created_at, type')
         .eq('user_id', user.id)
-        .eq('type', 'withdrawal')
+        .in('type', ['withdrawal', 'deposit'])
         .order('created_at', { ascending: false })
         .limit(10);
 
       if (txError) throw txError;
       setTransactions(txData || []);
 
-      // Calculate daily usage
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const todayISO = today.toISOString();
@@ -172,7 +217,6 @@ const FaucetPaySection = () => {
       return;
     }
 
-    // Check daily limit
     if (dailyUsed + amount > DAILY_LIMIT) {
       toast({
         title: "Límite diario excedido",
@@ -184,7 +228,6 @@ const FaucetPaySection = () => {
 
     setIsLoading(true);
     try {
-      // First check if the address is valid
       const { data: checkData, error: checkError } = await supabase.functions.invoke('faucetpay', {
         body: { action: 'checkAddress', address: withdrawAddress, currency: 'DOGE' }
       });
@@ -195,7 +238,6 @@ const FaucetPaySection = () => {
         throw new Error(checkData.message || 'Dirección inválida');
       }
 
-      // Send the withdrawal
       const { data, error } = await supabase.functions.invoke('faucetpay', {
         body: { 
           action: 'send', 
@@ -214,7 +256,6 @@ const FaucetPaySection = () => {
         });
         setWithdrawAmount("");
         setWithdrawAddress("");
-        // Refresh balance and transactions
         await refreshBalance();
         await fetchTransactions();
       } else {
@@ -251,7 +292,6 @@ const FaucetPaySection = () => {
       if (error) throw error;
 
       if (data.status === 200) {
-        // Claim welcome bonus securely via RPC
         const { data: bonusData, error: bonusError } = await supabase.rpc('claim_faucetpay_bonus');
         
         if (bonusError) throw bonusError;
@@ -289,6 +329,112 @@ const FaucetPaySection = () => {
     }
   };
 
+  const handleCreateDepositRequest = async () => {
+    const amount = parseFloat(depositAmount);
+    if (isNaN(amount) || amount < MIN_DEPOSIT || amount > MAX_DEPOSIT) {
+      toast({
+        title: "Error",
+        description: `El monto debe ser entre ${MIN_DEPOSIT} y ${MAX_DEPOSIT} DOGE`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!depositAddress.trim()) {
+      toast({
+        title: "Error",
+        description: "Ingresa tu email de FaucetPay",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('create_deposit_request', {
+        p_amount: amount,
+        p_faucetpay_email: depositAddress
+      });
+
+      if (error) throw error;
+
+      const result = data as unknown as DepositRequest;
+      if (result?.success) {
+        setPendingDeposit({
+          id: result.deposit_id!,
+          amount: result.amount!,
+          verification_code: result.verification_code!,
+          status: 'pending',
+          created_at: new Date().toISOString(),
+          expires_at: new Date(Date.now() + (result.expires_in_minutes || 30) * 60000).toISOString()
+        });
+        toast({
+          title: "¡Solicitud creada!",
+          description: "Sigue las instrucciones para completar tu depósito",
+        });
+      } else {
+        throw new Error(result?.error || 'Error al crear solicitud');
+      }
+    } catch (error: any) {
+      console.error('Create deposit error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo crear la solicitud",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyDeposit = async () => {
+    if (!pendingDeposit) return;
+
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-deposit', {
+        body: { deposit_id: pendingDeposit.id }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast({
+          title: "¡Depósito verificado! Much wow!",
+          description: `Se acreditaron ${formatDoge(pendingDeposit.amount)} DOGE a tu cuenta`,
+        });
+        setPendingDeposit(null);
+        setDepositAmount("");
+        setDepositAddress("");
+        await refreshBalance();
+        await fetchTransactions();
+      } else {
+        toast({
+          title: "Depósito no encontrado",
+          description: data?.message || "No se detectó el depósito. Asegúrate de enviar el monto exacto con el código.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error('Verify deposit error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo verificar el depósito",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copiado",
+      description: "Texto copiado al portapapeles",
+    });
+  };
+
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('es-ES', { 
@@ -317,12 +463,20 @@ const FaucetPaySection = () => {
       case 'completed': return 'Completado';
       case 'failed': return 'Fallido';
       case 'pending': return 'Pendiente';
+      case 'expired': return 'Expirado';
       default: return status;
     }
   };
 
   const dailyPercentage = Math.min((dailyUsed / DAILY_LIMIT) * 100, 100);
   const remainingDaily = Math.max(DAILY_LIMIT - dailyUsed, 0);
+
+  const getTimeRemaining = (expiresAt: string) => {
+    const diff = new Date(expiresAt).getTime() - Date.now();
+    if (diff <= 0) return 'Expirado';
+    const mins = Math.floor(diff / 60000);
+    return `${mins} min restantes`;
+  };
 
   return (
     <section id="faucetpay" className="py-20 bg-gradient-to-b from-background to-secondary/20">
@@ -428,48 +582,203 @@ const FaucetPaySection = () => {
               </div>
               <div>
                 <h3 className="text-xl font-bold">Depositar DOGE</h3>
-                <p className="text-sm text-muted-foreground">Vincula tu cuenta</p>
+                <p className="text-sm text-muted-foreground">Desde FaucetPay</p>
               </div>
             </div>
 
-            {faucetPayBalance !== null && (
-              <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                <p className="text-sm text-muted-foreground mb-1">Balance en FaucetPay</p>
-                <p className="text-2xl font-bold text-emerald-500">{formatDoge(faucetPayBalance)} DOGE</p>
+            {/* Tab selector */}
+            {alreadyLinked && (
+              <div className="flex gap-2 p-1 bg-secondary/50 rounded-xl">
+                <button
+                  onClick={() => setDepositTab('link')}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                    depositTab === 'link' 
+                      ? 'bg-background shadow-sm' 
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Estado
+                </button>
+                <button
+                  onClick={() => setDepositTab('deposit')}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                    depositTab === 'deposit' 
+                      ? 'bg-background shadow-sm' 
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Depositar
+                </button>
               </div>
             )}
 
-            <div className="p-4 rounded-xl bg-secondary/50 space-y-2">
-              <p className="text-sm font-medium">¿Cómo depositar?</p>
-              <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-                <li>Ingresa tu email de FaucetPay</li>
-                <li>Verifica tu cuenta</li>
-                <li>Recibe bonus de bienvenida 🎁</li>
-              </ol>
-            </div>
+            {/* Link account section (shown when not linked or on 'link' tab) */}
+            {(!alreadyLinked || depositTab === 'link') && !pendingDeposit && (
+              <>
+                {!alreadyLinked ? (
+                  <>
+                    <div className="p-4 rounded-xl bg-secondary/50 space-y-2">
+                      <p className="text-sm font-medium">Paso 1: Vincula tu cuenta</p>
+                      <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
+                        <li>Ingresa tu email de FaucetPay</li>
+                        <li>Verifica tu cuenta</li>
+                        <li>Recibe bonus de bienvenida 🎁</li>
+                      </ol>
+                    </div>
 
-            <Input
-              placeholder="Tu email de FaucetPay"
-              value={depositAddress}
-              onChange={(e) => setDepositAddress(e.target.value)}
-              className="bg-background/50"
-              disabled={alreadyLinked}
-            />
+                    <Input
+                      placeholder="Tu email de FaucetPay"
+                      value={depositAddress}
+                      onChange={(e) => setDepositAddress(e.target.value)}
+                      className="bg-background/50"
+                    />
 
-            <Button 
-              onClick={handleCheckDeposit} 
-              variant="outline"
-              className="w-full border-emerald-500 text-emerald-500 hover:bg-emerald-500/10"
-              disabled={isLoading || alreadyLinked}
-            >
-              {isLoading ? (
-                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verificando...</>
-              ) : alreadyLinked ? (
-                <><CheckCircle className="w-4 h-4 mr-2" /> Cuenta ya vinculada</>
-              ) : (
-                <><ArrowDownToLine className="w-4 h-4 mr-2" /> Vincular Cuenta</>
-              )}
-            </Button>
+                    <Button 
+                      onClick={handleCheckDeposit} 
+                      variant="outline"
+                      className="w-full border-emerald-500 text-emerald-500 hover:bg-emerald-500/10"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verificando...</>
+                      ) : (
+                        <><ArrowDownToLine className="w-4 h-4 mr-2" /> Vincular Cuenta</>
+                      )}
+                    </Button>
+                  </>
+                ) : (
+                  <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-emerald-500" />
+                      <p className="font-medium text-emerald-500">Cuenta vinculada</p>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Ya puedes hacer depósitos desde FaucetPay
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Deposit section (shown when linked and on 'deposit' tab or has pending) */}
+            {alreadyLinked && (depositTab === 'deposit' || pendingDeposit) && (
+              <>
+                {pendingDeposit ? (
+                  <>
+                    <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="font-medium text-amber-600">Depósito pendiente</p>
+                        <span className="text-xs text-amber-600">
+                          {getTimeRemaining(pendingDeposit.expires_at)}
+                        </span>
+                      </div>
+                      <p className="text-2xl font-bold">{formatDoge(pendingDeposit.amount)} DOGE</p>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-secondary/50 space-y-3">
+                      <p className="text-sm font-medium">Instrucciones:</p>
+                      
+                      <div className="space-y-2">
+                        <p className="text-xs text-muted-foreground">1. Envía exactamente este monto a:</p>
+                        <div className="flex items-center gap-2 p-2 bg-background rounded-lg">
+                          <code className="text-xs flex-1 truncate">{FAUCETPAY_DEPOSIT_EMAIL}</code>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            onClick={() => copyToClipboard(FAUCETPAY_DEPOSIT_EMAIL)}
+                          >
+                            <Copy className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <p className="text-xs text-muted-foreground">2. En el mensaje/referencia incluye:</p>
+                        <div className="flex items-center gap-2 p-2 bg-background rounded-lg">
+                          <code className="text-sm font-bold flex-1">{pendingDeposit.verification_code}</code>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            onClick={() => copyToClipboard(pendingDeposit.verification_code)}
+                          >
+                            <Copy className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button 
+                      onClick={handleVerifyDeposit} 
+                      className="w-full bg-emerald-500 hover:bg-emerald-600 text-white"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verificando...</>
+                      ) : (
+                        <><CheckCircle className="w-4 h-4 mr-2" /> Ya envié el DOGE</>
+                      )}
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      className="w-full text-muted-foreground"
+                      onClick={() => {
+                        setPendingDeposit(null);
+                        setDepositAmount("");
+                      }}
+                    >
+                      Cancelar solicitud
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <div className="p-4 rounded-xl bg-secondary/50 space-y-2">
+                      <p className="text-sm font-medium">¿Cómo depositar?</p>
+                      <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
+                        <li>Ingresa el monto que quieres depositar</li>
+                        <li>Recibirás instrucciones de pago</li>
+                        <li>Envía DOGE desde tu FaucetPay</li>
+                        <li>Verifica y recibe tu saldo 🚀</li>
+                      </ol>
+                    </div>
+
+                    <Input
+                      placeholder="Tu email de FaucetPay"
+                      value={depositAddress}
+                      onChange={(e) => setDepositAddress(e.target.value)}
+                      className="bg-background/50"
+                    />
+
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min={MIN_DEPOSIT}
+                      max={MAX_DEPOSIT}
+                      placeholder={`Monto (${MIN_DEPOSIT} - ${MAX_DEPOSIT} DOGE)`}
+                      value={depositAmount}
+                      onChange={(e) => setDepositAmount(e.target.value)}
+                      className="bg-background/50"
+                    />
+
+                    <Button 
+                      onClick={handleCreateDepositRequest} 
+                      className="w-full bg-emerald-500 hover:bg-emerald-600 text-white"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Procesando...</>
+                      ) : (
+                        <><ArrowDownToLine className="w-4 h-4 mr-2" /> Crear solicitud de depósito</>
+                      )}
+                    </Button>
+
+                    <p className="text-xs text-muted-foreground text-center">
+                      Mínimo: {MIN_DEPOSIT} DOGE • Máximo: {MAX_DEPOSIT} DOGE
+                    </p>
+                  </>
+                )}
+              </>
+            )}
 
             <Button 
               onClick={checkFaucetPayBalance} 
@@ -480,6 +789,13 @@ const FaucetPaySection = () => {
               <Wallet className="w-4 h-4 mr-2" />
               Ver Balance FaucetPay
             </Button>
+
+            {faucetPayBalance !== null && (
+              <div className="p-3 rounded-xl bg-secondary/30 text-center">
+                <p className="text-xs text-muted-foreground">Balance en FaucetPay</p>
+                <p className="font-bold text-emerald-500">{formatDoge(faucetPayBalance)} DOGE</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -491,8 +807,8 @@ const FaucetPaySection = () => {
                 <History className="w-5 h-5 text-foreground" />
               </div>
               <div>
-                <h3 className="text-lg font-bold">Historial de Retiros</h3>
-                <p className="text-sm text-muted-foreground">Tus últimas transacciones</p>
+                <h3 className="text-lg font-bold">Historial de Transacciones</h3>
+                <p className="text-sm text-muted-foreground">Depósitos y retiros</p>
               </div>
             </div>
 
@@ -516,10 +832,11 @@ const FaucetPaySection = () => {
                       {getStatusIcon(tx.status)}
                       <div>
                         <p className="font-medium text-sm">
-                          -{formatDoge(tx.amount)} DOGE
+                          {tx.type === 'deposit' ? '+' : '-'}{formatDoge(tx.amount)} DOGE
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {tx.faucetpay_address ? `→ ${tx.faucetpay_address.slice(0, 20)}...` : 'FaucetPay'}
+                          {tx.type === 'deposit' ? 'Depósito' : 'Retiro'} 
+                          {tx.faucetpay_address ? ` • ${tx.faucetpay_address.slice(0, 15)}...` : ''}
                         </p>
                       </div>
                     </div>
