@@ -460,7 +460,9 @@ serve(async (req) => {
         // Now send via FaucetPay
         endpoint = '/send';
         body.to = address;
-        body.amount = String(amount);
+        // FaucetPay expects amount in satoshi (1 DOGE = 100,000,000 satoshi)
+        const amountInSatoshi = Math.floor(amount * 100000000);
+        body.amount = String(amountInSatoshi);
         body.currency = currency;
 
         // Make FaucetPay API call
