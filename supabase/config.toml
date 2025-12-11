@@ -8,3 +8,6 @@ verify_jwt = true
 
 [functions.verify-deposit]
 verify_jwt = true
+
+[functions.faucetpay-ipn]
+verify_jwt = false
