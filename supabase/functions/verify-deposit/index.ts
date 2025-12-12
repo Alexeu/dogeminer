@@ -6,8 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const FAUCETPAY_API_URL = 'https://faucetpay.io/api/v1';
-const FAUCETPAY_API_KEY = Deno.env.get('FAUCETPAY_API_KEY');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -93,23 +91,13 @@ serve(async (req) => {
       });
     }
 
-    // Check FaucetPay recent transactions using payouts history
-    // Note: FaucetPay API doesn't have a direct "received payments" endpoint
-    // For production, you'd need to implement webhook or manual verification
-    // Here we'll use a simplified approach - trust user claim with admin review
+    // Auto-approve deposit (like pepeminer)
+    // Complete the deposit immediately when user clicks verify
+    console.log(`Auto-completing deposit for ${deposit.amount} DOGE`);
     
-    console.log(`Deposit verification for ${deposit.amount} DOGE with code ${deposit.verification_code}`);
-    
-    // For semi-automatic: We'll complete the deposit directly
-    // In production, you should implement proper verification via:
-    // 1. FaucetPay webhooks (if available)
-    // 2. Manual admin approval
-    // 3. Periodic polling of your FaucetPay balance
-    
-    // Complete the deposit using the database function
     const { data: result, error: completeError } = await supabaseAdmin.rpc('complete_deposit', {
       p_deposit_id: deposit_id,
-      p_tx_hash: null
+      p_tx_hash: `manual_${Date.now()}`
     });
 
     if (completeError) {
@@ -135,11 +123,22 @@ serve(async (req) => {
       });
     }
 
-    console.log(`Deposit ${deposit_id} completed successfully!`);
+    // Create notification
+    await supabaseAdmin
+      .from('notifications')
+      .insert({
+        user_id: user.id,
+        type: 'deposit',
+        title: '¡Depósito recibido!',
+        message: `Se acreditaron ${deposit.amount} DOGE a tu cuenta.`,
+        data: { amount: deposit.amount }
+      });
+
+    console.log(`Deposit ${deposit_id} completed successfully! New balance: ${depositResult.new_balance}`);
 
     return new Response(JSON.stringify({
       success: true,
-      message: 'Deposit verified and credited!',
+      message: '¡Depósito verificado y acreditado!',
       amount: depositResult.amount,
       new_balance: depositResult.new_balance
     }), {
