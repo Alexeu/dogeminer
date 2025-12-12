@@ -340,40 +340,35 @@ const FaucetPaySection = () => {
       return;
     }
 
-    if (!depositAddress.trim()) {
-      toast({
-        title: "Error",
-        description: "Ingresa tu email de FaucetPay",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.rpc('create_deposit_request', {
-        p_amount: amount,
-        p_faucetpay_email: depositAddress
+      const { data, error } = await supabase.functions.invoke('create-faucetpay-deposit', {
+        body: { amount }
       });
 
       if (error) throw error;
 
-      const result = data as unknown as DepositRequest;
-      if (result?.success) {
+      if (data?.success) {
         setPendingDeposit({
-          id: result.deposit_id!,
-          amount: result.amount!,
-          verification_code: result.verification_code!,
+          id: data.deposit_id,
+          amount: data.amount,
+          verification_code: data.verification_code,
           status: 'pending',
           created_at: new Date().toISOString(),
-          expires_at: new Date(Date.now() + (result.expires_in_minutes || 30) * 60000).toISOString()
+          expires_at: data.expires_at
         });
+
+        // Open FaucetPay payment page in new tab
+        if (data.payment_url) {
+          window.open(data.payment_url, '_blank');
+        }
+
         toast({
-          title: "¡Solicitud creada!",
-          description: "Sigue las instrucciones para completar tu depósito",
+          title: "¡Redirigiendo a FaucetPay!",
+          description: "Completa el pago en la ventana de FaucetPay",
         });
       } else {
-        throw new Error(result?.error || 'Error al crear solicitud');
+        throw new Error(data?.error || 'Error al crear solicitud');
       }
     } catch (error: any) {
       console.error('Create deposit error:', error);
@@ -673,49 +668,44 @@ const FaucetPaySection = () => {
                         </span>
                       </div>
                       <p className="text-2xl font-bold">{formatDoge(pendingDeposit.amount)} DOGE</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Código: <span className="font-mono font-bold">{pendingDeposit.verification_code}</span>
+                      </p>
                     </div>
 
                     <div className="p-4 rounded-xl bg-secondary/50 space-y-3">
-                      <p className="text-sm font-medium">Instrucciones:</p>
-                      
-                      <div className="space-y-2">
-                        <p className="text-xs text-muted-foreground">1. Envía exactamente este monto a:</p>
-                        <div className="flex items-center gap-2 p-2 bg-background rounded-lg">
-                          <code className="text-xs flex-1 truncate">{FAUCETPAY_DEPOSIT_EMAIL}</code>
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            onClick={() => copyToClipboard(FAUCETPAY_DEPOSIT_EMAIL)}
-                          >
-                            <Copy className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <p className="text-xs text-muted-foreground">2. En el mensaje/referencia incluye:</p>
-                        <div className="flex items-center gap-2 p-2 bg-background rounded-lg">
-                          <code className="text-sm font-bold flex-1">{pendingDeposit.verification_code}</code>
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            onClick={() => copyToClipboard(pendingDeposit.verification_code)}
-                          >
-                            <Copy className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </div>
+                      <p className="text-sm font-medium">¿No se abrió FaucetPay?</p>
+                      <p className="text-xs text-muted-foreground">
+                        Haz clic en el botón para ir a FaucetPay y completar el pago
+                      </p>
                     </div>
 
                     <Button 
-                      onClick={handleVerifyDeposit} 
+                      onClick={() => {
+                        const amountSatoshi = Math.floor(pendingDeposit.amount * 100000000);
+                        const params = new URLSearchParams({
+                          to: FAUCETPAY_DEPOSIT_EMAIL,
+                          amount: amountSatoshi.toString(),
+                          currency: 'DOGE',
+                          ref: pendingDeposit.verification_code
+                        });
+                        window.open(`https://faucetpay.io/page/send-payment?${params.toString()}`, '_blank');
+                      }} 
                       className="w-full bg-emerald-500 hover:bg-emerald-600 text-white"
+                    >
+                      <ExternalLink className="w-4 h-4 mr-2" /> Ir a FaucetPay a Pagar
+                    </Button>
+
+                    <Button 
+                      onClick={handleVerifyDeposit} 
+                      variant="outline"
+                      className="w-full border-emerald-500 text-emerald-500 hover:bg-emerald-500/10"
                       disabled={isLoading}
                     >
                       {isLoading ? (
                         <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verificando...</>
                       ) : (
-                        <><CheckCircle className="w-4 h-4 mr-2" /> Ya envié el DOGE</>
+                        <><CheckCircle className="w-4 h-4 mr-2" /> Ya pagué, verificar</>
                       )}
                     </Button>
 
@@ -733,21 +723,14 @@ const FaucetPaySection = () => {
                 ) : (
                   <>
                     <div className="p-4 rounded-xl bg-secondary/50 space-y-2">
-                      <p className="text-sm font-medium">¿Cómo depositar?</p>
+                      <p className="text-sm font-medium">Depósito automático</p>
                       <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
                         <li>Ingresa el monto que quieres depositar</li>
-                        <li>Recibirás instrucciones de pago</li>
-                        <li>Envía DOGE desde tu FaucetPay</li>
-                        <li>Verifica y recibe tu saldo 🚀</li>
+                        <li>Serás redirigido a FaucetPay</li>
+                        <li>Completa el pago en FaucetPay</li>
+                        <li>Tu saldo se acredita automáticamente 🚀</li>
                       </ol>
                     </div>
-
-                    <Input
-                      placeholder="Tu email de FaucetPay"
-                      value={depositAddress}
-                      onChange={(e) => setDepositAddress(e.target.value)}
-                      className="bg-background/50"
-                    />
 
                     <Input
                       type="number"
@@ -768,7 +751,7 @@ const FaucetPaySection = () => {
                       {isLoading ? (
                         <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Procesando...</>
                       ) : (
-                        <><ArrowDownToLine className="w-4 h-4 mr-2" /> Crear solicitud de depósito</>
+                        <><ExternalLink className="w-4 h-4 mr-2" /> Ir a FaucetPay a Depositar</>
                       )}
                     </Button>
 
@@ -780,7 +763,7 @@ const FaucetPaySection = () => {
               </>
             )}
 
-            <Button 
+            <Button
               onClick={checkFaucetPayBalance} 
               variant="ghost"
               className="w-full"
