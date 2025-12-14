@@ -142,16 +142,16 @@ serve(async (req) => {
 });
 
 function generateFaucetPayUrl(amount: number, reference: string): string {
-  // FaucetPay uses a direct send interface
   const amountSatoshi = Math.floor(amount * 100000000);
   const depositEmail = 'dogeminer@proton.me';
   
-  // FaucetPay send URL pattern
+  // FaucetPay send-payment URL with custom field for IPN
   const params = new URLSearchParams({
     to: depositEmail,
     amount: amountSatoshi.toString(),
     currency: 'DOGE',
-    ref: reference
+    custom: reference,  // Used for IPN callback
+    ref: reference      // Also set ref as backup
   });
   
   return `https://faucetpay.io/page/send-payment?${params.toString()}`;
