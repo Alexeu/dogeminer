@@ -12,7 +12,7 @@ const DAILY_LIMIT = 5.0000;
 const MIN_WITHDRAWAL = 0.5;
 const MIN_DEPOSIT = 0.1;
 const MAX_DEPOSIT = 100;
-const FAUCETPAY_DEPOSIT_EMAIL = "dogeminer@proton.me"; // Email de FaucetPay donde recibimos depósitos
+const FAUCETPAY_DEPOSIT_EMAIL = "Alexeu@hotmail.es"; // Email de FaucetPay donde recibimos depósitos
 
 interface Transaction {
   id: string;
