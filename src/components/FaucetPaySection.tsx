@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Wallet, ArrowDownToLine, ArrowUpFromLine, Loader2, History, Clock, CheckCircle, XCircle, AlertCircle, Dog, Copy } from "lucide-react";
+import { Wallet, ArrowDownToLine, ArrowUpFromLine, Loader2, History, Clock, CheckCircle, XCircle, AlertCircle, Dog, Copy, Send } from "lucide-react";
 import { formatDoge } from "@/data/dogeData";
 
 const DAILY_LIMIT = 5.0000;
@@ -20,6 +20,7 @@ interface Transaction {
   faucetpay_address: string | null;
   created_at: string;
   type?: string;
+  tx_hash?: string | null;
 }
 
 const FaucetPaySection = () => {
@@ -33,6 +34,11 @@ const FaucetPaySection = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [dailyUsed, setDailyUsed] = useState(0);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  
+  // Deposit report state
+  const [depositAmount, setDepositAmount] = useState("");
+  const [depositTxHash, setDepositTxHash] = useState("");
+  const [isReportingDeposit, setIsReportingDeposit] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -212,6 +218,104 @@ const FaucetPaySection = () => {
     });
   };
 
+  const handleReportDeposit = async () => {
+    const amount = parseFloat(depositAmount);
+    
+    if (isNaN(amount) || amount < MIN_DEPOSIT) {
+      toast({
+        title: "Error",
+        description: `El mínimo de depósito es ${MIN_DEPOSIT} DOGE`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!depositTxHash.trim()) {
+      toast({
+        title: "Error",
+        description: "Ingresa el TX Hash de tu transacción",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsReportingDeposit(true);
+    try {
+      // Create deposit transaction as pending
+      const { error: txError } = await supabase
+        .from('transactions')
+        .insert({
+          user_id: user!.id,
+          type: 'deposit',
+          amount: amount,
+          status: 'pending',
+          tx_hash: depositTxHash.trim(),
+          notes: `Depósito manual reportado - TX: ${depositTxHash.trim()}`
+        });
+
+      if (txError) throw txError;
+
+      // Get all admin user IDs
+      const { data: adminRoles, error: adminError } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'admin');
+
+      if (adminError) throw adminError;
+
+      // Get user email for notification
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('id', user!.id)
+        .single();
+
+      // Create notifications for all admins
+      if (adminRoles && adminRoles.length > 0) {
+        const notifications = adminRoles.map(admin => ({
+          user_id: admin.user_id,
+          type: 'admin_deposit',
+          title: '💰 Nuevo depósito pendiente',
+          message: `Usuario ${profile?.email || user!.id} reportó depósito de ${amount} DOGE. TX: ${depositTxHash.trim().slice(0, 20)}...`,
+          data: {
+            deposit_amount: amount,
+            tx_hash: depositTxHash.trim(),
+            reporter_id: user!.id,
+            reporter_email: profile?.email
+          }
+        }));
+
+        // Use service role through edge function to insert notifications
+        await supabase.functions.invoke('notify-admin-deposit', {
+          body: { 
+            amount,
+            tx_hash: depositTxHash.trim(),
+            user_id: user!.id,
+            user_email: profile?.email
+          }
+        });
+      }
+
+      toast({
+        title: "¡Depósito reportado!",
+        description: "Tu depósito será verificado y acreditado pronto. Much wow! 🐕",
+      });
+
+      setDepositAmount("");
+      setDepositTxHash("");
+      await fetchTransactions();
+    } catch (error: any) {
+      console.error('Report deposit error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo reportar el depósito",
+        variant: "destructive",
+      });
+    } finally {
+      setIsReportingDeposit(false);
+    }
+  };
+
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('es-ES', { 
@@ -374,32 +478,44 @@ const FaucetPaySection = () => {
               </div>
             </div>
 
+            <div className="border-t border-border/50 pt-4">
+              <p className="text-sm font-medium mb-3">Reportar depósito:</p>
+              <Input
+                type="number"
+                step="0.0001"
+                placeholder="Cantidad enviada (DOGE)"
+                value={depositAmount}
+                onChange={(e) => setDepositAmount(e.target.value)}
+                className="bg-background/50 mb-2"
+              />
+              <Input
+                placeholder="TX Hash de la transacción"
+                value={depositTxHash}
+                onChange={(e) => setDepositTxHash(e.target.value)}
+                className="bg-background/50 mb-3"
+              />
+              <Button
+                onClick={handleReportDeposit}
+                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white"
+                disabled={isReportingDeposit}
+              >
+                {isReportingDeposit ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Reportando...</>
+                ) : (
+                  <><Send className="w-4 h-4 mr-2" /> Reportar Depósito</>
+                )}
+              </Button>
+            </div>
+
             <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
               <p className="text-sm font-medium text-amber-600 mb-2">⚠️ Importante:</p>
               <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
                 <li>Mínimo de depósito: <span className="font-bold">{MIN_DEPOSIT} DOGE</span></li>
                 <li>Solo envía DOGE a esta dirección</li>
-                <li>Los depósitos se procesan manualmente</li>
-                <li>Contacta soporte después de enviar</li>
+                <li>Reporta tu TX hash después de enviar</li>
+                <li>Los depósitos se acreditan en 24h máximo</li>
               </ul>
             </div>
-
-            <Button
-              onClick={checkFaucetPayBalance} 
-              variant="ghost"
-              className="w-full"
-              disabled={isLoading}
-            >
-              <Wallet className="w-4 h-4 mr-2" />
-              Ver Balance FaucetPay
-            </Button>
-
-            {faucetPayBalance !== null && (
-              <div className="p-3 rounded-xl bg-secondary/30 text-center">
-                <p className="text-xs text-muted-foreground">Balance en FaucetPay</p>
-                <p className="font-bold text-emerald-500">{formatDoge(faucetPayBalance)} DOGE</p>
-              </div>
-            )}
           </div>
         </div>
 
