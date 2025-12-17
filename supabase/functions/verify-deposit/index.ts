@@ -8,6 +8,7 @@ const corsHeaders = {
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const DEPOSIT_ADDRESS = "DFbsc22DdbvczjXJZfTu59Q7HdSFkeGUNv";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -22,7 +23,7 @@ serve(async (req) => {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ 
         success: false, 
-        message: 'Authentication required' 
+        error: 'Authentication required' 
       }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -35,112 +36,164 @@ serve(async (req) => {
     if (authError || !user) {
       return new Response(JSON.stringify({ 
         success: false, 
-        message: 'Invalid token' 
+        error: 'Invalid token' 
       }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const { deposit_id } = await req.json();
-    console.log(`Verifying deposit ${deposit_id} for user ${user.id}`);
+    const { tx_hash, expected_amount, user_id } = await req.json();
+    console.log(`Verifying TX ${tx_hash} for user ${user_id}`);
 
-    if (!deposit_id) {
+    if (!tx_hash || !expected_amount || !user_id) {
       return new Response(JSON.stringify({ 
         success: false, 
-        message: 'Deposit ID required' 
+        error: 'Missing required parameters' 
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Get deposit info
-    const { data: deposit, error: depositError } = await supabaseAdmin
-      .from('deposits')
-      .select('*')
-      .eq('id', deposit_id)
-      .eq('user_id', user.id)
-      .eq('status', 'pending')
-      .single();
+    // Check if this TX was already processed
+    const { data: existingTx } = await supabaseAdmin
+      .from('transactions')
+      .select('id, status')
+      .eq('tx_hash', tx_hash)
+      .eq('status', 'completed')
+      .maybeSingle();
 
-    if (depositError || !deposit) {
-      console.error('Deposit not found:', depositError?.message);
+    if (existingTx) {
       return new Response(JSON.stringify({ 
         success: false, 
-        message: 'Deposit not found or already processed' 
+        error: 'Transaction already processed' 
       }), {
-        status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Check if expired
-    if (new Date(deposit.expires_at) < new Date()) {
-      await supabaseAdmin
-        .from('deposits')
-        .update({ status: 'expired' })
-        .eq('id', deposit_id);
-      
-      return new Response(JSON.stringify({ 
-        success: false, 
-        message: 'Deposit request has expired' 
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Auto-approve deposit (like pepeminer)
-    // Complete the deposit immediately when user clicks verify
-    console.log(`Auto-completing deposit for ${deposit.amount} DOGE`);
+    // Verify transaction on blockchain using dogechain.info API
+    console.log(`Fetching TX from blockchain: ${tx_hash}`);
+    const txResponse = await fetch(`https://dogechain.info/api/v1/transaction/${tx_hash}`);
     
-    const { data: result, error: completeError } = await supabaseAdmin.rpc('complete_deposit', {
-      p_deposit_id: deposit_id,
-      p_tx_hash: `manual_${Date.now()}`
+    if (!txResponse.ok) {
+      console.log(`TX not found on blockchain: ${txResponse.status}`);
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'Transaction not found on blockchain. Please check the TX hash.' 
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const txData = await txResponse.json();
+    console.log(`Blockchain response:`, JSON.stringify(txData).slice(0, 500));
+    
+    if (!txData.success || !txData.transaction) {
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'Invalid transaction data from blockchain' 
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const tx = txData.transaction;
+
+    // Check confirmations (require at least 1)
+    if (!tx.confirmations || tx.confirmations < 1) {
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: `Transaction not confirmed yet. Confirmations: ${tx.confirmations || 0}. Please wait a few minutes.`,
+        confirmations: tx.confirmations || 0 
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Find output to our deposit address
+    let receivedAmount = 0;
+    for (const output of tx.outputs || []) {
+      if (output.address === DEPOSIT_ADDRESS) {
+        receivedAmount += parseFloat(output.value);
+      }
+    }
+
+    console.log(`Received amount to ${DEPOSIT_ADDRESS}: ${receivedAmount} DOGE`);
+
+    if (receivedAmount <= 0) {
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: `No payment found to deposit address ${DEPOSIT_ADDRESS}` 
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Verify amount (allow small variance)
+    if (receivedAmount < expected_amount * 0.95) {
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: `Amount mismatch. Expected ${expected_amount} DOGE, received ${receivedAmount} DOGE`,
+        received: receivedAmount
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Transaction verified! Credit the user
+    console.log(`TX verified! Crediting ${receivedAmount} DOGE to user ${user_id}`);
+
+    // Update the transaction status
+    await supabaseAdmin
+      .from('transactions')
+      .update({ 
+        status: 'completed',
+        amount: receivedAmount,
+        notes: `Auto-verified. Confirmations: ${tx.confirmations}. Received: ${receivedAmount} DOGE`
+      })
+      .eq('tx_hash', tx_hash)
+      .eq('user_id', user_id)
+      .eq('status', 'pending');
+
+    // Add balance to user using RPC for atomic update
+    const { data: rpcResult, error: rpcError } = await supabaseAdmin.rpc('internal_add_balance', {
+      p_user_id: user_id,
+      p_amount: receivedAmount
     });
 
-    if (completeError) {
-      console.error('Complete deposit error:', completeError.message);
+    if (rpcError) {
+      console.error('RPC error:', rpcError);
       return new Response(JSON.stringify({ 
         success: false, 
-        message: 'Failed to process deposit' 
+        error: 'Failed to credit balance' 
       }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const depositResult = result as { success: boolean; error?: string; new_balance?: number; amount?: number };
+    // Create notification for user
+    await supabaseAdmin.from('notifications').insert({
+      user_id: user_id,
+      type: 'deposit_completed',
+      title: '✅ ¡Depósito acreditado!',
+      message: `Tu depósito de ${receivedAmount} DOGE ha sido verificado y acreditado. Much wow! 🐕`,
+      data: {
+        amount: receivedAmount,
+        tx_hash: tx_hash,
+        confirmations: tx.confirmations
+      }
+    });
 
-    if (!depositResult?.success) {
-      return new Response(JSON.stringify({ 
-        success: false, 
-        message: depositResult?.error || 'Deposit verification failed' 
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    console.log(`Deposit completed successfully!`);
 
-    // Create notification
-    await supabaseAdmin
-      .from('notifications')
-      .insert({
-        user_id: user.id,
-        type: 'deposit',
-        title: '¡Depósito recibido!',
-        message: `Se acreditaron ${deposit.amount} DOGE a tu cuenta.`,
-        data: { amount: deposit.amount }
-      });
-
-    console.log(`Deposit ${deposit_id} completed successfully! New balance: ${depositResult.new_balance}`);
-
-    return new Response(JSON.stringify({
-      success: true,
-      message: '¡Depósito verificado y acreditado!',
-      amount: depositResult.amount,
-      new_balance: depositResult.new_balance
+    return new Response(JSON.stringify({ 
+      success: true, 
+      credited_amount: receivedAmount,
+      confirmations: tx.confirmations,
+      message: 'Deposit verified and credited!'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -149,7 +202,7 @@ serve(async (req) => {
     console.error('Verify deposit error:', error);
     return new Response(JSON.stringify({ 
       success: false, 
-      message: error instanceof Error ? error.message : 'Internal error' 
+      error: error instanceof Error ? error.message : 'Internal error' 
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
