@@ -512,6 +512,7 @@ export type Database = {
           character_rarity: string
           created_at: string
           id: string
+          level: number
           mining_rate: number
           quantity: number
           updated_at: string
@@ -523,6 +524,7 @@ export type Database = {
           character_rarity: string
           created_at?: string
           id?: string
+          level?: number
           mining_rate: number
           quantity?: number
           updated_at?: string
@@ -534,6 +536,7 @@ export type Database = {
           character_rarity?: string
           created_at?: string
           id?: string
+          level?: number
           mining_rate?: number
           quantity?: number
           updated_at?: string
@@ -666,6 +669,7 @@ export type Database = {
         Args: { p_amount: number; p_user_id: string }
         Returns: boolean
       }
+      level_up_character: { Args: { p_character_id: string }; Returns: Json }
       open_mystery_box: { Args: { p_box_id: string }; Returns: Json }
       start_ad_view: { Args: { p_ad_id: string }; Returns: Json }
       start_mining: { Args: { p_character_id: string }; Returns: Json }

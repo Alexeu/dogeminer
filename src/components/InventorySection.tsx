@@ -1,16 +1,19 @@
 import { useInventory } from "@/contexts/InventoryContext";
 import { rarityConfig } from "@/data/dogeData";
 import { Button } from "@/components/ui/button";
-import { Play, Gift, Clock, Coins } from "lucide-react";
+import { Play, Gift, Clock, Coins, ArrowUp, Star } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
+import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 
 const MINING_DURATION = 60 * 60 * 1000; // 1 hour
 
 const InventorySection = () => {
-  const { inventory, startMining, claimRewards, getClaimableAmount } = useInventory();
+  const { inventory, startMining, claimRewards, getClaimableAmount, levelUpCharacter, getLevelUpCost } = useInventory();
+  const { balance } = useDogeBalance();
   const [claimingId, setClaimingId] = useState<string | null>(null);
   const [startingId, setStartingId] = useState<string | null>(null);
+  const [levelingId, setLevelingId] = useState<string | null>(null);
 
   const handleStartMining = async (characterId: string) => {
     setStartingId(characterId);
@@ -33,6 +36,24 @@ const InventorySection = () => {
       toast.success(`¡Has reclamado ${amount.toFixed(4)} DOGE!`);
     } else {
       toast.error("Error al reclamar recompensas");
+    }
+  };
+
+  const handleLevelUp = async (characterId: string, rarity: string) => {
+    const cost = getLevelUpCost(rarity);
+    if (balance < cost) {
+      toast.error(`Necesitas ${cost} DOGE para subir de nivel`);
+      return;
+    }
+    
+    setLevelingId(characterId);
+    const result = await levelUpCharacter(characterId);
+    setLevelingId(null);
+    
+    if (result.success) {
+      toast.success(`¡Carta subida a nivel ${result.newLevel}!`);
+    } else {
+      toast.error(result.error || "Error al subir de nivel");
     }
   };
 
@@ -86,6 +107,9 @@ const InventorySection = () => {
             const claimableAmount = getClaimableAmount(item.character.id);
             const isClaiming = claimingId === item.character.id;
             const isStarting = startingId === item.character.id;
+            const isLeveling = levelingId === item.character.id;
+            const levelUpCost = getLevelUpCost(item.character.rarity);
+            const isMaxLevel = item.level >= 5;
 
             return (
               <div
@@ -108,6 +132,11 @@ const InventorySection = () => {
                       alt={item.character.name}
                       className="w-full h-full object-contain"
                     />
+                    {/* Level badge */}
+                    <div className="absolute top-2 left-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                      <Star className="w-3 h-3" />
+                      Nv.{item.level}
+                    </div>
                     {/* Quantity badge */}
                     {item.quantity > 1 && (
                       <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-sm font-bold px-2 py-1 rounded-full">
@@ -118,7 +147,7 @@ const InventorySection = () => {
 
                   {/* Character info */}
                   <h3 className="font-bold text-lg mb-1">{item.character.name}</h3>
-                  <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center gap-2 mb-2">
                     <span
                       className={`text-xs px-2 py-0.5 rounded-full ${config.bgColor} ${config.textColor}`}
                     >
@@ -126,9 +155,28 @@ const InventorySection = () => {
                     </span>
                     <span className="text-xs text-muted-foreground flex items-center gap-1">
                       <Coins className="w-3 h-3" />
-                      {(item.character.miningRate * item.quantity).toFixed(4)} DOGE/hora
+                      {(item.character.miningRate * item.quantity).toFixed(4)} DOGE/h
                     </span>
                   </div>
+
+                  {/* Level up button */}
+                  {!isMaxLevel && (
+                    <Button
+                      onClick={() => handleLevelUp(item.character.id, item.character.rarity)}
+                      disabled={isLeveling || balance < levelUpCost}
+                      variant="outline"
+                      size="sm"
+                      className="w-full mb-3 border-amber-500/50 text-amber-500 hover:bg-amber-500/10"
+                    >
+                      <ArrowUp className="w-3 h-3 mr-1" />
+                      {isLeveling ? "Subiendo..." : `Subir Nv.${item.level + 1} (${levelUpCost} DOGE)`}
+                    </Button>
+                  )}
+                  {isMaxLevel && (
+                    <div className="w-full mb-3 text-center text-xs text-amber-500 font-medium py-1">
+                      ⭐ Nivel Máximo ⭐
+                    </div>
+                  )}
 
                   {/* Mining progress or action button */}
                   {isMining && !canClaim ? (
