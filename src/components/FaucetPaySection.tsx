@@ -241,65 +241,80 @@ const FaucetPaySection = () => {
 
     setIsReportingDeposit(true);
     try {
-      // Create deposit transaction as pending
-      const { error: txError } = await supabase
+      // First check if TX already exists
+      const { data: existingTx } = await supabase
         .from('transactions')
-        .insert({
+        .select('id, status')
+        .eq('tx_hash', depositTxHash.trim())
+        .maybeSingle();
+
+      if (existingTx) {
+        if (existingTx.status === 'completed') {
+          toast({
+            title: "TX ya procesada",
+            description: "Esta transacción ya fue acreditada anteriormente",
+            variant: "destructive",
+          });
+          setIsReportingDeposit(false);
+          return;
+        }
+      }
+
+      // Create or update deposit transaction as pending
+      if (!existingTx) {
+        await supabase.from('transactions').insert({
           user_id: user!.id,
           type: 'deposit',
           amount: amount,
           status: 'pending',
           tx_hash: depositTxHash.trim(),
-          notes: `Depósito manual reportado - TX: ${depositTxHash.trim()}`
-        });
-
-      if (txError) throw txError;
-
-      // Get all admin user IDs
-      const { data: adminRoles, error: adminError } = await supabase
-        .from('user_roles')
-        .select('user_id')
-        .eq('role', 'admin');
-
-      if (adminError) throw adminError;
-
-      // Get user email for notification
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('email')
-        .eq('id', user!.id)
-        .single();
-
-      // Create notifications for all admins
-      if (adminRoles && adminRoles.length > 0) {
-        const notifications = adminRoles.map(admin => ({
-          user_id: admin.user_id,
-          type: 'admin_deposit',
-          title: '💰 Nuevo depósito pendiente',
-          message: `Usuario ${profile?.email || user!.id} reportó depósito de ${amount} DOGE. TX: ${depositTxHash.trim().slice(0, 20)}...`,
-          data: {
-            deposit_amount: amount,
-            tx_hash: depositTxHash.trim(),
-            reporter_id: user!.id,
-            reporter_email: profile?.email
-          }
-        }));
-
-        // Use service role through edge function to insert notifications
-        await supabase.functions.invoke('notify-admin-deposit', {
-          body: { 
-            amount,
-            tx_hash: depositTxHash.trim(),
-            user_id: user!.id,
-            user_email: profile?.email
-          }
+          notes: `Verificando automáticamente...`
         });
       }
 
       toast({
-        title: "¡Depósito reportado!",
-        description: "Tu depósito será verificado y acreditado pronto. Much wow! 🐕",
+        title: "Verificando transacción...",
+        description: "Consultando la blockchain de Dogecoin",
       });
+
+      // Call verify-deposit edge function for instant verification
+      const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-deposit', {
+        body: {
+          tx_hash: depositTxHash.trim(),
+          expected_amount: amount,
+          user_id: user!.id
+        }
+      });
+
+      if (verifyError) throw verifyError;
+
+      if (verifyResult.success) {
+        toast({
+          title: "¡Depósito acreditado! 🎉",
+          description: `${formatDoge(verifyResult.credited_amount)} DOGE agregados a tu balance. Much wow! 🐕`,
+        });
+        await refreshBalance();
+      } else {
+        // If verification failed, show the error but keep as pending for manual review
+        if (verifyResult.error?.includes('not confirmed')) {
+          toast({
+            title: "Transacción sin confirmar",
+            description: "La transacción aún no tiene confirmaciones. Intenta de nuevo en unos minutos.",
+            variant: "destructive",
+          });
+        } else if (verifyResult.error?.includes('already processed')) {
+          toast({
+            title: "TX ya procesada",
+            description: "Esta transacción ya fue acreditada",
+          });
+        } else {
+          toast({
+            title: "Verificación pendiente",
+            description: verifyResult.error || "El depósito será revisado manualmente",
+            variant: "destructive",
+          });
+        }
+      }
 
       setDepositAmount("");
       setDepositTxHash("");
@@ -308,7 +323,7 @@ const FaucetPaySection = () => {
       console.error('Report deposit error:', error);
       toast({
         title: "Error",
-        description: error.message || "No se pudo reportar el depósito",
+        description: error.message || "No se pudo verificar el depósito",
         variant: "destructive",
       });
     } finally {
