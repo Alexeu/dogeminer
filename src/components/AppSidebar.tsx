@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   Package, 
   Wallet, 
-  ArrowDownToLine, 
-  ArrowUpFromLine, 
   Users, 
   Play,
   Menu,
@@ -11,10 +10,13 @@ import {
   Home,
   Ticket,
   Trophy,
-  Pickaxe
+  Pickaxe,
+  Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MenuItem {
   id: string;
@@ -42,6 +44,27 @@ interface AppSidebarProps {
 const AppSidebar = ({ activeSection, onNavigate }: AppSidebarProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+      
+      const { data } = await supabase.rpc('has_role', {
+        _user_id: user.id,
+        _role: 'admin'
+      });
+      
+      setIsAdmin(data === true);
+    };
+
+    checkAdminRole();
+  }, [user]);
 
   const handleNavigate = (sectionId: string) => {
     onNavigate(sectionId);
@@ -130,6 +153,29 @@ const AppSidebar = ({ activeSection, onNavigate }: AppSidebarProps) => {
                 );
               })}
             </ul>
+
+            {/* Admin link */}
+            {isAdmin && (
+              <div className="mt-4 pt-4 border-t border-border/50">
+                <button
+                  onClick={() => {
+                    navigate('/admin');
+                    setIsOpen(false);
+                  }}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
+                    "bg-destructive/10 text-destructive hover:bg-destructive/20",
+                    isCollapsed && "justify-center px-2"
+                  )}
+                  title={isCollapsed ? "Panel Admin" : undefined}
+                >
+                  <Shield className="w-5 h-5 flex-shrink-0" />
+                  {!isCollapsed && (
+                    <span className="text-sm font-medium">Panel Admin</span>
+                  )}
+                </button>
+              </div>
+            )}
           </nav>
 
           {/* Footer */}
