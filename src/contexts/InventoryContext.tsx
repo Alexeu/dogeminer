@@ -6,6 +6,7 @@ import { useAuth } from "./AuthContext";
 export interface InventoryItem {
   character: DogeCharacter;
   quantity: number;
+  level: number;
   miningStartTime: number | null;
   accumulatedDoge: number;
 }
@@ -17,6 +18,11 @@ interface RpcResponse {
   expected_reward?: number;
   new_balance?: number;
   claimed_amount?: number;
+  new_level?: number;
+  new_mining_rate?: number;
+  cost?: number;
+  required?: number;
+  current?: number;
 }
 
 interface InventoryContextType {
@@ -25,8 +31,10 @@ interface InventoryContextType {
   addToInventory: (character: DogeCharacter) => Promise<boolean>;
   startMining: (characterId: string) => Promise<boolean>;
   claimRewards: (characterId: string) => Promise<number>;
+  levelUpCharacter: (characterId: string) => Promise<{ success: boolean; error?: string; newLevel?: number }>;
   getTotalMiningRate: () => number;
   getClaimableAmount: (characterId: string) => number;
+  getLevelUpCost: (rarity: string) => number;
   refreshInventory: () => Promise<void>;
 }
 
@@ -86,14 +94,19 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
               image: '',
             },
             quantity: uc.quantity,
+            level: uc.level || 1,
             miningStartTime: miningSession ? new Date(miningSession.started_at).getTime() : null,
             accumulatedDoge: 0,
           };
         }
 
         return {
-          character: charData,
+          character: {
+            ...charData,
+            miningRate: Number(uc.mining_rate), // Use DB mining rate (includes level bonus)
+          },
           quantity: uc.quantity,
+          level: uc.level || 1,
           miningStartTime: miningSession ? new Date(miningSession.started_at).getTime() : null,
           accumulatedDoge: 0,
         };
@@ -293,6 +306,41 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     }, 0);
   };
 
+  const getLevelUpCost = (rarity: string): number => {
+    switch (rarity) {
+      case 'common': return 2;
+      case 'rare': return 3;
+      case 'epic': return 4;
+      case 'legendary': return 5;
+      default: return 2; // starter
+    }
+  };
+
+  const levelUpCharacter = async (characterId: string): Promise<{ success: boolean; error?: string; newLevel?: number }> => {
+    if (!user) return { success: false, error: 'Not authenticated' };
+
+    try {
+      const { data, error } = await supabase.rpc('level_up_character', {
+        p_character_id: characterId,
+      });
+
+      if (error) {
+        console.error('Error leveling up:', error);
+        return { success: false, error: error.message };
+      }
+
+      const result = data as unknown as RpcResponse;
+      if (result?.success) {
+        await refreshInventory();
+        return { success: true, newLevel: result.new_level };
+      }
+      return { success: false, error: result?.error || 'Unknown error' };
+    } catch (error) {
+      console.error('Error leveling up:', error);
+      return { success: false, error: 'Error al subir de nivel' };
+    }
+  };
+
   return (
     <InventoryContext.Provider
       value={{
@@ -301,8 +349,10 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
         addToInventory,
         startMining,
         claimRewards,
+        levelUpCharacter,
         getTotalMiningRate,
         getClaimableAmount,
+        getLevelUpCost,
         refreshInventory,
       }}
     >
