@@ -24,7 +24,7 @@ const BalanceHeader = () => {
           <div className="flex items-center gap-2">
             <img src={dogeLogo} alt="DOGE Logo" className="w-10 h-10 rounded-xl shadow-doge-sm" />
             <span className="text-xl font-bold">
-              <span className="text-gradient">DOGE</span>Miner
+              <span className="text-gradient">RPG</span> Doge
             </span>
           </div>
 
