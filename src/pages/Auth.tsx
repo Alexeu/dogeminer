@@ -285,7 +285,7 @@ export default function Auth() {
           <div className="text-center mb-8">
             <img src={dogeLogo} alt="DOGE Logo" className="w-20 h-20 mx-auto mb-4 rounded-2xl shadow-lg shadow-primary/30" />
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-amber-500 bg-clip-text text-transparent">
-              DOGE Miner
+              RPG Doge
             </h1>
             <p className="text-muted-foreground mt-2">
               {isLogin ? "Inicia sesión para continuar" : "Crea tu cuenta y empieza a minar"}
