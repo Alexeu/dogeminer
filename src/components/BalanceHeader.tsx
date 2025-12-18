@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import dogeLogo from "@/assets/doge-logo.png";
 import NotificationBell from "./NotificationBell";
+import LanguageSwitcher from "./LanguageSwitcher";
 import { formatDoge } from "@/data/dogeData";
 
 const BalanceHeader = () => {
@@ -29,7 +30,10 @@ const BalanceHeader = () => {
           </div>
 
           {/* Balance & User */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
+            {/* Language Switcher */}
+            <LanguageSwitcher />
+            
             {/* Mining rate indicator */}
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/20 text-primary">
               <Pickaxe className="w-4 h-4 animate-pulse" />

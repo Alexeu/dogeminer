@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Shield, 
   ArrowLeft, 
@@ -13,9 +16,16 @@ import {
   Loader2, 
   RefreshCw,
   ExternalLink,
-  Copy
+  Copy,
+  Users,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  Search,
+  Plus,
+  Dog
 } from "lucide-react";
 import { formatDoge } from "@/data/dogeData";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 interface PendingDeposit {
   id: string;
@@ -28,14 +38,51 @@ interface PendingDeposit {
   user_email?: string;
 }
 
+interface UserProfile {
+  id: string;
+  email: string | null;
+  balance: number | null;
+  total_earned: number | null;
+  total_withdrawn: number | null;
+  created_at: string | null;
+  is_banned: boolean | null;
+}
+
+interface Transaction {
+  id: string;
+  user_id: string;
+  amount: number;
+  type: string;
+  status: string;
+  created_at: string;
+  tx_hash: string | null;
+  faucetpay_address: string | null;
+  user_email?: string;
+}
+
 const Admin = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("users");
+  
+  // Users state
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+  const [addBalanceAmount, setAddBalanceAmount] = useState("");
+  const [addingBalance, setAddingBalance] = useState(false);
+  
+  // Deposits state
   const [pendingDeposits, setPendingDeposits] = useState<PendingDeposit[]>([]);
+  const [allDeposits, setAllDeposits] = useState<Transaction[]>([]);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  
+  // Withdrawals state
+  const [withdrawals, setWithdrawals] = useState<Transaction[]>([]);
 
   useEffect(() => {
     checkAdminRole();
@@ -57,7 +104,7 @@ const Admin = () => {
 
       if (!data) {
         toast({
-          title: "Acceso denegado",
+          title: t('common.error'),
           description: "No tienes permisos de administrador",
           variant: "destructive",
         });
@@ -66,7 +113,7 @@ const Admin = () => {
       }
 
       setIsAdmin(true);
-      fetchPendingDeposits();
+      fetchAllData();
     } catch (error) {
       console.error('Admin check error:', error);
       navigate('/');
@@ -75,9 +122,31 @@ const Admin = () => {
     }
   };
 
+  const fetchAllData = async () => {
+    await Promise.all([
+      fetchUsers(),
+      fetchPendingDeposits(),
+      fetchAllDeposits(),
+      fetchWithdrawals()
+    ]);
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, email, balance, total_earned, total_withdrawn, created_at, is_banned')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setUsers(data || []);
+    } catch (error) {
+      console.error('Fetch users error:', error);
+    }
+  };
+
   const fetchPendingDeposits = async () => {
     try {
-      // Fetch pending deposits
       const { data: deposits, error } = await supabase
         .from('transactions')
         .select('*')
@@ -87,7 +156,6 @@ const Admin = () => {
 
       if (error) throw error;
 
-      // Get user emails for each deposit
       const depositsWithEmails = await Promise.all(
         (deposits || []).map(async (deposit) => {
           const { data: profile } = await supabase
@@ -105,19 +173,124 @@ const Admin = () => {
 
       setPendingDeposits(depositsWithEmails);
     } catch (error) {
-      console.error('Fetch deposits error:', error);
+      console.error('Fetch pending deposits error:', error);
+    }
+  };
+
+  const fetchAllDeposits = async () => {
+    try {
+      const { data: deposits, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('type', 'deposit')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      const depositsWithEmails = await Promise.all(
+        (deposits || []).map(async (deposit) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email')
+            .eq('id', deposit.user_id)
+            .single();
+          
+          return {
+            ...deposit,
+            user_email: profile?.email || 'Unknown'
+          };
+        })
+      );
+
+      setAllDeposits(depositsWithEmails);
+    } catch (error) {
+      console.error('Fetch all deposits error:', error);
+    }
+  };
+
+  const fetchWithdrawals = async () => {
+    try {
+      const { data: txs, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('type', 'withdrawal')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      const txsWithEmails = await Promise.all(
+        (txs || []).map(async (tx) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email')
+            .eq('id', tx.user_id)
+            .single();
+          
+          return {
+            ...tx,
+            user_email: profile?.email || 'Unknown'
+          };
+        })
+      );
+
+      setWithdrawals(txsWithEmails);
+    } catch (error) {
+      console.error('Fetch withdrawals error:', error);
+    }
+  };
+
+  const handleAddBalance = async () => {
+    if (!selectedUser) return;
+    
+    const amount = parseFloat(addBalanceAmount);
+    if (isNaN(amount) || amount <= 0) {
       toast({
-        title: "Error",
-        description: "No se pudieron cargar los depósitos",
+        title: t('common.error'),
+        description: "Ingresa una cantidad válida",
         variant: "destructive",
       });
+      return;
+    }
+
+    setAddingBalance(true);
+    try {
+      const { data, error } = await supabase.rpc('admin_add_balance', {
+        p_user_id: selectedUser.id,
+        p_amount: amount
+      });
+
+      if (error) throw error;
+
+      const result = data as { success: boolean; error?: string; new_balance?: number };
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to add balance');
+      }
+
+      toast({
+        title: t('common.success'),
+        description: `${formatDoge(amount)} DOGE agregados a ${selectedUser.email}`,
+      });
+
+      setAddBalanceAmount("");
+      setSelectedUser(null);
+      await fetchUsers();
+    } catch (error: any) {
+      console.error('Add balance error:', error);
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setAddingBalance(false);
     }
   };
 
   const handleApprove = async (deposit: PendingDeposit) => {
     setProcessingId(deposit.id);
     try {
-      // Add balance to user
       const { data: addResult, error: addError } = await supabase.rpc('admin_add_balance', {
         p_user_id: deposit.user_id,
         p_amount: deposit.amount
@@ -130,7 +303,6 @@ const Admin = () => {
         throw new Error(result.error || 'Failed to add balance');
       }
 
-      // Update transaction status
       const { error: updateError } = await supabase
         .from('transactions')
         .update({ 
@@ -141,7 +313,6 @@ const Admin = () => {
 
       if (updateError) throw updateError;
 
-      // Create notification for user
       await supabase.functions.invoke('notify-admin-deposit', {
         body: {
           action: 'notify_user',
@@ -152,16 +323,17 @@ const Admin = () => {
       });
 
       toast({
-        title: "Depósito aprobado",
+        title: t('common.success'),
         description: `${formatDoge(deposit.amount)} DOGE acreditados a ${deposit.user_email}`,
       });
 
       fetchPendingDeposits();
+      fetchAllDeposits();
     } catch (error: any) {
       console.error('Approve error:', error);
       toast({
-        title: "Error",
-        description: error.message || "No se pudo aprobar el depósito",
+        title: t('common.error'),
+        description: error.message,
         variant: "destructive",
       });
     } finally {
@@ -172,7 +344,6 @@ const Admin = () => {
   const handleReject = async (deposit: PendingDeposit) => {
     setProcessingId(deposit.id);
     try {
-      // Update transaction status
       const { error: updateError } = await supabase
         .from('transactions')
         .update({ 
@@ -184,16 +355,17 @@ const Admin = () => {
       if (updateError) throw updateError;
 
       toast({
-        title: "Depósito rechazado",
+        title: t('common.success'),
         description: `El depósito de ${deposit.user_email} fue rechazado`,
       });
 
       fetchPendingDeposits();
+      fetchAllDeposits();
     } catch (error: any) {
       console.error('Reject error:', error);
       toast({
-        title: "Error",
-        description: error.message || "No se pudo rechazar el depósito",
+        title: t('common.error'),
+        description: error.message,
         variant: "destructive",
       });
     } finally {
@@ -203,7 +375,7 @@ const Admin = () => {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast({ title: "Copiado", description: "TX Hash copiado" });
+    toast({ title: "Copiado", description: "Copiado al portapapeles" });
   };
 
   const formatDate = (dateStr: string) => {
@@ -215,6 +387,19 @@ const Admin = () => {
       minute: '2-digit'
     });
   };
+
+  const getStatusBadge = (status: string) => {
+    const styles = {
+      completed: 'bg-emerald-500/20 text-emerald-500',
+      pending: 'bg-amber-500/20 text-amber-500',
+      failed: 'bg-destructive/20 text-destructive'
+    };
+    return styles[status as keyof typeof styles] || 'bg-muted text-muted-foreground';
+  };
+
+  const filteredUsers = users.filter(u => 
+    u.email?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   if (loading) {
     return (
@@ -236,119 +421,321 @@ const Admin = () => {
           <div className="flex items-center gap-4">
             <Button variant="ghost" onClick={() => navigate('/')}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Volver
+              {t('admin.back')}
             </Button>
             <div className="flex items-center gap-2">
               <Shield className="w-6 h-6 text-primary" />
-              <h1 className="text-2xl font-bold">Panel de Administración</h1>
+              <h1 className="text-2xl font-bold">{t('admin.title')}</h1>
             </div>
           </div>
-          <Button onClick={fetchPendingDeposits} variant="outline">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Actualizar
-          </Button>
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+            <Button onClick={fetchAllData} variant="outline">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              {t('admin.refresh')}
+            </Button>
+          </div>
         </div>
 
-        {/* Pending Deposits */}
-        <div className="glass rounded-2xl p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Clock className="w-5 h-5 text-amber-500" />
-            <h2 className="text-xl font-bold">Depósitos Pendientes</h2>
-            <span className="px-2 py-1 rounded-full bg-amber-500/20 text-amber-500 text-sm">
-              {pendingDeposits.length}
-            </span>
-          </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 max-w-md">
+            <TabsTrigger value="users" className="gap-2">
+              <Users className="w-4 h-4" />
+              {t('admin.users')}
+            </TabsTrigger>
+            <TabsTrigger value="deposits" className="gap-2">
+              <ArrowDownToLine className="w-4 h-4" />
+              {t('admin.deposits')}
+              {pendingDeposits.length > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-amber-500 text-white">
+                  {pendingDeposits.length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="withdrawals" className="gap-2">
+              <ArrowUpFromLine className="w-4 h-4" />
+              {t('admin.withdrawals')}
+            </TabsTrigger>
+          </TabsList>
 
-          {pendingDeposits.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <CheckCircle className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>No hay depósitos pendientes 🎉</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {pendingDeposits.map((deposit) => (
-                <div 
-                  key={deposit.id}
-                  className="p-4 rounded-xl bg-secondary/30 border border-border/50"
-                >
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold text-primary">
-                          {formatDoge(deposit.amount)} DOGE
-                        </span>
-                        <span className="text-xs px-2 py-1 rounded-full bg-amber-500/20 text-amber-500">
-                          Pendiente
-                        </span>
-                      </div>
-                      
-                      <div className="text-sm text-muted-foreground">
-                        <p>Usuario: <span className="font-medium text-foreground">{deposit.user_email}</span></p>
-                        <p>Fecha: {formatDate(deposit.created_at)}</p>
-                      </div>
+          {/* Users Tab */}
+          <TabsContent value="users" className="space-y-6">
+            <div className="glass rounded-2xl p-6">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder={t('admin.searchUser')}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
 
-                      {deposit.tx_hash && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">TX:</span>
-                          <code className="text-xs bg-background/50 px-2 py-1 rounded font-mono">
-                            {deposit.tx_hash.slice(0, 20)}...{deposit.tx_hash.slice(-10)}
-                          </code>
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            className="h-6 w-6 p-0"
-                            onClick={() => copyToClipboard(deposit.tx_hash!)}
-                          >
-                            <Copy className="w-3 h-3" />
-                          </Button>
-                          <a
-                            href={`https://dogechain.info/tx/${deposit.tx_hash}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline"
-                          >
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => handleApprove(deposit)}
-                        disabled={processingId === deposit.id}
-                        className="bg-emerald-500 hover:bg-emerald-600 text-white"
-                      >
-                        {processingId === deposit.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <>
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            Aprobar
-                          </>
-                        )}
-                      </Button>
-                      <Button
-                        onClick={() => handleReject(deposit)}
-                        disabled={processingId === deposit.id}
-                        variant="destructive"
-                      >
-                        {processingId === deposit.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <>
-                            <XCircle className="w-4 h-4 mr-2" />
-                            Rechazar
-                          </>
-                        )}
-                      </Button>
-                    </div>
+              {/* Add Balance Modal */}
+              {selectedUser && (
+                <div className="mb-6 p-4 rounded-xl bg-primary/10 border border-primary/30">
+                  <h3 className="font-bold mb-3 flex items-center gap-2">
+                    <Plus className="w-4 h-4" />
+                    {t('admin.addBalanceToUser')}: {selectedUser.email}
+                  </h3>
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      step="0.0001"
+                      placeholder={t('admin.amountToAdd')}
+                      value={addBalanceAmount}
+                      onChange={(e) => setAddBalanceAmount(e.target.value)}
+                      className="max-w-xs"
+                    />
+                    <Button onClick={handleAddBalance} disabled={addingBalance}>
+                      {addingBalance ? <Loader2 className="w-4 h-4 animate-spin" /> : t('admin.add')}
+                    </Button>
+                    <Button variant="ghost" onClick={() => setSelectedUser(null)}>
+                      {t('common.cancel')}
+                    </Button>
                   </div>
                 </div>
-              ))}
+              )}
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Email</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.balance')}</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.totalEarned')}</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.totalWithdrawn')}</th>
+                      <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.actions')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredUsers.map((u) => (
+                      <tr key={u.id} className="border-b border-border/50 hover:bg-secondary/30">
+                        <td className="py-3 px-4">
+                          <span className="text-sm">{u.email}</span>
+                          {u.is_banned && (
+                            <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-destructive/20 text-destructive">
+                              Banned
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <span className="font-mono text-primary font-medium">
+                            {formatDoge(u.balance || 0)}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <span className="font-mono text-emerald-500">
+                            {formatDoge(u.total_earned || 0)}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <span className="font-mono text-amber-500">
+                            {formatDoge(u.total_withdrawn || 0)}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setSelectedUser(u)}
+                          >
+                            <Plus className="w-3 h-3 mr-1" />
+                            {t('admin.addBalance')}
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {filteredUsers.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    {t('admin.noUsers')}
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-        </div>
+          </TabsContent>
+
+          {/* Deposits Tab */}
+          <TabsContent value="deposits" className="space-y-6">
+            {/* Pending Deposits */}
+            <div className="glass rounded-2xl p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <Clock className="w-5 h-5 text-amber-500" />
+                <h2 className="text-xl font-bold">{t('admin.pendingDeposits')}</h2>
+                <span className="px-2 py-1 rounded-full bg-amber-500/20 text-amber-500 text-sm">
+                  {pendingDeposits.length}
+                </span>
+              </div>
+
+              {pendingDeposits.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <CheckCircle className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <p>{t('admin.noPending')}</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {pendingDeposits.map((deposit) => (
+                    <div 
+                      key={deposit.id}
+                      className="p-4 rounded-xl bg-secondary/30 border border-border/50"
+                    >
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Dog className="w-5 h-5 text-primary" />
+                            <span className="text-lg font-bold text-primary">
+                              {formatDoge(deposit.amount)} DOGE
+                            </span>
+                            <span className="text-xs px-2 py-1 rounded-full bg-amber-500/20 text-amber-500">
+                              {t('faucetpay.pending')}
+                            </span>
+                          </div>
+                          
+                          <div className="text-sm text-muted-foreground">
+                            <p>{t('admin.user')}: <span className="font-medium text-foreground">{deposit.user_email}</span></p>
+                            <p>{t('admin.date')}: {formatDate(deposit.created_at)}</p>
+                          </div>
+
+                          {deposit.tx_hash && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground">TX:</span>
+                              <code className="text-xs bg-background/50 px-2 py-1 rounded font-mono">
+                                {deposit.tx_hash.slice(0, 20)}...{deposit.tx_hash.slice(-10)}
+                              </code>
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="h-6 w-6 p-0"
+                                onClick={() => copyToClipboard(deposit.tx_hash!)}
+                              >
+                                <Copy className="w-3 h-3" />
+                              </Button>
+                              <a
+                                href={`https://dogechain.info/tx/${deposit.tx_hash}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary hover:underline"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => handleApprove(deposit)}
+                            disabled={processingId === deposit.id}
+                            className="bg-emerald-500 hover:bg-emerald-600 text-white"
+                          >
+                            {processingId === deposit.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <>
+                                <CheckCircle className="w-4 h-4 mr-2" />
+                                {t('admin.approve')}
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            onClick={() => handleReject(deposit)}
+                            disabled={processingId === deposit.id}
+                            variant="destructive"
+                          >
+                            {processingId === deposit.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <>
+                                <XCircle className="w-4 h-4 mr-2" />
+                                {t('admin.reject')}
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* All Deposits */}
+            <div className="glass rounded-2xl p-6">
+              <h2 className="text-xl font-bold mb-6">{t('admin.allDeposits')}</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.user')}</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.amount')}</th>
+                      <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.status')}</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.date')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allDeposits.map((tx) => (
+                      <tr key={tx.id} className="border-b border-border/50">
+                        <td className="py-3 px-4 text-sm">{tx.user_email}</td>
+                        <td className="py-3 px-4 text-right font-mono text-primary">{formatDoge(tx.amount)}</td>
+                        <td className="py-3 px-4 text-center">
+                          <span className={`text-xs px-2 py-1 rounded-full ${getStatusBadge(tx.status)}`}>
+                            {tx.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right text-sm text-muted-foreground">
+                          {formatDate(tx.created_at)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Withdrawals Tab */}
+          <TabsContent value="withdrawals" className="space-y-6">
+            <div className="glass rounded-2xl p-6">
+              <h2 className="text-xl font-bold mb-6">{t('admin.allWithdrawals')}</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.user')}</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.amount')}</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">FaucetPay</th>
+                      <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.status')}</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.date')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {withdrawals.map((tx) => (
+                      <tr key={tx.id} className="border-b border-border/50">
+                        <td className="py-3 px-4 text-sm">{tx.user_email}</td>
+                        <td className="py-3 px-4 text-right font-mono text-amber-500">{formatDoge(tx.amount)}</td>
+                        <td className="py-3 px-4 text-sm text-muted-foreground">
+                          {tx.faucetpay_address?.slice(0, 20)}...
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <span className={`text-xs px-2 py-1 rounded-full ${getStatusBadge(tx.status)}`}>
+                            {tx.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right text-sm text-muted-foreground">
+                          {formatDate(tx.created_at)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

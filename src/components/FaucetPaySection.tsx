@@ -528,7 +528,7 @@ const FaucetPaySection = () => {
                 <li>Mínimo de depósito: <span className="font-bold">{MIN_DEPOSIT} DOGE</span></li>
                 <li>Solo envía DOGE a esta dirección</li>
                 <li>Reporta tu TX hash después de enviar</li>
-                <li>Los depósitos se acreditan en 24h máximo</li>
+                <li>Los depósitos se acreditan en 1-2 minutos</li>
               </ul>
             </div>
           </div>
