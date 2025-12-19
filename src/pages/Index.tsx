@@ -16,6 +16,7 @@ import FaucetPaySection from "@/components/FaucetPaySection";
 import PTCSection from "@/components/PTCSection";
 import CollectionSection from "@/components/CollectionSection";
 import LotterySection from "@/components/LotterySection";
+import OnlineMiningSection from "@/components/OnlineMiningSection";
 import AppSidebar from "@/components/AppSidebar";
 import { Loader2 } from "lucide-react";
 
@@ -36,7 +37,7 @@ const Index = () => {
     const handleScroll = () => {
       const sections = [
         "hero", "mystery-boxes", "inventory", "collection", 
-        "lottery", "ptc", "faucetpay", "referral"
+        "online-mining", "lottery", "ptc", "faucetpay", "referral"
       ];
       
       for (const sectionId of sections) {
@@ -104,6 +105,9 @@ const Index = () => {
         </div>
         <div id="collection">
           <CollectionSection />
+        </div>
+        <div id="online-mining">
+          <OnlineMiningSection />
         </div>
         <div id="lottery">
           <LotterySection />
