@@ -297,6 +297,53 @@ export type Database = {
           },
         ]
       }
+      mining_investments: {
+        Row: {
+          created_at: string
+          daily_rate: number
+          id: string
+          invested_amount: number
+          is_active: boolean
+          last_claim_at: string
+          plan_type: string
+          total_earned: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_rate: number
+          id?: string
+          invested_amount: number
+          is_active?: boolean
+          last_claim_at?: string
+          plan_type: string
+          total_earned?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_rate?: number
+          id?: string
+          invested_amount?: number
+          is_active?: boolean
+          last_claim_at?: string
+          plan_type?: string
+          total_earned?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mining_investments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mining_sessions: {
         Row: {
           actual_reward: number | null
@@ -627,6 +674,10 @@ export type Database = {
       claim_ad_view_reward: { Args: { p_ad_id: string }; Returns: Json }
       claim_collection_reward: { Args: never; Returns: Json }
       claim_faucetpay_bonus: { Args: never; Returns: Json }
+      claim_mining_investment_reward: {
+        Args: { p_investment_id: string }
+        Returns: Json
+      }
       claim_mining_reward: {
         Args: { p_amount: number; p_character_id: string }
         Returns: Json
@@ -646,6 +697,10 @@ export type Database = {
       }
       create_deposit_request: {
         Args: { p_amount: number; p_faucetpay_email: string }
+        Returns: Json
+      }
+      create_mining_investment: {
+        Args: { p_amount: number; p_plan_type: string }
         Returns: Json
       }
       draw_lottery_winner: { Args: { p_pool_id: string }; Returns: Json }

@@ -25,11 +25,14 @@ interface MenuItem {
   section: string;
 }
 
+import { TrendingUp } from "lucide-react";
+
 const menuItems: MenuItem[] = [
   { id: "hero", label: "Inicio", icon: Home, section: "hero" },
   { id: "mystery-boxes", label: "Cajas Misteriosas", icon: Package, section: "mystery-boxes" },
   { id: "inventory", label: "Inventario", icon: Pickaxe, section: "inventory" },
   { id: "collection", label: "Colección", icon: Trophy, section: "collection" },
+  { id: "online-mining", label: "Minería Online", icon: TrendingUp, section: "online-mining" },
   { id: "lottery", label: "Lotería", icon: Ticket, section: "lottery" },
   { id: "ptc", label: "Ver Anuncios (PTC)", icon: Play, section: "ptc" },
   { id: "faucetpay", label: "Depósito / Retiro", icon: Wallet, section: "faucetpay" },
