@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
+import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -90,6 +91,8 @@ interface Investment {
   is_active: boolean;
 }
 
+const MIN_CLAIM_AMOUNT = 0.1;
+
 const OnlineMiningSection = () => {
   const { balance, refreshBalance } = useDogeBalance();
   const { language, t } = useLanguage();
@@ -101,6 +104,8 @@ const OnlineMiningSection = () => {
   const [investAmount, setInvestAmount] = useState<number>(2);
   const [investing, setInvesting] = useState(false);
   const [claimingId, setClaimingId] = useState<string | null>(null);
+  const [pendingRewards, setPendingRewards] = useState<Record<string, number>>({});
+  const [currentTime, setCurrentTime] = useState(Date.now());
 
   const texts = {
     title: { es: 'Minería Online', en: 'Online Mining' },
@@ -116,14 +121,36 @@ const OnlineMiningSection = () => {
     pending: { es: 'Pendiente', en: 'Pending' },
     claim: { es: 'Reclamar', en: 'Claim' },
     claiming: { es: 'Reclamando...', en: 'Claiming...' },
-    waitHour: { es: 'Espera 1h', en: 'Wait 1h' },
+    minRequired: { es: 'Mínimo 0.1 DOGE', en: 'Minimum 0.1 DOGE' },
     selectAmount: { es: 'Selecciona la cantidad', en: 'Select amount' },
     balance: { es: 'Tu balance', en: 'Your balance' },
     perDay: { es: '/día', en: '/day' },
-    muchProfit: { es: '¡Much Profit! 🐕', en: 'Much Profit! 🐕' }
+    muchProfit: { es: '¡Much Profit! 🐕', en: 'Much Profit! 🐕' },
+    mining: { es: 'Minando...', en: 'Mining...' },
+    perSecond: { es: '/seg', en: '/sec' }
   };
 
   const getText = (key: keyof typeof texts) => texts[key][language];
+
+  // Real-time counter update every 100ms
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 100);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Calculate pending rewards in real-time
+  useEffect(() => {
+    const newPendingRewards: Record<string, number> = {};
+    investments.forEach((investment) => {
+      const msElapsed = currentTime - new Date(investment.last_claim_at).getTime();
+      const hoursElapsed = msElapsed / (1000 * 60 * 60);
+      const reward = (investment.invested_amount * investment.daily_rate / 100 / 24) * hoursElapsed;
+      newPendingRewards[investment.id] = Math.max(0, reward);
+    });
+    setPendingRewards(newPendingRewards);
+  }, [currentTime, investments]);
 
   useEffect(() => {
     fetchInvestments();
@@ -197,6 +224,18 @@ const OnlineMiningSection = () => {
   const handleClaim = async (investment: Investment) => {
     if (claimingId) return;
     
+    const pendingReward = pendingRewards[investment.id] || 0;
+    if (pendingReward < MIN_CLAIM_AMOUNT) {
+      toast({
+        title: language === 'es' ? 'Mínimo no alcanzado' : 'Minimum not reached',
+        description: language === 'es' 
+          ? `Necesitas al menos ${MIN_CLAIM_AMOUNT} DOGE para reclamar` 
+          : `You need at least ${MIN_CLAIM_AMOUNT} DOGE to claim`,
+        variant: 'destructive'
+      });
+      return;
+    }
+    
     setClaimingId(investment.id);
     try {
       const { data, error } = await supabase.rpc('claim_mining_investment_reward', {
@@ -231,15 +270,18 @@ const OnlineMiningSection = () => {
     }
   };
 
-  const calculatePendingReward = (investment: Investment) => {
-    const hoursElapsed = (Date.now() - new Date(investment.last_claim_at).getTime()) / (1000 * 60 * 60);
-    const reward = (investment.invested_amount * investment.daily_rate / 24) * hoursElapsed;
-    return Math.max(0, reward);
+  const canClaim = (investmentId: string) => {
+    const pendingReward = pendingRewards[investmentId] || 0;
+    return pendingReward >= MIN_CLAIM_AMOUNT;
   };
 
-  const canClaim = (investment: Investment) => {
-    const hoursElapsed = (Date.now() - new Date(investment.last_claim_at).getTime()) / (1000 * 60 * 60);
-    return hoursElapsed >= 1;
+  const getClaimProgress = (investmentId: string) => {
+    const pendingReward = pendingRewards[investmentId] || 0;
+    return Math.min(100, (pendingReward / MIN_CLAIM_AMOUNT) * 100);
+  };
+
+  const getMiningRatePerSecond = (investment: Investment) => {
+    return (investment.invested_amount * investment.daily_rate / 100) / 86400;
   };
 
   const getPlanInfo = (planId: string) => miningPlans.find(p => p.id === planId);
@@ -400,8 +442,8 @@ const OnlineMiningSection = () => {
                 if (!planInfo) return null;
                 
                 const Icon = planInfo.icon;
-                const pendingReward = calculatePendingReward(investment);
-                const canClaimNow = canClaim(investment);
+                const pendingReward = pendingRewards[investment.id] || 0;
+                const canClaimNow = canClaim(investment.id);
                 
                 return (
                   <Card key={investment.id} className="relative overflow-hidden">
@@ -434,7 +476,30 @@ const OnlineMiningSection = () => {
                         </div>
                         <div className="bg-muted/50 rounded-lg p-2">
                           <p className="text-xs text-muted-foreground">{getText('pending')}</p>
-                          <p className="font-bold text-sm text-amber-500">{pendingReward.toFixed(6)}</p>
+                          <p className="font-bold text-sm text-amber-500 font-mono">
+                            {pendingReward.toFixed(8)}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Real-time mining indicator */}
+                      <div className="bg-muted/30 rounded-lg p-3 space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="flex items-center gap-1 text-muted-foreground">
+                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                            {getText('mining')}
+                          </span>
+                          <span className="text-green-500 font-mono">
+                            +{getMiningRatePerSecond(investment).toFixed(10)}{getText('perSecond')}
+                          </span>
+                        </div>
+                        <Progress 
+                          value={getClaimProgress(investment.id)} 
+                          className="h-2"
+                        />
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{pendingReward.toFixed(4)} / {MIN_CLAIM_AMOUNT} DOGE</span>
+                          <span>{getClaimProgress(investment.id).toFixed(1)}%</span>
                         </div>
                       </div>
 
@@ -457,12 +522,12 @@ const OnlineMiningSection = () => {
                         ) : canClaimNow ? (
                           <>
                             <Coins className="w-4 h-4 mr-2" />
-                            {getText('claim')} {pendingReward.toFixed(6)} DOGE
+                            {getText('claim')} {pendingReward.toFixed(4)} DOGE
                           </>
                         ) : (
                           <>
                             <Clock className="w-4 h-4 mr-2" />
-                            {getText('waitHour')}
+                            {getText('minRequired')}
                           </>
                         )}
                       </Button>
