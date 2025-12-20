@@ -136,7 +136,8 @@ const Admin = () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, email, balance, total_earned, total_withdrawn, created_at, is_banned')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(10000);
 
       if (error) throw error;
       setUsers(data || []);
