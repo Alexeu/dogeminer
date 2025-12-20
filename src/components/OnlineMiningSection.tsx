@@ -365,20 +365,29 @@ const OnlineMiningSection = () => {
                   </div>
 
                   {isSelected && (
-                    <div className="pt-4 border-t border-border/50 space-y-4 animate-in fade-in slide-in-from-top-2">
+                    <div 
+                      className="pt-4 border-t border-border/50 space-y-4 animate-in fade-in slide-in-from-top-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <div>
                         <div className="flex justify-between text-sm mb-2">
                           <span>{getText('selectAmount')}</span>
                           <span className="font-bold text-primary">{investAmount} DOGE</span>
                         </div>
-                        <Slider
-                          value={[investAmount]}
-                          onValueChange={(v) => setInvestAmount(v[0])}
-                          min={plan.minAmount}
-                          max={plan.maxAmount}
-                          step={plan.minAmount < 10 ? 0.5 : 1}
-                          className="mb-2"
-                        />
+                        <div 
+                          onPointerDown={(e) => e.stopPropagation()}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onTouchStart={(e) => e.stopPropagation()}
+                        >
+                          <Slider
+                            value={[investAmount]}
+                            onValueChange={(v) => setInvestAmount(v[0])}
+                            min={plan.minAmount}
+                            max={plan.maxAmount}
+                            step={plan.minAmount < 10 ? 0.5 : 1}
+                            className="mb-2"
+                          />
+                        </div>
                         <p className="text-xs text-muted-foreground">
                           {getText('balance')}: {balance.toFixed(4)} DOGE
                         </p>
