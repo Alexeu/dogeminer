@@ -10,7 +10,7 @@ const MINING_DURATION = 60 * 60 * 1000; // 1 hour
 
 const InventorySection = () => {
   const { inventory, startMining, claimRewards, getClaimableAmount, levelUpCharacter, getLevelUpCost } = useInventory();
-  const { balance } = useDogeBalance();
+  const { balance, refreshBalance } = useDogeBalance();
   const [claimingId, setClaimingId] = useState<string | null>(null);
   const [startingId, setStartingId] = useState<string | null>(null);
   const [levelingId, setLevelingId] = useState<string | null>(null);
@@ -51,6 +51,7 @@ const InventorySection = () => {
     setLevelingId(null);
     
     if (result.success) {
+      await refreshBalance(); // Actualizar balance después de subir de nivel
       toast.success(`¡Carta subida a nivel ${result.newLevel}!`);
     } else {
       toast.error(result.error || "Error al subir de nivel");
