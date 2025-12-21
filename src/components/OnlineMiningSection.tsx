@@ -141,12 +141,13 @@ const OnlineMiningSection = () => {
   }, []);
 
   // Calculate pending rewards in real-time
+  // Note: daily_rate is stored as decimal (0.04 = 4%), so we use it directly
   useEffect(() => {
     const newPendingRewards: Record<string, number> = {};
     investments.forEach((investment) => {
       const msElapsed = currentTime - new Date(investment.last_claim_at).getTime();
       const hoursElapsed = msElapsed / (1000 * 60 * 60);
-      const reward = (investment.invested_amount * investment.daily_rate / 100 / 24) * hoursElapsed;
+      const reward = (investment.invested_amount * investment.daily_rate / 24) * hoursElapsed;
       newPendingRewards[investment.id] = Math.max(0, reward);
     });
     setPendingRewards(newPendingRewards);
@@ -281,7 +282,8 @@ const OnlineMiningSection = () => {
   };
 
   const getMiningRatePerSecond = (investment: Investment) => {
-    return (investment.invested_amount * investment.daily_rate / 100) / 86400;
+    // daily_rate is stored as decimal (0.04 = 4%)
+    return (investment.invested_amount * investment.daily_rate) / 86400;
   };
 
   const getPlanInfo = (planId: string) => miningPlans.find(p => p.id === planId);
