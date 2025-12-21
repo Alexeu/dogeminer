@@ -167,7 +167,8 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
               };
             } else {
               const progress = elapsed / MINING_DURATION;
-              const earnedDoge = Math.floor(item.character.miningRate * item.quantity * progress);
+              // Use full precision instead of Math.floor to preserve small values
+              const earnedDoge = item.character.miningRate * item.quantity * progress;
               return {
                 ...item,
                 accumulatedDoge: earnedDoge,
@@ -291,7 +292,8 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     if (item.miningStartTime) {
       const elapsed = Date.now() - item.miningStartTime;
       const progress = Math.min(elapsed / MINING_DURATION, 1);
-      return Math.floor(item.character.miningRate * item.quantity * progress);
+      // Use full precision instead of Math.floor to preserve small values
+      return item.character.miningRate * item.quantity * progress;
     }
     
     return 0;

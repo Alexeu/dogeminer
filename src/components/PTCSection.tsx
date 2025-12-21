@@ -15,7 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Eye, Plus, ExternalLink, Coins, Timer, CheckCircle, Loader2 } from "lucide-react";
+import { Eye, Plus, ExternalLink, Coins, Timer, CheckCircle, Loader2, Pencil, Trash2 } from "lucide-react";
 
 const COST_PER_VIEW = 0.003575; // Costo por vista en DOGE
 const REWARD_PER_VIEW = 0.0013; // Recompensa por vista en DOGE
@@ -43,12 +43,16 @@ export default function PTCSection() {
   const { user } = useAuth();
   const { balance, subtractBalance, refreshBalance } = useDogeBalance();
   const [ads, setAds] = useState<Ad[]>([]);
+  const [myAds, setMyAds] = useState<Ad[]>([]);
   const [viewedAds, setViewedAds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [viewingAd, setViewingAd] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(0);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingAd, setEditingAd] = useState<Ad | null>(null);
   const [creating, setCreating] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   // Form state
   const [title, setTitle] = useState("");
@@ -61,9 +65,27 @@ export default function PTCSection() {
   useEffect(() => {
     if (user) {
       fetchAds();
+      fetchMyAds();
       fetchViewedAds();
     }
   }, [user]);
+
+  const fetchMyAds = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from("ads")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setMyAds(data || []);
+    } catch (error) {
+      console.error("Error fetching my ads:", error);
+    }
+  };
 
   const fetchAds = async () => {
     try {
@@ -251,6 +273,74 @@ export default function PTCSection() {
     }
   };
 
+  const handleEditAd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !editingAd) return;
+
+    try {
+      new URL(url);
+    } catch {
+      toast.error("URL inválida");
+      return;
+    }
+
+    setCreating(true);
+    try {
+      const { error } = await supabase
+        .from("ads")
+        .update({
+          title,
+          description,
+          url,
+        })
+        .eq("id", editingAd.id)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      toast.success("Anuncio actualizado");
+      setIsEditOpen(false);
+      setEditingAd(null);
+      fetchMyAds();
+    } catch (error) {
+      console.error("Error updating ad:", error);
+      toast.error("Error al actualizar el anuncio");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleDeleteAd = async (adId: string) => {
+    if (!user) return;
+    
+    setDeleting(adId);
+    try {
+      const { error } = await supabase
+        .from("ads")
+        .update({ is_active: false })
+        .eq("id", adId)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      toast.success("Anuncio eliminado");
+      setMyAds(myAds.filter(a => a.id !== adId));
+    } catch (error) {
+      console.error("Error deleting ad:", error);
+      toast.error("Error al eliminar el anuncio");
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  const openEditDialog = (ad: Ad) => {
+    setEditingAd(ad);
+    setTitle(ad.title);
+    setDescription(ad.description);
+    setUrl(ad.url);
+    setIsEditOpen(true);
+  };
+
   const availableAds = ads.filter(ad => !viewedAds.has(ad.id));
 
   return (
@@ -369,7 +459,126 @@ export default function PTCSection() {
           </Dialog>
         </div>
 
-        {/* Ads Grid */}
+        {/* My Ads Section */}
+        {myAds.length > 0 && (
+          <div className="mb-12">
+            <h3 className="text-2xl font-bold mb-6 text-center">
+              Mis <span className="text-primary">Anuncios</span>
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {myAds.filter(ad => ad.is_active).map((ad) => (
+                <div
+                  key={ad.id}
+                  className="glass rounded-2xl p-6 border border-amber-500/30 hover:border-amber-500/50 transition-all duration-300"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <h3 className="text-lg font-bold line-clamp-1">{ad.title}</h3>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-primary"
+                        onClick={() => openEditDialog(ad)}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => handleDeleteAd(ad.id)}
+                        disabled={deleting === ad.id}
+                      >
+                        {deleting === ad.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                    {ad.description}
+                  </p>
+                  
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <Eye className="w-4 h-4" />
+                      <span>{ad.remaining_views}/{ad.total_views} vistas</span>
+                    </div>
+                    <span className={ad.remaining_views > 0 ? "text-emerald-500" : "text-amber-500"}>
+                      {ad.remaining_views > 0 ? "Activo" : "Agotado"}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Edit Ad Dialog */}
+        <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Editar Anuncio</DialogTitle>
+              <DialogDescription>
+                Modifica los detalles de tu anuncio
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleEditAd} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-title">Título</Label>
+                <Input
+                  id="edit-title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Título del anuncio"
+                  maxLength={100}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-description">Descripción</Label>
+                <Textarea
+                  id="edit-description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Describe tu anuncio..."
+                  maxLength={500}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-url">URL</Label>
+                <Input
+                  id="edit-url"
+                  type="url"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="https://..."
+                  required
+                />
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={creating}
+              >
+                {creating ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  "Guardar Cambios"
+                )}
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Available Ads Grid */}
+        <h3 className="text-2xl font-bold mb-6 text-center">
+          Anuncios <span className="text-primary">Disponibles</span>
+        </h3>
         {loading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
