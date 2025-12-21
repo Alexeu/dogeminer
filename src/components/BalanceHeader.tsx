@@ -1,6 +1,6 @@
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { Dog, Pickaxe, LogOut, User } from "lucide-react";
+import { Dog, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import dogeLogo from "@/assets/doge-logo.png";
@@ -9,7 +9,7 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import { formatDoge } from "@/data/dogeData";
 
 const BalanceHeader = () => {
-  const { balance, miningRate } = useDogeBalance();
+  const { balance } = useDogeBalance();
   const { user, signOut } = useAuth();
 
   const handleLogout = async () => {
@@ -33,12 +33,6 @@ const BalanceHeader = () => {
           <div className="flex items-center gap-2 md:gap-3">
             {/* Language Switcher */}
             <LanguageSwitcher />
-            
-            {/* Mining rate indicator */}
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/20 text-primary">
-              <Pickaxe className="w-4 h-4 animate-pulse" />
-              <span className="text-sm font-medium">+{formatDoge(miningRate)}/s</span>
-            </div>
 
             {/* Balance display */}
             <div className="flex items-center gap-2 px-4 py-2 rounded-xl glass shadow-doge-sm">
