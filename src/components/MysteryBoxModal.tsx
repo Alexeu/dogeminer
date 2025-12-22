@@ -26,7 +26,7 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
   const [phase, setPhase] = useState<AnimationPhase>("idle");
   const [revealedCharacter, setRevealedCharacter] = useState<DogeCharacter | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const { balance, refreshBalance } = useDogeBalance();
+  const { depositBalance, refreshBalance } = useDogeBalance();
   const { refreshInventory } = useInventory();
 
   useEffect(() => {
@@ -41,7 +41,7 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
     if (!boxType || isProcessing) return;
 
     // Check if user has enough balance (client-side check for UX only)
-    if (balance < boxType.price) {
+    if (depositBalance < boxType.price) {
       toast.error("Not enough DOGE!", {
         description: `You need ${boxType.price.toFixed(4)} DOGE to open this box.`,
       });
@@ -137,7 +137,7 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
   if (!boxType) return null;
 
   const config = revealedCharacter ? rarityConfig[revealedCharacter.rarity] : null;
-  const canAfford = balance >= boxType.price;
+  const canAfford = depositBalance >= boxType.price;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -281,7 +281,7 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
                     setPhase("idle");
                     setRevealedCharacter(null);
                   }}
-                  disabled={balance < boxType.price}
+                  disabled={depositBalance < boxType.price}
                 >
                   Open Another
                 </Button>

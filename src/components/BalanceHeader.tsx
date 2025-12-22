@@ -1,15 +1,21 @@
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { Dog, LogOut, User } from "lucide-react";
+import { Dog, LogOut, User, Pickaxe, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import dogeLogo from "@/assets/doge-logo.png";
 import NotificationBell from "./NotificationBell";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { formatDoge } from "@/data/dogeData";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const BalanceHeader = () => {
-  const { balance } = useDogeBalance();
+  const { miningBalance, depositBalance } = useDogeBalance();
   const { user, signOut } = useAuth();
 
   const handleLogout = async () => {
@@ -34,14 +40,47 @@ const BalanceHeader = () => {
             {/* Language Switcher */}
             <LanguageSwitcher />
 
-            {/* Balance display */}
-            <div className="flex items-center gap-2 px-4 py-2 rounded-xl glass shadow-doge-sm">
-              <Dog className="w-5 h-5 text-primary" />
-              <span className="text-lg font-bold text-gradient tabular-nums">
-                {formatDoge(balance)}
-              </span>
-              <span className="text-sm text-muted-foreground hidden sm:inline">DOGE</span>
-            </div>
+            {/* Mining Balance display */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl glass shadow-doge-sm border border-emerald-500/30">
+                    <Pickaxe className="w-4 h-4 text-emerald-500" />
+                    <span className="text-sm font-bold text-emerald-500 tabular-nums hidden sm:inline">
+                      {formatDoge(miningBalance)}
+                    </span>
+                    <span className="text-sm font-bold text-emerald-500 tabular-nums sm:hidden">
+                      {miningBalance.toFixed(4)}
+                    </span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Balance de Minado: {formatDoge(miningBalance)} DOGE</p>
+                  <p className="text-xs text-muted-foreground">Recompensas de minado, anuncios, etc.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            {/* Deposit Balance display */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl glass shadow-doge-sm border border-primary/30">
+                    <Wallet className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-bold text-primary tabular-nums hidden sm:inline">
+                      {formatDoge(depositBalance)}
+                    </span>
+                    <span className="text-sm font-bold text-primary tabular-nums sm:hidden">
+                      {depositBalance.toFixed(4)}
+                    </span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Balance de Depósito: {formatDoge(depositBalance)} DOGE</p>
+                  <p className="text-xs text-muted-foreground">Para comprar cajas, anuncios, minería online</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
             {/* Notifications */}
             <NotificationBell />

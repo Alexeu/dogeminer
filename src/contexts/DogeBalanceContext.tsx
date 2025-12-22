@@ -5,33 +5,48 @@ import { toast } from "sonner";
 
 interface DogeBalanceContextType {
   balance: number;
+  miningBalance: number;
+  depositBalance: number;
   miningRate: number;
   referralCode: string;
   totalEarned: number;
+  totalDeposited: number;
   isLoading: boolean;
   subtractBalance: (amount: number) => Promise<boolean>;
   claimMiningReward: (amount: number, characterId: string) => Promise<boolean>;
   applyReferralCode: (code: string) => Promise<boolean>;
   refreshBalance: () => Promise<void>;
+  canWithdraw: boolean;
 }
 
 const DogeBalanceContext = createContext<DogeBalanceContextType | undefined>(undefined);
 
+const MIN_DEPOSIT_FOR_WITHDRAWAL = 5;
+
 export function DogeBalanceProvider({ children }: { children: ReactNode }) {
   const [balance, setBalance] = useState(0);
+  const [miningBalance, setMiningBalance] = useState(0);
+  const [depositBalance, setDepositBalance] = useState(0);
   const [referralCode, setReferralCode] = useState("");
   const [totalEarned, setTotalEarned] = useState(0);
+  const [totalDeposited, setTotalDeposited] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
   // Mining rate is calculated based on owned characters (set from InventoryContext)
   const miningRate = 0;
 
+  // User can withdraw only if they have deposited at least 5 DOGE
+  const canWithdraw = totalDeposited >= MIN_DEPOSIT_FOR_WITHDRAWAL;
+
   const refreshBalance = useCallback(async () => {
     if (!user) {
       setBalance(0);
+      setMiningBalance(0);
+      setDepositBalance(0);
       setReferralCode("");
       setTotalEarned(0);
+      setTotalDeposited(0);
       setIsLoading(false);
       return;
     }
@@ -45,11 +60,22 @@ export function DogeBalanceProvider({ children }: { children: ReactNode }) {
       }
 
       if (data && typeof data === 'object' && 'success' in data) {
-        const result = data as { success: boolean; balance?: number; referral_code?: string; total_earned?: number };
+        const result = data as { 
+          success: boolean; 
+          balance?: number; 
+          mining_balance?: number;
+          deposit_balance?: number;
+          referral_code?: string; 
+          total_earned?: number;
+          total_deposited?: number;
+        };
         if (result.success) {
           setBalance(result.balance || 0);
+          setMiningBalance(result.mining_balance || 0);
+          setDepositBalance(result.deposit_balance || 0);
           setReferralCode(result.referral_code || "");
           setTotalEarned(result.total_earned || 0);
+          setTotalDeposited(result.total_deposited || 0);
         }
       }
     } catch (error) {
@@ -79,10 +105,19 @@ export function DogeBalanceProvider({ children }: { children: ReactNode }) {
         },
         (payload) => {
           if (payload.new) {
-            const newData = payload.new as { balance?: number; referral_code?: string; total_earned?: number };
-            setBalance(newData.balance || 0);
+            const newData = payload.new as { 
+              mining_balance?: number; 
+              deposit_balance?: number;
+              referral_code?: string; 
+              total_earned?: number;
+              total_deposited?: number;
+            };
+            setMiningBalance(newData.mining_balance || 0);
+            setDepositBalance(newData.deposit_balance || 0);
+            setBalance((newData.mining_balance || 0) + (newData.deposit_balance || 0));
             setReferralCode(newData.referral_code || "");
             setTotalEarned(newData.total_earned || 0);
+            setTotalDeposited(newData.total_deposited || 0);
           }
         }
       )
@@ -111,10 +146,13 @@ export function DogeBalanceProvider({ children }: { children: ReactNode }) {
       if (data && typeof data === 'object' && 'success' in data) {
         const result = data as { success: boolean; new_balance?: number; error?: string };
         if (result.success) {
-          setBalance(result.new_balance || 0);
+          setDepositBalance(result.new_balance || 0);
+          setBalance(miningBalance + (result.new_balance || 0));
           return true;
-        } else if (result.error === 'Insufficient balance') {
-          toast.error("Balance insuficiente");
+        } else if (result.error === 'Insufficient deposit balance') {
+          toast.error("Balance de depósito insuficiente");
+        } else if (result.error) {
+          toast.error(result.error);
         }
       }
       return false;
@@ -145,7 +183,8 @@ export function DogeBalanceProvider({ children }: { children: ReactNode }) {
       if (data && typeof data === 'object' && 'success' in data) {
         const result = data as { success: boolean; new_balance?: number };
         if (result.success) {
-          setBalance(result.new_balance || 0);
+          setMiningBalance(result.new_balance || 0);
+          setBalance((result.new_balance || 0) + depositBalance);
           return true;
         }
       }
@@ -174,7 +213,8 @@ export function DogeBalanceProvider({ children }: { children: ReactNode }) {
       if (data && typeof data === 'object' && 'success' in data) {
         const result = data as { success: boolean; new_balance?: number; bonus?: number; error?: string };
         if (result.success) {
-          setBalance(result.new_balance || 0);
+          setMiningBalance(result.new_balance || 0);
+          setBalance((result.new_balance || 0) + depositBalance);
           toast.success(`¡Código aplicado! Recibiste ${result.bonus?.toFixed(4)} DOGE de bonus`);
           return true;
         } else if (result.error) {
@@ -192,14 +232,18 @@ export function DogeBalanceProvider({ children }: { children: ReactNode }) {
     <DogeBalanceContext.Provider
       value={{
         balance,
+        miningBalance,
+        depositBalance,
         miningRate,
         referralCode,
         totalEarned,
+        totalDeposited,
         isLoading,
         subtractBalance,
         claimMiningReward,
         applyReferralCode,
         refreshBalance,
+        canWithdraw,
       }}
     >
       {children}

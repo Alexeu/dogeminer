@@ -31,26 +31,28 @@ export interface DogeCharacter {
   miningRate: number; // DOGE per hour
 }
 
-// Tasas de minado por hora por rareza (en DOGE) - +30% boost
+// Tasas de minado por hora por rareza (en DOGE) - +30% boost aplicado
+// Base rates: starter=0.0025, common=0.0015, rare=0.0035, epic=0.0075, legendary=0.01
+// With 30% boost: starter=0.0025 (no boost), common=0.00195, rare=0.00455, epic=0.00975, legendary=0.013
 export const miningRatesByRarity: Record<Rarity, number> = {
-  starter: 0.0065,
-  common: 0.00195,
-  rare: 0.00455,
-  epic: 0.00975,
-  legendary: 0.013,
+  starter: 0.0025, // Sin bonus, tasa fija
+  common: 0.00195, // 0.0015 * 1.3
+  rare: 0.00455,   // 0.0035 * 1.3
+  epic: 0.00975,   // 0.0075 * 1.3
+  legendary: 0.013, // 0.01 * 1.3
 };
 
-// Personaje starter gratuito al registrarse (+30% boost)
+// Personaje starter gratuito al registrarse (sin bonus, 0.0025 DOGE/hora)
 export const starterCharacter: DogeCharacter = {
   id: "doge-starter",
   name: "DOGNUS",
   image: dogeStarter,
   rarity: "starter",
-  miningRate: 0.0065,
+  miningRate: 0.0025, // Tasa fija sin bonus
 };
 
 export const characters: DogeCharacter[] = [
-  // 7 Common (0.00195 DOGE/hour - +30%)
+  // 7 Common (0.00195 DOGE/hour - base 0.0015 + 30% boost)
   { id: "builder", name: "Doge Builder", image: dogeBuilder, rarity: "common", miningRate: 0.00195 },
   { id: "astronaut", name: "Doge Astronaut", image: dogeAstronaut, rarity: "common", miningRate: 0.00195 },
   { id: "farmer", name: "Doge Farmer", image: dogeFarmer, rarity: "common", miningRate: 0.00195 },
@@ -59,7 +61,7 @@ export const characters: DogeCharacter[] = [
   { id: "artist", name: "Doge Artist", image: dogeArtist, rarity: "common", miningRate: 0.00195 },
   { id: "explorer", name: "Doge Explorer", image: dogeExplorer, rarity: "common", miningRate: 0.00195 },
   
-  // 6 Rare (0.00455 DOGE/hour - +30%)
+  // 6 Rare (0.00455 DOGE/hour - base 0.0035 + 30% boost)
   { id: "pirate", name: "Doge Pirate", image: dogePirate, rarity: "rare", miningRate: 0.00455 },
   { id: "ninja", name: "Doge Ninja", image: dogeNinja, rarity: "rare", miningRate: 0.00455 },
   { id: "samurai", name: "Doge Samurai", image: dogeSamurai, rarity: "rare", miningRate: 0.00455 },
@@ -67,13 +69,13 @@ export const characters: DogeCharacter[] = [
   { id: "viking", name: "Doge Viking", image: dogeViking, rarity: "rare", miningRate: 0.00455 },
   { id: "gladiator", name: "Doge Gladiator", image: dogeGladiator, rarity: "rare", miningRate: 0.00455 },
   
-  // 4 Epic (0.00975 DOGE/hour - +30%)
+  // 4 Epic (0.00975 DOGE/hour - base 0.0075 + 30% boost)
   { id: "wizard", name: "Doge Wizard", image: dogeWizard, rarity: "epic", miningRate: 0.00975 },
   { id: "cyberpunk", name: "Doge Cyberpunk", image: dogeCyberpunk, rarity: "epic", miningRate: 0.00975 },
   { id: "vampire", name: "Doge Vampire", image: dogeVampire, rarity: "epic", miningRate: 0.00975 },
   { id: "phoenix", name: "Doge Phoenix", image: dogePhoenix, rarity: "epic", miningRate: 0.00975 },
   
-  // 3 Legendary (0.013 DOGE/hour - +30%)
+  // 3 Legendary (0.013 DOGE/hour - base 0.01 + 30% boost)
   { id: "king", name: "Doge King", image: dogeKing, rarity: "legendary", miningRate: 0.013 },
   { id: "gold", name: "Doge Gold", image: dogeGold, rarity: "legendary", miningRate: 0.013 },
   { id: "dragon", name: "Doge Dragon", image: dogeDragon, rarity: "legendary", miningRate: 0.013 },
@@ -172,9 +174,7 @@ export function getRandomCharacter(dropRates: Record<Rarity, number>, boxId?: st
   return charactersOfRarity[Math.floor(Math.random() * charactersOfRarity.length)];
 }
 
-// Format DOGE with appropriate decimals
+// Format DOGE with 8 decimals
 export const formatDoge = (amount: number): string => {
-  if (amount < 0.0001) return amount.toFixed(6);
-  if (amount < 1) return amount.toFixed(4);
-  return amount.toFixed(2);
+  return amount.toFixed(8);
 };
