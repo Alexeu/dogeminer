@@ -94,7 +94,7 @@ interface Investment {
 const MIN_CLAIM_AMOUNT = 0.1;
 
 const OnlineMiningSection = () => {
-  const { balance, refreshBalance } = useDogeBalance();
+  const { depositBalance, refreshBalance } = useDogeBalance();
   const { language, t } = useLanguage();
   const { toast } = useToast();
   
@@ -177,10 +177,10 @@ const OnlineMiningSection = () => {
   const handleInvest = async (plan: MiningPlan) => {
     if (investing) return;
     
-    if (balance < investAmount) {
+    if (depositBalance < investAmount) {
       toast({
-        title: language === 'es' ? 'Balance insuficiente' : 'Insufficient balance',
-        description: language === 'es' ? 'No tienes suficiente DOGE' : "You don't have enough DOGE",
+        title: language === 'es' ? 'Balance de depósito insuficiente' : 'Insufficient deposit balance',
+        description: language === 'es' ? 'No tienes suficiente DOGE de depósito' : "You don't have enough deposit DOGE",
         variant: 'destructive'
       });
       return;
@@ -391,7 +391,7 @@ const OnlineMiningSection = () => {
                           />
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          {getText('balance')}: {balance.toFixed(4)} DOGE
+                          {getText('balance')}: {depositBalance.toFixed(8)} DOGE
                         </p>
                       </div>
                       
@@ -409,7 +409,7 @@ const OnlineMiningSection = () => {
                           e.stopPropagation();
                           handleInvest(plan);
                         }}
-                        disabled={investing || balance < investAmount}
+                        disabled={investing || depositBalance < investAmount}
                         className={cn("w-full bg-gradient-to-r", plan.gradient)}
                       >
                         {investing ? (

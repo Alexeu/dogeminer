@@ -5,10 +5,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Wallet, ArrowDownToLine, ArrowUpFromLine, Loader2, History, Clock, CheckCircle, XCircle, AlertCircle, Dog, Copy, Send } from "lucide-react";
+import { Wallet, ArrowDownToLine, ArrowUpFromLine, Loader2, History, Clock, CheckCircle, XCircle, AlertCircle, Dog, Copy, Send, AlertTriangle } from "lucide-react";
 import { formatDoge } from "@/data/dogeData";
 
 const DAILY_LIMIT = 5.0000;
+const MIN_DEPOSIT_FOR_WITHDRAWAL = 5;
 const MIN_WITHDRAWAL = 0.5;
 const MIN_DEPOSIT = 1;
 const DOGE_DEPOSIT_ADDRESS = "DFbsc22DdbvczjXJZfTu59Q7HdSFkeGUNv";
@@ -24,7 +25,8 @@ interface Transaction {
 }
 
 const FaucetPaySection = () => {
-  const { balance, refreshBalance } = useDogeBalance();
+  const { miningBalance, depositBalance, totalDeposited, canWithdraw, refreshBalance } = useDogeBalance();
+  const totalBalance = miningBalance + depositBalance;
   const { user } = useAuth();
   const { toast } = useToast();
   const [withdrawAddress, setWithdrawAddress] = useState("");
@@ -117,6 +119,16 @@ const FaucetPaySection = () => {
   };
 
   const handleWithdraw = async () => {
+    // Check if user has deposited minimum amount
+    if (!canWithdraw) {
+      toast({
+        title: "Requisito de depósito",
+        description: `Debes haber depositado al menos ${MIN_DEPOSIT_FOR_WITHDRAWAL} DOGE para poder retirar. Has depositado: ${formatDoge(totalDeposited)} DOGE`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!withdrawAddress.trim()) {
       toast({
         title: "Error",
@@ -145,10 +157,10 @@ const FaucetPaySection = () => {
       return;
     }
 
-    if (amount > balance) {
+    if (amount > miningBalance) {
       toast({
         title: "Balance insuficiente",
-        description: "No tienes suficiente DOGE para retirar",
+        description: "No tienes suficiente DOGE de minado para retirar",
         variant: "destructive",
       });
       return;
@@ -423,13 +435,26 @@ const FaucetPaySection = () => {
               </div>
             </div>
 
-            <div className="p-4 rounded-xl bg-secondary/50">
-              <p className="text-sm text-muted-foreground mb-1">Tu balance disponible</p>
+            <div className="p-4 rounded-xl bg-secondary/50 space-y-2">
+              <p className="text-sm text-muted-foreground mb-1">Balance de minado (retirable)</p>
               <div className="flex items-center gap-2">
-                <Dog className="w-6 h-6 text-primary" />
-                <p className="text-2xl font-bold text-gradient">{formatDoge(balance)} DOGE</p>
+                <Dog className="w-6 h-6 text-emerald-500" />
+                <p className="text-2xl font-bold text-emerald-500">{formatDoge(miningBalance)} DOGE</p>
               </div>
             </div>
+
+            {!canWithdraw && (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-2">
+                <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-amber-600">Requisito de retiro</p>
+                  <p className="text-xs text-muted-foreground">
+                    Deposita al menos {MIN_DEPOSIT_FOR_WITHDRAWAL} DOGE para habilitar retiros.
+                    Has depositado: {formatDoge(totalDeposited)} DOGE
+                  </p>
+                </div>
+              </div>
+            )}
 
             <Input
               placeholder="Tu email de FaucetPay"
@@ -450,10 +475,12 @@ const FaucetPaySection = () => {
             <Button 
               onClick={handleWithdraw} 
               className="w-full gradient-primary text-primary-foreground"
-              disabled={isLoading}
+              disabled={isLoading || !canWithdraw}
             >
               {isLoading ? (
                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Procesando...</>
+              ) : !canWithdraw ? (
+                <>🔒 Deposita {MIN_DEPOSIT_FOR_WITHDRAWAL} DOGE para retirar</>
               ) : (
                 <><ArrowUpFromLine className="w-4 h-4 mr-2" /> Retirar</>
               )}

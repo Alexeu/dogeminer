@@ -17,7 +17,7 @@ const boxImages: Record<string, string> = {
 const MysteryBoxSection = () => {
   const [selectedBox, setSelectedBox] = useState<BoxType | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { balance } = useDogeBalance();
+  const { depositBalance } = useDogeBalance();
 
   const handleOpenBox = (box: BoxType) => {
     setSelectedBox(box);
@@ -56,7 +56,7 @@ const MysteryBoxSection = () => {
 
         <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {boxTypes.map((box, index) => {
-            const canAfford = balance >= box.price;
+            const canAfford = depositBalance >= box.price;
             
             return (
               <div
@@ -146,7 +146,7 @@ const MysteryBoxSection = () => {
                   ) : (
                     <>
                       <Lock className="w-4 h-4" />
-                      Need {formatPrice(box.price - balance)} more
+                      Need {formatPrice(box.price - depositBalance)} more
                     </>
                   )}
                 </Button>

@@ -433,13 +433,16 @@ export type Database = {
           banned_at: string | null
           collection_reward_claimed_at: string | null
           created_at: string | null
+          deposit_balance: number | null
           email: string | null
           faucetpay_linked_at: string | null
           id: string
           is_banned: boolean | null
+          mining_balance: number | null
           referral_code: string | null
           referred_by: string | null
           starter_gift_received_at: string | null
+          total_deposited: number | null
           total_earned: number | null
           total_withdrawn: number | null
           updated_at: string | null
@@ -451,13 +454,16 @@ export type Database = {
           banned_at?: string | null
           collection_reward_claimed_at?: string | null
           created_at?: string | null
+          deposit_balance?: number | null
           email?: string | null
           faucetpay_linked_at?: string | null
           id: string
           is_banned?: boolean | null
+          mining_balance?: number | null
           referral_code?: string | null
           referred_by?: string | null
           starter_gift_received_at?: string | null
+          total_deposited?: number | null
           total_earned?: number | null
           total_withdrawn?: number | null
           updated_at?: string | null
@@ -469,13 +475,16 @@ export type Database = {
           banned_at?: string | null
           collection_reward_claimed_at?: string | null
           created_at?: string | null
+          deposit_balance?: number | null
           email?: string | null
           faucetpay_linked_at?: string | null
           id?: string
           is_banned?: boolean | null
+          mining_balance?: number | null
           referral_code?: string | null
           referred_by?: string | null
           starter_gift_received_at?: string | null
+          total_deposited?: number | null
           total_earned?: number | null
           total_withdrawn?: number | null
           updated_at?: string | null

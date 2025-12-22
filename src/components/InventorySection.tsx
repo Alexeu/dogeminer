@@ -10,7 +10,7 @@ const MINING_DURATION = 60 * 60 * 1000; // 1 hour
 
 const InventorySection = () => {
   const { inventory, startMining, claimRewards, getClaimableAmount, levelUpCharacter, getLevelUpCost } = useInventory();
-  const { balance, refreshBalance } = useDogeBalance();
+  const { depositBalance, refreshBalance } = useDogeBalance();
   const [claimingId, setClaimingId] = useState<string | null>(null);
   const [startingId, setStartingId] = useState<string | null>(null);
   const [levelingId, setLevelingId] = useState<string | null>(null);
@@ -41,8 +41,8 @@ const InventorySection = () => {
 
   const handleLevelUp = async (characterId: string, rarity: string) => {
     const cost = getLevelUpCost(rarity);
-    if (balance < cost) {
-      toast.error(`Necesitas ${cost} DOGE para subir de nivel`);
+    if (depositBalance < cost) {
+      toast.error(`Necesitas ${cost} DOGE de depósito para subir de nivel`);
       return;
     }
     
@@ -164,7 +164,7 @@ const InventorySection = () => {
                   {!isMaxLevel && (
                     <Button
                       onClick={() => handleLevelUp(item.character.id, item.character.rarity)}
-                      disabled={isLeveling || balance < levelUpCost}
+                      disabled={isLeveling || depositBalance < levelUpCost}
                       variant="outline"
                       size="sm"
                       className="w-full mb-3 border-amber-500/50 text-amber-500 hover:bg-amber-500/10"

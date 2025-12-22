@@ -41,7 +41,7 @@ interface AdViewResponse {
 
 export default function PTCSection() {
   const { user } = useAuth();
-  const { balance, subtractBalance, refreshBalance } = useDogeBalance();
+  const { depositBalance, subtractBalance, refreshBalance } = useDogeBalance();
   const [ads, setAds] = useState<Ad[]>([]);
   const [myAds, setMyAds] = useState<Ad[]>([]);
   const [viewedAds, setViewedAds] = useState<Set<string>>(new Set());
@@ -214,8 +214,8 @@ export default function PTCSection() {
       return;
     }
 
-    if (balance < totalCost) {
-      toast.error(`Necesitas ${totalCost.toFixed(4)} DOGE para crear este anuncio`);
+    if (depositBalance < totalCost) {
+      toast.error(`Necesitas ${totalCost.toFixed(8)} DOGE de depósito para crear este anuncio`);
       return;
     }
 
@@ -444,12 +444,12 @@ export default function PTCSection() {
                 <Button 
                   type="submit" 
                   className="w-full"
-                  disabled={creating || balance < totalCost}
+                  disabled={creating || depositBalance < totalCost}
                 >
                   {creating ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : balance < totalCost ? (
-                    `Necesitas ${(totalCost - balance).toFixed(4)} DOGE más`
+                  ) : depositBalance < totalCost ? (
+                    `Necesitas ${(totalCost - depositBalance).toFixed(8)} DOGE más`
                   ) : (
                     "Crear Anuncio"
                   )}
