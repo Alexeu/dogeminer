@@ -133,14 +133,31 @@ const Admin = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, email, balance, total_earned, total_withdrawn, created_at, is_banned')
-        .order('created_at', { ascending: false })
-        .limit(10000);
+      // Fetch users in batches to handle more than 1000 users
+      let allUsers: UserProfile[] = [];
+      let from = 0;
+      const batchSize = 1000;
+      let hasMore = true;
 
-      if (error) throw error;
-      setUsers(data || []);
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, email, balance, total_earned, total_withdrawn, created_at, is_banned')
+          .order('created_at', { ascending: false })
+          .range(from, from + batchSize - 1);
+
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          allUsers = [...allUsers, ...data];
+          from += batchSize;
+          hasMore = data.length === batchSize;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      setUsers(allUsers);
     } catch (error) {
       console.error('Fetch users error:', error);
     }
@@ -462,8 +479,18 @@ const Admin = () => {
           {/* Users Tab */}
           <TabsContent value="users" className="space-y-6">
             <div className="glass rounded-2xl p-6">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="relative flex-1 max-w-md">
+              {/* User Counter */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-xl bg-primary/20">
+                    <Users className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total de Usuarios</p>
+                    <p className="text-2xl font-bold text-foreground">{users.length.toLocaleString()}</p>
+                  </div>
+                </div>
+                <div className="relative flex-1 max-w-md ml-4">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     placeholder={t('admin.searchUser')}
@@ -473,6 +500,13 @@ const Admin = () => {
                   />
                 </div>
               </div>
+              
+              {/* Search Results Count */}
+              {searchQuery && (
+                <p className="text-sm text-muted-foreground mb-4">
+                  Mostrando {filteredUsers.length.toLocaleString()} de {users.length.toLocaleString()} usuarios
+                </p>
+              )}
 
               {/* Add Balance Modal */}
               {selectedUser && (
