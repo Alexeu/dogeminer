@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
     }
 
     // Validate provider
-    if (!['adfly', 'earnnow'].includes(provider)) {
+    if (!['adfly', 'eazyurl'].includes(provider)) {
       console.log('Invalid provider:', provider);
       return new Response(
         JSON.stringify({ success: false, error: 'Proveedor inválido' }),

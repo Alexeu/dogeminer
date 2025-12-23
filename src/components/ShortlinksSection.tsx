@@ -30,12 +30,12 @@ const shortlinks: Shortlink[] = [
     waitTime: 30
   },
   {
-    id: 'earnnow',
-    name: 'EarnNow.online',
-    provider: 'earnnow',
+    id: 'eazyurl',
+    name: 'EazyURL',
+    provider: 'eazyurl',
     reward: 0.01,
-    description: 'Completa el shortlink de EarnNow para ganar recompensas.',
-    color: 'from-green-500 to-green-600',
+    description: 'Completa el shortlink de EazyURL para ganar recompensas.',
+    color: 'from-purple-500 to-purple-600',
     waitTime: 30
   }
 ];
@@ -143,8 +143,8 @@ export const ShortlinksSection = () => {
     let shortlinkUrl = '';
     if (shortlink.provider === 'adfly') {
       shortlinkUrl = 'https://adfly.site/PEPERPG';
-    } else if (shortlink.provider === 'earnnow') {
-      shortlinkUrl = 'http://earnow.online/EK8f';
+    } else if (shortlink.provider === 'eazyurl') {
+      shortlinkUrl = 'https://eazyurl.xyz/LpSXh';
     }
 
     // Record start time
