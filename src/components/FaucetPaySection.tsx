@@ -12,7 +12,7 @@ const DAILY_LIMIT = 5.0000;
 const MIN_DEPOSIT_FOR_WITHDRAWAL = 2;
 const MIN_WITHDRAWAL = 0.5;
 const MIN_DEPOSIT = 1;
-const FAUCETPAY_DEPOSIT_EMAIL = "Alexeu@hotmail.es";
+const FAUCETPAY_DEPOSIT_EMAIL = "rpgdoge30@gmail.com";
 
 interface Transaction {
   id: string;
@@ -79,14 +79,14 @@ const FaucetPaySection = () => {
       .maybeSingle();
     
     if (pendingDeposit) {
-      const paymentUrl = `https://faucetpay.io/page/send-payment?to=Alexeu@hotmail.es&amount=${Math.floor(pendingDeposit.amount * 100000000)}&currency=DOGE&custom=${pendingDeposit.verification_code}`;
+      const paymentUrl = `https://faucetpay.io/page/send-payment?to=rpgdoge30@gmail.com&amount=${Math.floor(pendingDeposit.amount * 100000000)}&currency=DOGE&custom=${pendingDeposit.verification_code}`;
       setFaucetPayDeposit({
         deposit_id: pendingDeposit.id,
         verification_code: pendingDeposit.verification_code,
         amount: pendingDeposit.amount,
         payment_url: paymentUrl,
         expires_at: pendingDeposit.expires_at,
-        recipient: 'Alexeu@hotmail.es'
+        recipient: 'rpgdoge30@gmail.com'
       });
     }
   };

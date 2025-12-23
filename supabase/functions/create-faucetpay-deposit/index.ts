@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const FAUCETPAY_DEPOSIT_EMAIL = 'Alexeu@hotmail.es'; // Email donde recibimos depósitos
+const FAUCETPAY_DEPOSIT_EMAIL = 'rpgdoge30@gmail.com'; // Email donde recibimos depósitos
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -143,7 +143,7 @@ serve(async (req) => {
 
 function generateFaucetPayUrl(amount: number, reference: string): string {
   const amountSatoshi = Math.floor(amount * 100000000);
-  const depositEmail = 'Alexeu@hotmail.es';
+  const depositEmail = 'rpgdoge30@gmail.com';
   
   // FaucetPay send-payment URL with custom field for IPN
   const params = new URLSearchParams({
