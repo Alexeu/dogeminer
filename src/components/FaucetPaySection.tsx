@@ -5,14 +5,14 @@ import { useToast } from "@/hooks/use-toast";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Wallet, ArrowDownToLine, ArrowUpFromLine, Loader2, History, Clock, CheckCircle, XCircle, AlertCircle, Dog, Copy, Send, AlertTriangle } from "lucide-react";
+import { Wallet, ArrowDownToLine, ArrowUpFromLine, Loader2, History, Clock, CheckCircle, XCircle, AlertCircle, Dog, Copy, Send, AlertTriangle, RefreshCw } from "lucide-react";
 import { formatDoge } from "@/data/dogeData";
 
 const DAILY_LIMIT = 5.0000;
 const MIN_DEPOSIT_FOR_WITHDRAWAL = 2;
 const MIN_WITHDRAWAL = 0.5;
 const MIN_DEPOSIT = 1;
-const DOGE_DEPOSIT_ADDRESS = "DFbsc22DdbvczjXJZfTu59Q7HdSFkeGUNv";
+const FAUCETPAY_DEPOSIT_EMAIL = "Alexeu@hotmail.es";
 
 interface Transaction {
   id: string;
@@ -53,6 +53,11 @@ const FaucetPaySection = () => {
   } | null>(null);
   const [isCreatingFPDeposit, setIsCreatingFPDeposit] = useState(false);
   const [fpDepositAmount, setFpDepositAmount] = useState("");
+  
+  // Blockchain deposit address state
+  const [blockchainAddress, setBlockchainAddress] = useState<string | null>(null);
+  const [isLoadingAddress, setIsLoadingAddress] = useState(false);
+  const [depositMethod, setDepositMethod] = useState<'blockchain' | 'faucetpay'>('faucetpay');
 
   useEffect(() => {
     if (user) {
@@ -485,6 +490,36 @@ const FaucetPaySection = () => {
     }
   };
 
+  const fetchBlockchainAddress = async () => {
+    setIsLoadingAddress(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('get-deposit-address', {
+        body: { currency: 'DOGE' }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        setBlockchainAddress(data.address);
+        toast({
+          title: "Dirección obtenida",
+          description: "Usa esta dirección para depositar DOGE desde cualquier wallet",
+        });
+      } else {
+        throw new Error(data.error || 'Error al obtener dirección');
+      }
+    } catch (error: any) {
+      console.error('Get address error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo obtener la dirección",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingAddress(false);
+    }
+  };
+
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('es-ES', { 
@@ -641,66 +676,215 @@ const FaucetPaySection = () => {
               </div>
               <div>
                 <h3 className="text-xl font-bold">Depositar DOGE</h3>
-                <p className="text-sm text-muted-foreground">Envía DOGE a nuestra dirección</p>
+                <p className="text-sm text-muted-foreground">Elige tu método de depósito</p>
               </div>
             </div>
+
+            {/* Deposit Method Tabs */}
+            <div className="flex gap-2 p-1 bg-secondary/50 rounded-xl">
+              <button
+                onClick={() => setDepositMethod('faucetpay')}
+                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+                  depositMethod === 'faucetpay'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                FaucetPay
+              </button>
+              <button
+                onClick={() => setDepositMethod('blockchain')}
+                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+                  depositMethod === 'blockchain'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Blockchain
+              </button>
+            </div>
+
+            {/* FaucetPay Deposit */}
+            {depositMethod === 'faucetpay' && (
+              <div className="space-y-4">
+                <div className="p-4 rounded-xl bg-gradient-to-r from-primary/10 to-emerald-500/10 border border-primary/30 space-y-3">
+                  <p className="text-sm font-medium">Depósito vía FaucetPay:</p>
+                  <p className="text-xs text-muted-foreground">
+                    Transfiere DOGE desde tu cuenta FaucetPay directamente. Sin comisiones de red.
+                  </p>
+                  <div className="flex items-center gap-2 p-3 bg-background/50 rounded-lg">
+                    <code className="flex-1 text-xs font-mono break-all text-primary">
+                      {FAUCETPAY_DEPOSIT_EMAIL}
+                    </code>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => copyToClipboard(FAUCETPAY_DEPOSIT_EMAIL)}
+                      className="shrink-0"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="border-t border-border/50 pt-4">
+                  <p className="text-sm font-medium mb-3">Reportar depósito FaucetPay:</p>
+                  <Input
+                    type="number"
+                    step="0.0001"
+                    min="0.1"
+                    max="100"
+                    placeholder="Cantidad (0.1 - 100 DOGE)"
+                    value={fpDepositAmount}
+                    onChange={(e) => setFpDepositAmount(e.target.value)}
+                    className="bg-background/50 mb-3"
+                  />
+                  <Button
+                    onClick={createFaucetPayDeposit}
+                    className="w-full gradient-primary text-primary-foreground"
+                    disabled={isCreatingFPDeposit || !!faucetPayDeposit}
+                  >
+                    {isCreatingFPDeposit ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creando...</>
+                    ) : faucetPayDeposit ? (
+                      <>Ya tienes un depósito pendiente</>
+                    ) : (
+                      <><Send className="w-4 h-4 mr-2" /> Iniciar Depósito</>
+                    )}
+                  </Button>
+                </div>
+
+                {faucetPayDeposit && (
+                  <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 space-y-3">
+                    <p className="text-sm font-medium text-emerald-600">📋 Depósito pendiente:</p>
+                    <div className="text-xs space-y-2">
+                      <p>Envía exactamente <span className="font-bold">{faucetPayDeposit.amount} DOGE</span> a:</p>
+                      <div className="flex items-center gap-2 p-2 bg-background/50 rounded">
+                        <code className="flex-1 text-primary">{faucetPayDeposit.recipient}</code>
+                        <Button size="sm" variant="ghost" onClick={() => copyToClipboard(faucetPayDeposit.recipient)}>
+                          <Copy className="w-3 h-3" />
+                        </Button>
+                      </div>
+                      <Button
+                        onClick={openFaucetPayPayment}
+                        className="w-full bg-emerald-500 hover:bg-emerald-600 text-white"
+                      >
+                        Abrir FaucetPay para pagar
+                      </Button>
+                      <p className="text-muted-foreground">El depósito se acreditará automáticamente.</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                  <p className="text-sm font-medium text-amber-600 mb-2">💡 Instrucciones FaucetPay:</p>
+                  <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+                    <li>Mínimo: <span className="font-bold text-primary">0.1 DOGE</span> - Máximo: 100 DOGE</li>
+                    <li>Entra a tu cuenta FaucetPay y envía a la dirección indicada</li>
+                    <li>El depósito se acredita automáticamente en segundos</li>
+                  </ul>
+                </div>
+              </div>
+            )}
 
             {/* Blockchain Deposit */}
-            <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/30 space-y-3">
-              <p className="text-sm font-medium">Dirección de depósito DOGE:</p>
-              <div className="flex items-center gap-2 p-3 bg-background/50 rounded-lg">
-                <code className="flex-1 text-xs font-mono break-all text-primary">
-                  {DOGE_DEPOSIT_ADDRESS}
-                </code>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => copyToClipboard(DOGE_DEPOSIT_ADDRESS)}
-                  className="shrink-0"
-                >
-                  <Copy className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
+            {depositMethod === 'blockchain' && (
+              <div className="space-y-4">
+                <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/30 space-y-3">
+                  <p className="text-sm font-medium">Depósito vía Blockchain:</p>
+                  <p className="text-xs text-muted-foreground">
+                    Envía DOGE desde cualquier wallet externa. Requiere confirmaciones de red.
+                  </p>
+                  
+                  {blockchainAddress ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 p-3 bg-background/50 rounded-lg">
+                        <code className="flex-1 text-xs font-mono break-all text-primary">
+                          {blockchainAddress}
+                        </code>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => copyToClipboard(blockchainAddress)}
+                          className="shrink-0"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={fetchBlockchainAddress}
+                        disabled={isLoadingAddress}
+                        className="w-full"
+                      >
+                        {isLoadingAddress ? (
+                          <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Actualizando...</>
+                        ) : (
+                          <><RefreshCw className="w-4 h-4 mr-2" /> Actualizar dirección</>
+                        )}
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={fetchBlockchainAddress}
+                      className="w-full gradient-primary text-primary-foreground"
+                      disabled={isLoadingAddress}
+                    >
+                      {isLoadingAddress ? (
+                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Obteniendo dirección...</>
+                      ) : (
+                        <>Obtener dirección de depósito</>
+                      )}
+                    </Button>
+                  )}
+                </div>
 
-            <div className="border-t border-border/50 pt-4">
-              <p className="text-sm font-medium mb-3">Reportar depósito:</p>
-              <Input
-                type="number"
-                step="0.0001"
-                min="1"
-                placeholder="Cantidad enviada (mín. 1 DOGE)"
-                value={depositAmount}
-                onChange={(e) => setDepositAmount(e.target.value)}
-                className="bg-background/50 mb-2"
-              />
-              <Input
-                placeholder="TX Hash de la transacción"
-                value={depositTxHash}
-                onChange={(e) => setDepositTxHash(e.target.value)}
-                className="bg-background/50 mb-3"
-              />
-              <Button
-                onClick={handleReportDeposit}
-                className="w-full gradient-primary text-primary-foreground"
-                disabled={isReportingDeposit}
-              >
-                {isReportingDeposit ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verificando...</>
-                ) : (
-                  <><Send className="w-4 h-4 mr-2" /> Verificar Depósito</>
+                {blockchainAddress && (
+                  <>
+                    <div className="border-t border-border/50 pt-4">
+                      <p className="text-sm font-medium mb-3">Reportar depósito blockchain:</p>
+                      <Input
+                        type="number"
+                        step="0.0001"
+                        min="1"
+                        placeholder="Cantidad enviada (mín. 1 DOGE)"
+                        value={depositAmount}
+                        onChange={(e) => setDepositAmount(e.target.value)}
+                        className="bg-background/50 mb-2"
+                      />
+                      <Input
+                        placeholder="TX Hash de la transacción"
+                        value={depositTxHash}
+                        onChange={(e) => setDepositTxHash(e.target.value)}
+                        className="bg-background/50 mb-3"
+                      />
+                      <Button
+                        onClick={handleReportDeposit}
+                        className="w-full gradient-primary text-primary-foreground"
+                        disabled={isReportingDeposit}
+                      >
+                        {isReportingDeposit ? (
+                          <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verificando...</>
+                        ) : (
+                          <><Send className="w-4 h-4 mr-2" /> Verificar Depósito</>
+                        )}
+                      </Button>
+                    </div>
+                  </>
                 )}
-              </Button>
-            </div>
 
-            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
-              <p className="text-sm font-medium text-amber-600 mb-2">💡 Instrucciones:</p>
-              <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
-                <li>Envía mínimo <span className="font-bold text-primary">{MIN_DEPOSIT} DOGE</span> a la dirección</li>
-                <li>Espera al menos 1 confirmación en la blockchain</li>
-                <li>Copia el TX Hash y repórtalo para verificación instantánea</li>
-              </ul>
-            </div>
+                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                  <p className="text-sm font-medium text-amber-600 mb-2">💡 Instrucciones Blockchain:</p>
+                  <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+                    <li>Mínimo: <span className="font-bold text-primary">{MIN_DEPOSIT} DOGE</span></li>
+                    <li>Espera al menos 1 confirmación en la blockchain</li>
+                    <li>Copia el TX Hash y repórtalo para verificación</li>
+                    <li>Los depósitos blockchain pueden tardar 10-30 minutos</li>
+                  </ul>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
