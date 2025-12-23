@@ -51,10 +51,23 @@ export const ShortlinksSection = () => {
   const [completedUrl, setCompletedUrl] = useState<Record<string, string>>({});
   const intervalRef = useRef<Record<string, NodeJS.Timeout>>({});
 
+  // Check completed shortlinks on mount and when user changes
   useEffect(() => {
     if (user) {
       checkCompletedToday();
     }
+  }, [user]);
+
+  // Also check when component becomes visible (section change)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user) {
+        checkCompletedToday();
+      }
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, [user]);
 
   // Cleanup intervals on unmount
@@ -120,7 +133,7 @@ export const ShortlinksSection = () => {
     }, 1000);
   };
 
-  const startShortlink = (shortlink: Shortlink) => {
+  const startShortlink = async (shortlink: Shortlink) => {
     if (!user) {
       toast({
         title: "Error",
@@ -130,7 +143,20 @@ export const ShortlinksSection = () => {
       return;
     }
 
-    if (completedToday[shortlink.provider]) {
+    // Always verify in database first (prevents bypass)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const { data: existingCompletion } = await supabase
+      .from('shortlink_completions')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('provider', shortlink.provider)
+      .gte('completed_at', today.toISOString())
+      .maybeSingle();
+
+    if (existingCompletion) {
+      setCompletedToday(prev => ({ ...prev, [shortlink.provider]: true }));
       toast({
         title: "Ya completado",
         description: "Ya has completado este shortlink hoy. Vuelve mañana.",
@@ -171,6 +197,28 @@ export const ShortlinksSection = () => {
   const claimReward = async (shortlink: Shortlink) => {
     if (!user) return;
 
+    // First, verify in database that user hasn't completed this shortlink today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const { data: existingCompletion } = await supabase
+      .from('shortlink_completions')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('provider', shortlink.provider)
+      .gte('completed_at', today.toISOString())
+      .maybeSingle();
+
+    if (existingCompletion) {
+      setCompletedToday(prev => ({ ...prev, [shortlink.provider]: true }));
+      toast({
+        title: "Ya completado",
+        description: "Ya has completado este shortlink hoy. Vuelve mañana.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Check if enough time has passed
     const elapsed = (Date.now() - (startTime[shortlink.provider] || 0)) / 1000;
     if (elapsed < shortlink.waitTime) {
@@ -182,9 +230,6 @@ export const ShortlinksSection = () => {
       });
       return;
     }
-
-    // User just needs to wait the required time - the visibility change detection
-    // confirms they interacted with the external shortlink page
 
     setLoading(prev => ({ ...prev, [shortlink.provider]: true }));
 
