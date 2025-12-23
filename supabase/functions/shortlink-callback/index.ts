@@ -53,18 +53,22 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check if user has EVER completed this shortlink (lifetime limit of 1)
+    // Check if user has completed this shortlink TODAY (daily limit of 1 per shortlink)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
     const { data: existingCompletion } = await supabase
       .from('shortlink_completions')
       .select('id')
       .eq('user_id', user.id)
       .eq('provider', provider)
+      .gte('completed_at', today.toISOString())
       .maybeSingle();
 
     if (existingCompletion) {
-      console.log('User already completed this shortlink');
+      console.log('User already completed this shortlink today');
       return new Response(
-        JSON.stringify({ success: false, error: 'Ya has completado este shortlink anteriormente' }),
+        JSON.stringify({ success: false, error: 'Ya has completado este shortlink hoy. Vuelve mañana.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
