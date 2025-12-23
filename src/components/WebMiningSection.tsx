@@ -27,8 +27,8 @@ const WebMiningSection = () => {
   const [showSettings, setShowSettings] = useState(false);
 
   const texts = {
-    title: { es: 'Minería Web PEPE', en: 'PEPE Web Mining' },
-    subtitle: { 
+    title: { es: 'Minería Web DOGE', en: 'DOGE Web Mining' },
+    subtitle: {
       es: 'Usa tu CPU para minar y ganar DOGE', 
       en: 'Use your CPU to mine and earn DOGE' 
     },
