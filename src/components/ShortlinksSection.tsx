@@ -95,11 +95,9 @@ export const ShortlinksSection = () => {
     // Build the shortlink URL based on provider
     let shortlinkUrl = '';
     if (shortlink.provider === 'adfly') {
-      // Adfly shortlink - you'll need to create a shortened URL for your callback
-      shortlinkUrl = `https://adf.ly/1/6647234/${encodeURIComponent(window.location.origin + '/shortlink-callback?provider=adfly&token=' + verificationToken)}`;
+      shortlinkUrl = 'https://adfly.site/PEPERPG';
     } else if (shortlink.provider === 'earnnow') {
-      // Earnnow shortlink
-      shortlinkUrl = `https://earnnow.online/link/${encodeURIComponent(window.location.origin + '/shortlink-callback?provider=earnnow&token=' + verificationToken)}`;
+      shortlinkUrl = 'http://earnow.online/EK8f';
     }
 
     setActiveLink(shortlink.provider);
