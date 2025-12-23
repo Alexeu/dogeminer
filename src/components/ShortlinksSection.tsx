@@ -183,16 +183,8 @@ export const ShortlinksSection = () => {
       return;
     }
 
-    // Check if we have a completed URL (user returned from shortlink)
-    const urlCompleted = completedUrl[shortlink.provider];
-    if (!urlCompleted) {
-      toast({
-        title: "Shortlink no completado",
-        description: "Debes completar el shortlink antes de reclamar la recompensa.",
-        variant: "destructive",
-      });
-      return;
-    }
+    // User just needs to wait the required time - the visibility change detection
+    // confirms they interacted with the external shortlink page
 
     setLoading(prev => ({ ...prev, [shortlink.provider]: true }));
 
@@ -207,8 +199,7 @@ export const ShortlinksSection = () => {
       const { data, error } = await supabase.functions.invoke('shortlink-callback', {
         body: {
           provider: shortlink.provider,
-          verificationToken: verificationToken,
-          completedUrl: urlCompleted
+          verificationToken: verificationToken
         }
       });
 
