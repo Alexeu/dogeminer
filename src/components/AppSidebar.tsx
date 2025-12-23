@@ -12,33 +12,33 @@ import {
   Trophy,
   Pickaxe,
   Shield,
-  Link
+  Link,
+  TrendingUp
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 
 interface MenuItem {
   id: string;
-  label: string;
+  labelKey: string;
   icon: React.ElementType;
   section: string;
 }
 
-import { TrendingUp } from "lucide-react";
-
 const menuItems: MenuItem[] = [
-  { id: "hero", label: "Inicio", icon: Home, section: "hero" },
-  { id: "mystery-boxes", label: "Cajas Misteriosas", icon: Package, section: "mystery-boxes" },
-  { id: "inventory", label: "Inventario", icon: Pickaxe, section: "inventory" },
-  { id: "collection", label: "Colección", icon: Trophy, section: "collection" },
-  { id: "online-mining", label: "Minería Online", icon: TrendingUp, section: "online-mining" },
-  { id: "lottery", label: "Lotería", icon: Ticket, section: "lottery" },
-  { id: "shortlinks", label: "Shortlinks", icon: Link, section: "shortlinks" },
-  { id: "ptc", label: "Ver Anuncios (PTC)", icon: Play, section: "ptc" },
-  { id: "faucetpay", label: "Depósito / Retiro", icon: Wallet, section: "faucetpay" },
-  { id: "referral", label: "Referidos", icon: Users, section: "referral" },
+  { id: "hero", labelKey: "sidebar.home", icon: Home, section: "hero" },
+  { id: "mystery-boxes", labelKey: "sidebar.mysteryBoxes", icon: Package, section: "mystery-boxes" },
+  { id: "inventory", labelKey: "sidebar.inventory", icon: Pickaxe, section: "inventory" },
+  { id: "collection", labelKey: "sidebar.collection", icon: Trophy, section: "collection" },
+  { id: "online-mining", labelKey: "sidebar.onlineMining", icon: TrendingUp, section: "online-mining" },
+  { id: "lottery", labelKey: "sidebar.lottery", icon: Ticket, section: "lottery" },
+  { id: "shortlinks", labelKey: "sidebar.shortlinks", icon: Link, section: "shortlinks" },
+  { id: "ptc", labelKey: "sidebar.ptc", icon: Play, section: "ptc" },
+  { id: "faucetpay", labelKey: "sidebar.faucetpay", icon: Wallet, section: "faucetpay" },
+  { id: "referral", labelKey: "sidebar.referral", icon: Users, section: "referral" },
 ];
 
 interface AppSidebarProps {
@@ -51,6 +51,7 @@ const AppSidebar = ({ activeSection, onNavigate }: AppSidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const { user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -73,7 +74,7 @@ const AppSidebar = ({ activeSection, onNavigate }: AppSidebarProps) => {
 
   const handleNavigate = (sectionId: string) => {
     onNavigate(sectionId);
-    setIsOpen(false); // Close mobile menu after navigation
+    setIsOpen(false);
   };
 
   return (
@@ -101,10 +102,8 @@ const AppSidebar = ({ activeSection, onNavigate }: AppSidebarProps) => {
         className={cn(
           "fixed top-16 left-0 h-[calc(100vh-4rem)] z-40 transition-all duration-300 ease-in-out",
           "bg-background/95 backdrop-blur-xl border-r border-border/50",
-          // Mobile styles
           "lg:translate-x-0",
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
-          // Width
           isCollapsed ? "w-16" : "w-64"
         )}
       >
@@ -131,6 +130,7 @@ const AppSidebar = ({ activeSection, onNavigate }: AppSidebarProps) => {
               {menuItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeSection === item.id;
+                const label = t(item.labelKey);
                 
                 return (
                   <li key={item.id}>
@@ -144,14 +144,14 @@ const AppSidebar = ({ activeSection, onNavigate }: AppSidebarProps) => {
                           : "text-muted-foreground",
                         isCollapsed && "justify-center px-2"
                       )}
-                      title={isCollapsed ? item.label : undefined}
+                      title={isCollapsed ? label : undefined}
                     >
                       <Icon className={cn(
                         "w-5 h-5 flex-shrink-0",
                         isActive && "text-primary"
                       )} />
                       {!isCollapsed && (
-                        <span className="text-sm truncate">{item.label}</span>
+                        <span className="text-sm truncate">{label}</span>
                       )}
                     </button>
                   </li>
@@ -172,11 +172,11 @@ const AppSidebar = ({ activeSection, onNavigate }: AppSidebarProps) => {
                     "bg-destructive/10 text-destructive hover:bg-destructive/20",
                     isCollapsed && "justify-center px-2"
                   )}
-                  title={isCollapsed ? "Panel Admin" : undefined}
+                  title={isCollapsed ? t('sidebar.admin') : undefined}
                 >
                   <Shield className="w-5 h-5 flex-shrink-0" />
                   {!isCollapsed && (
-                    <span className="text-sm font-medium">Panel Admin</span>
+                    <span className="text-sm font-medium">{t('sidebar.admin')}</span>
                   )}
                 </button>
               </div>

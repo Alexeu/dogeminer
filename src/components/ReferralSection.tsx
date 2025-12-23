@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Copy, Users, Gift, Check, Link } from "lucide-react";
 import { toast } from "sonner";
@@ -9,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const ReferralSection = () => {
   const { referralCode, totalEarned, applyReferralCode } = useDogeBalance();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
   const [hasAppliedCode, setHasAppliedCode] = useState(false);
   const [referralCount, setReferralCount] = useState(0);
@@ -50,7 +52,7 @@ const ReferralSection = () => {
         if (success) {
           setHasAppliedCode(true);
           setAppliedReferrer(refCode.toUpperCase());
-          toast.success("¡Código de referido aplicado automáticamente!");
+          toast.success(t('referral.codeApplied'));
           // Clean the URL
           window.history.replaceState({}, '', window.location.pathname);
         }
@@ -58,7 +60,7 @@ const ReferralSection = () => {
     };
     
     handleRefParam();
-  }, [user, referralCode, hasAppliedCode, applyReferralCode]);
+  }, [user, referralCode, hasAppliedCode, applyReferralCode, t]);
 
   // Get referral count
   useEffect(() => {
@@ -79,7 +81,7 @@ const ReferralSection = () => {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(referralLink);
     setCopied(true);
-    toast.success("¡Link copiado al portapapeles!");
+    toast.success(t('referral.linkCopied'));
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -94,13 +96,13 @@ const ReferralSection = () => {
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-4">
             <Users className="w-4 h-4" />
-            <span className="text-sm font-medium">Programa de Referidos</span>
+            <span className="text-sm font-medium">{t('referral.badge')}</span>
           </div>
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Invita Amigos, <span className="text-gradient">Gana DOGE</span>
+            {t('referral.title')}<span className="text-gradient">{t('referral.titleHighlight')}</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Gana el <span className="text-primary font-bold">5%</span> de todo el DOGE que tus referidos generen por minado pasivo. ¡Sin límites!
+            {t('referral.subtitle')}
           </p>
         </div>
 
@@ -112,15 +114,15 @@ const ReferralSection = () => {
                 <Link className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-xl font-bold">Tu Link de Referido</h3>
-                <p className="text-sm text-muted-foreground">Compártelo con amigos</p>
+                <h3 className="text-xl font-bold">{t('referral.yourLink')}</h3>
+                <p className="text-sm text-muted-foreground">{t('referral.shareWithFriends')}</p>
               </div>
             </div>
 
             <div className="flex gap-2">
               <div className="flex-1 bg-background/50 rounded-xl px-3 py-3 text-sm font-medium text-center border border-border overflow-hidden">
                 <span className="block truncate">
-                  {referralLink || "Cargando..."}
+                  {referralLink || t('common.loading')}
                 </span>
               </div>
               <Button
@@ -137,11 +139,11 @@ const ReferralSection = () => {
             <div className="grid grid-cols-2 gap-4 pt-4">
               <div className="bg-background/50 rounded-xl p-4 text-center border border-border">
                 <div className="text-2xl font-bold text-primary">{referralCount}</div>
-                <div className="text-sm text-muted-foreground">Referidos</div>
+                <div className="text-sm text-muted-foreground">{t('referral.referrals')}</div>
               </div>
               <div className="bg-background/50 rounded-xl p-4 text-center border border-border">
                 <div className="text-2xl font-bold text-gradient">{formatNumber(totalEarned)}</div>
-                <div className="text-sm text-muted-foreground">DOGE Totales</div>
+                <div className="text-sm text-muted-foreground">{t('referral.totalDoge')}</div>
               </div>
             </div>
           </div>
@@ -153,37 +155,37 @@ const ReferralSection = () => {
                 <Gift className="w-6 h-6 text-secondary-foreground" />
               </div>
               <div>
-                <h3 className="text-xl font-bold">Estado de Referido</h3>
-                <p className="text-sm text-muted-foreground">Tu vinculación actual</p>
+                <h3 className="text-xl font-bold">{t('referral.status')}</h3>
+                <p className="text-sm text-muted-foreground">{t('referral.yourLink2')}</p>
               </div>
             </div>
 
             {hasAppliedCode ? (
               <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-xl p-4 text-center">
                 <Check className="w-8 h-8 mx-auto mb-2" />
-                <p className="font-medium">¡Estás vinculado a un referidor!</p>
+                <p className="font-medium">{t('referral.linkedToReferrer')}</p>
                 {appliedReferrer && (
-                  <p className="text-sm mt-1 opacity-80">Código: {appliedReferrer}</p>
+                  <p className="text-sm mt-1 opacity-80">{t('auth.code')}: {appliedReferrer}</p>
                 )}
               </div>
             ) : (
               <div className="bg-muted/50 rounded-xl p-4 text-center">
                 <Users className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="font-medium text-muted-foreground">Sin referidor</p>
+                <p className="font-medium text-muted-foreground">{t('referral.noReferrer')}</p>
                 <p className="text-sm mt-1 text-muted-foreground">
-                  Si alguien te invitó, usa su link para registrarte
+                  {t('referral.noReferrerDesc')}
                 </p>
               </div>
             )}
 
             {/* How it works */}
             <div className="pt-4 space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">Cómo funciona:</p>
+              <p className="text-sm font-medium text-muted-foreground">{t('referral.howItWorks')}</p>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Comparte tu link con amigos</li>
-                <li>• Cuando se registren, quedarán vinculados</li>
-                <li>• Ganas 5% de todo su minado</li>
-                <li>• ¡Las comisiones son permanentes!</li>
+                <li>• {t('referral.step1')}</li>
+                <li>• {t('referral.step2')}</li>
+                <li>• {t('referral.step3')}</li>
+                <li>• {t('referral.step4')}</li>
               </ul>
             </div>
           </div>

@@ -1,6 +1,7 @@
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { Dog, LogOut, User, Pickaxe, Wallet } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LogOut, User, Pickaxe, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import dogeLogo from "@/assets/doge-logo.png";
@@ -17,10 +18,11 @@ import {
 const BalanceHeader = () => {
   const { miningBalance, depositBalance } = useDogeBalance();
   const { user, signOut } = useAuth();
+  const { t } = useLanguage();
 
   const handleLogout = async () => {
     await signOut();
-    toast.success("¡Hasta pronto! Much goodbye!");
+    toast.success(t('header.logout'));
   };
 
   return (
@@ -55,8 +57,8 @@ const BalanceHeader = () => {
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Balance de Minado: {formatDoge(miningBalance)} DOGE</p>
-                  <p className="text-xs text-muted-foreground">Recompensas de minado, anuncios, etc.</p>
+                  <p>{t('header.miningBalance')}: {formatDoge(miningBalance)} DOGE</p>
+                  <p className="text-xs text-muted-foreground">{t('header.miningBalanceDesc')}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -76,8 +78,8 @@ const BalanceHeader = () => {
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Balance de Depósito: {formatDoge(depositBalance)} DOGE</p>
-                  <p className="text-xs text-muted-foreground">Para comprar cajas, anuncios, minería online</p>
+                  <p>{t('header.depositBalance')}: {formatDoge(depositBalance)} DOGE</p>
+                  <p className="text-xs text-muted-foreground">{t('header.depositBalanceDesc')}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
