@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { Button } from "@/components/ui/button";
-import { Copy, Users, Gift, Check, UserPlus } from "lucide-react";
+import { Copy, Users, Gift, Check, Link } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,11 +9,15 @@ import { useAuth } from "@/contexts/AuthContext";
 const ReferralSection = () => {
   const { referralCode, totalEarned, applyReferralCode } = useDogeBalance();
   const { user } = useAuth();
-  const [inputCode, setInputCode] = useState("");
   const [copied, setCopied] = useState(false);
   const [hasAppliedCode, setHasAppliedCode] = useState(false);
   const [referralCount, setReferralCount] = useState(0);
-  const [isApplying, setIsApplying] = useState(false);
+  const [appliedReferrer, setAppliedReferrer] = useState<string | null>(null);
+
+  // Generate referral link
+  const referralLink = referralCode 
+    ? `${window.location.origin}/?ref=${referralCode}` 
+    : "";
 
   // Check if user has already applied a referral code
   useEffect(() => {
@@ -27,10 +31,34 @@ const ReferralSection = () => {
         .maybeSingle();
       
       setHasAppliedCode(!!data?.referred_by);
+      setAppliedReferrer(data?.referred_by || null);
     };
     
     checkReferralStatus();
   }, [user]);
+
+  // Handle referral from URL parameter
+  useEffect(() => {
+    const handleRefParam = async () => {
+      if (!user || hasAppliedCode) return;
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      const refCode = urlParams.get('ref');
+      
+      if (refCode && refCode !== referralCode) {
+        const success = await applyReferralCode(refCode.toUpperCase());
+        if (success) {
+          setHasAppliedCode(true);
+          setAppliedReferrer(refCode.toUpperCase());
+          toast.success("¡Código de referido aplicado automáticamente!");
+          // Clean the URL
+          window.history.replaceState({}, '', window.location.pathname);
+        }
+      }
+    };
+    
+    handleRefParam();
+  }, [user, referralCode, hasAppliedCode, applyReferralCode]);
 
   // Get referral count
   useEffect(() => {
@@ -49,37 +77,10 @@ const ReferralSection = () => {
   }, [referralCode]);
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(referralCode);
+    navigator.clipboard.writeText(referralLink);
     setCopied(true);
-    toast.success("Código copiado al portapapeles!");
+    toast.success("¡Link copiado al portapapeles!");
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleApplyCode = async () => {
-    if (!inputCode.trim()) {
-      toast.error("Ingresa un código de referido");
-      return;
-    }
-    if (inputCode.toUpperCase() === referralCode) {
-      toast.error("No puedes usar tu propio código");
-      return;
-    }
-    if (hasAppliedCode) {
-      toast.error("Ya has aplicado un código de referido");
-      return;
-    }
-    
-    setIsApplying(true);
-    const success = await applyReferralCode(inputCode.toUpperCase());
-    setIsApplying(false);
-    
-      if (success) {
-        setHasAppliedCode(true);
-        setInputCode("");
-        toast.success("¡Código aplicado! Tu referidor ganará 5% de tu minado");
-      } else {
-      toast.error("Código de referido inválido");
-    }
   };
 
   const formatNumber = (num: number) => num.toFixed(4);
@@ -104,26 +105,28 @@ const ReferralSection = () => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {/* Your referral code */}
+          {/* Your referral link */}
           <div className="glass rounded-3xl p-6 space-y-4 border border-primary/20">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-2xl gradient-primary flex items-center justify-center">
-                <Gift className="w-6 h-6 text-white" />
+                <Link className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-xl font-bold">Tu Código de Referido</h3>
+                <h3 className="text-xl font-bold">Tu Link de Referido</h3>
                 <p className="text-sm text-muted-foreground">Compártelo con amigos</p>
               </div>
             </div>
 
             <div className="flex gap-2">
-              <div className="flex-1 bg-background/50 rounded-xl px-4 py-3 font-mono text-lg font-bold text-center border border-border">
-                {referralCode || "Cargando..."}
+              <div className="flex-1 bg-background/50 rounded-xl px-3 py-3 text-sm font-medium text-center border border-border overflow-hidden">
+                <span className="block truncate">
+                  {referralLink || "Cargando..."}
+                </span>
               </div>
               <Button
                 onClick={copyToClipboard}
                 variant="outline"
-                className="px-4"
+                className="px-4 shrink-0"
                 disabled={!referralCode}
               >
                 {copied ? <Check className="w-5 h-5 text-green-500" /> : <Copy className="w-5 h-5" />}
@@ -143,50 +146,44 @@ const ReferralSection = () => {
             </div>
           </div>
 
-          {/* Apply referral code */}
+          {/* Referral status */}
           <div className="glass rounded-3xl p-6 space-y-4 border border-border/50">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-2xl bg-secondary flex items-center justify-center">
-                <UserPlus className="w-6 h-6 text-secondary-foreground" />
+                <Gift className="w-6 h-6 text-secondary-foreground" />
               </div>
               <div>
-                <h3 className="text-xl font-bold">¿Tienes un Código?</h3>
-                <p className="text-sm text-muted-foreground">Apoya a quien te invitó</p>
+                <h3 className="text-xl font-bold">Estado de Referido</h3>
+                <p className="text-sm text-muted-foreground">Tu vinculación actual</p>
               </div>
             </div>
 
             {hasAppliedCode ? (
-              <div className="bg-green-100 text-green-700 rounded-xl p-4 text-center">
+              <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-xl p-4 text-center">
                 <Check className="w-8 h-8 mx-auto mb-2" />
-                <p className="font-medium">¡Ya tienes un código aplicado!</p>
+                <p className="font-medium">¡Estás vinculado a un referidor!</p>
+                {appliedReferrer && (
+                  <p className="text-sm mt-1 opacity-80">Código: {appliedReferrer}</p>
+                )}
               </div>
             ) : (
-              <>
-                <input
-                  type="text"
-                  value={inputCode}
-                  onChange={(e) => setInputCode(e.target.value.toUpperCase())}
-                  placeholder="Ingresa el código"
-                  className="w-full bg-background/50 rounded-xl px-4 py-3 font-mono text-lg text-center border border-border focus:border-primary focus:outline-none transition-colors"
-                  maxLength={8}
-                />
-                <Button
-                  onClick={handleApplyCode}
-                  disabled={isApplying}
-                  className="w-full gradient-primary hover:opacity-90 text-white font-bold py-3"
-                >
-                  {isApplying ? "Aplicando..." : "Aplicar Código"}
-                </Button>
-              </>
+              <div className="bg-muted/50 rounded-xl p-4 text-center">
+                <Users className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                <p className="font-medium text-muted-foreground">Sin referidor</p>
+                <p className="text-sm mt-1 text-muted-foreground">
+                  Si alguien te invitó, usa su link para registrarte
+                </p>
+              </div>
             )}
 
             {/* How it works */}
             <div className="pt-4 space-y-2">
               <p className="text-sm font-medium text-muted-foreground">Cómo funciona:</p>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Tu referidor gana 5% de tu minado</li>
+                <li>• Comparte tu link con amigos</li>
+                <li>• Cuando se registren, quedarán vinculados</li>
+                <li>• Ganas 5% de todo su minado</li>
                 <li>• ¡Las comisiones son permanentes!</li>
-                <li>• Sin límite de referidos</li>
               </ul>
             </div>
           </div>

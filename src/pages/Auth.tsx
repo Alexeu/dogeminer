@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Mail, Lock, Loader2, Shield, AlertTriangle } from "lucide-react";
+import { Mail, Lock, Loader2, Shield, AlertTriangle, UserPlus } from "lucide-react";
 import dogeLogo from "@/assets/doge-logo.png";
 import { useFingerprint } from "@/hooks/useFingerprint";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,11 +22,13 @@ const MAX_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 120000;
 
 export default function Auth() {
+  const [searchParams] = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [referralFromUrl, setReferralFromUrl] = useState<string | null>(null);
   
   // Antibot: Honeypot field (bots will fill this)
   const [honeypot, setHoneypot] = useState("");
@@ -43,6 +45,22 @@ export default function Auth() {
   
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
+
+  // Check for referral code in URL
+  useEffect(() => {
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      setReferralFromUrl(refCode.toUpperCase());
+      localStorage.setItem('pending_referral', refCode.toUpperCase());
+      setIsLogin(false); // Switch to signup if coming from referral link
+    } else {
+      // Check localStorage for pending referral
+      const pendingRef = localStorage.getItem('pending_referral');
+      if (pendingRef) {
+        setReferralFromUrl(pendingRef);
+      }
+    }
+  }, [searchParams]);
 
   // Reset form load time when switching between login/signup
   useEffect(() => {
@@ -291,6 +309,16 @@ export default function Auth() {
               {isLogin ? "Inicia sesión para continuar" : "Crea tu cuenta y empieza a minar"}
             </p>
           </div>
+
+          {referralFromUrl && !isLogin && (
+            <div className="mb-6 p-4 rounded-xl bg-primary/10 border border-primary/30 flex items-center gap-3">
+              <UserPlus className="w-5 h-5 text-primary" />
+              <div>
+                <p className="text-sm font-medium text-primary">¡Invitado por un amigo!</p>
+                <p className="text-xs text-muted-foreground">Código: {referralFromUrl}</p>
+              </div>
+            </div>
+          )}
 
           {fingerprintBlocked && (
             <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/30 flex items-center gap-3">
