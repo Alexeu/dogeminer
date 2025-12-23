@@ -44,11 +44,20 @@ Deno.serve(async (req) => {
     
     console.log(`Processing shortlink completion for user ${user.id}, provider: ${provider}`);
 
-    // Verify the shortlink was actually completed by checking the verification token and completed URL
-    if (!verificationToken || !completedUrl) {
-      console.log('Missing verification data');
+    // Verify basic completion data
+    if (!verificationToken) {
+      console.log('Missing verification token');
       return new Response(
-        JSON.stringify({ success: false, error: 'Missing verification data' }),
+        JSON.stringify({ success: false, error: 'Token de verificación faltante' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate provider
+    if (!['adfly', 'earnnow'].includes(provider)) {
+      console.log('Invalid provider:', provider);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Proveedor inválido' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -73,29 +82,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Validate the completed URL matches expected destination
-    let isValidCompletion = false;
-    
-    if (provider === 'adfly') {
-      // Adfly redirects to our callback or destination URL after completion
-      isValidCompletion = completedUrl.includes(verificationToken) || 
-                          completedUrl.includes('adfly') ||
-                          completedUrl.length > 20; // Basic check that we got a real URL
-      console.log('Adfly verification:', isValidCompletion, completedUrl);
-    } else if (provider === 'earnnow') {
-      // Earnnow redirects to destination after completion
-      isValidCompletion = completedUrl.includes(verificationToken) || 
-                          completedUrl.includes('earnow') ||
-                          completedUrl.length > 20;
-      console.log('Earnnow verification:', isValidCompletion, completedUrl);
-    }
-
-    if (!isValidCompletion) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Shortlink no completado correctamente' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    console.log('Verification passed for provider:', provider);
 
     // Complete the shortlink and add reward using the database function
     const { data: result, error } = await supabase.rpc('complete_shortlink', {
