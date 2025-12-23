@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.notify-admin-deposit]
 verify_jwt = true
+
+[functions.shortlink-callback]
+verify_jwt = true

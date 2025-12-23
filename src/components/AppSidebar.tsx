@@ -11,7 +11,8 @@ import {
   Ticket,
   Trophy,
   Pickaxe,
-  Shield
+  Shield,
+  Link
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ const menuItems: MenuItem[] = [
   { id: "collection", label: "Colección", icon: Trophy, section: "collection" },
   { id: "online-mining", label: "Minería Online", icon: TrendingUp, section: "online-mining" },
   { id: "lottery", label: "Lotería", icon: Ticket, section: "lottery" },
+  { id: "shortlinks", label: "Shortlinks", icon: Link, section: "shortlinks" },
   { id: "ptc", label: "Ver Anuncios (PTC)", icon: Play, section: "ptc" },
   { id: "faucetpay", label: "Depósito / Retiro", icon: Wallet, section: "faucetpay" },
   { id: "referral", label: "Referidos", icon: Users, section: "referral" },
