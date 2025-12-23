@@ -650,6 +650,42 @@ export type Database = {
         }
         Relationships: []
       }
+      web_mining_sessions: {
+        Row: {
+          created_at: string
+          hashes_pending: number
+          id: string
+          is_active: boolean
+          last_hash_at: string | null
+          total_hashes: number
+          total_rewards: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hashes_pending?: number
+          id?: string
+          is_active?: boolean
+          last_hash_at?: string | null
+          total_hashes?: number
+          total_rewards?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hashes_pending?: number
+          id?: string
+          is_active?: boolean
+          last_hash_at?: string | null
+          total_hashes?: number
+          total_rewards?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       lottery_pools_public: {
@@ -758,6 +794,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_web_mining_stats: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -773,6 +810,7 @@ export type Database = {
       open_mystery_box: { Args: { p_box_id: string }; Returns: Json }
       start_ad_view: { Args: { p_ad_id: string }; Returns: Json }
       start_mining: { Args: { p_character_id: string }; Returns: Json }
+      submit_web_mining_hashes: { Args: { p_hashes: number }; Returns: Json }
       subtract_balance: { Args: { p_amount: number }; Returns: Json }
     }
     Enums: {

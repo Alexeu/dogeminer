@@ -13,7 +13,8 @@ import {
   Pickaxe,
   Shield,
   Link,
-  TrendingUp
+  TrendingUp,
+  Cpu
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ const menuItems: MenuItem[] = [
   { id: "mystery-boxes", labelKey: "sidebar.mysteryBoxes", icon: Package, section: "mystery-boxes" },
   { id: "inventory", labelKey: "sidebar.inventory", icon: Pickaxe, section: "inventory" },
   { id: "collection", labelKey: "sidebar.collection", icon: Trophy, section: "collection" },
+  { id: "web-mining", labelKey: "sidebar.webMining", icon: Cpu, section: "web-mining" },
   { id: "online-mining", labelKey: "sidebar.onlineMining", icon: TrendingUp, section: "online-mining" },
   { id: "lottery", labelKey: "sidebar.lottery", icon: Ticket, section: "lottery" },
   { id: "shortlinks", labelKey: "sidebar.shortlinks", icon: Link, section: "shortlinks" },

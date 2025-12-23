@@ -23,6 +23,7 @@ export const translations: Translations = {
   'sidebar.inventory': { es: 'Inventario', en: 'Inventory' },
   'sidebar.collection': { es: 'Colección', en: 'Collection' },
   'sidebar.onlineMining': { es: 'Minería Online', en: 'Online Mining' },
+  'sidebar.webMining': { es: 'Minería Web PEPE', en: 'PEPE Web Mining' },
   'sidebar.lottery': { es: 'Lotería', en: 'Lottery' },
   'sidebar.shortlinks': { es: 'Shortlinks', en: 'Shortlinks' },
   'sidebar.ptc': { es: 'Ver Anuncios (PTC)', en: 'View Ads (PTC)' },
