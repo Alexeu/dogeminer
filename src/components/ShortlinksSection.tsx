@@ -24,7 +24,7 @@ const shortlinks: Shortlink[] = [
     id: 'adfly',
     name: 'Adfly',
     provider: 'adfly',
-    reward: 0.02,
+    reward: 0.01,
     description: 'Completa el shortlink de Adfly para ganar recompensas.',
     color: 'from-blue-500 to-blue-600',
     waitTime: 30
@@ -33,7 +33,7 @@ const shortlinks: Shortlink[] = [
     id: 'earnnow',
     name: 'EarnNow.online',
     provider: 'earnnow',
-    reward: 0.02,
+    reward: 0.01,
     description: 'Completa el shortlink de EarnNow para ganar recompensas.',
     color: 'from-green-500 to-green-600',
     waitTime: 30

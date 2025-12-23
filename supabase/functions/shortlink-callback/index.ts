@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const REWARD_AMOUNT = 0.02;
+const REWARD_AMOUNT = 0.01;
 
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
