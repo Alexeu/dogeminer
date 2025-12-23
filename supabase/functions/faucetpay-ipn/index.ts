@@ -8,6 +8,8 @@ const corsHeaders = {
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const FAUCETPAY_API_KEY = Deno.env.get('FAUCETPAY_API_KEY')!;
+const FAUCETPAY_API_URL = 'https://faucetpay.io/api/v1/';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -17,7 +19,16 @@ serve(async (req) => {
   const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
   try {
-    // Parse IPN data from various formats
+    // Get request type
+    const url = new URL(req.url);
+    const action = url.searchParams.get('action');
+
+    // Handle manual check for pending deposits (called by polling)
+    if (action === 'check-pending') {
+      return await checkPendingDeposits(supabaseAdmin);
+    }
+
+    // Handle IPN callback from FaucetPay
     let ipnData: Record<string, string> = {};
     const contentType = req.headers.get('content-type') || '';
     
@@ -30,9 +41,11 @@ serve(async (req) => {
       ipnData = await req.json();
     } else {
       const body = await req.text();
-      const params = new URLSearchParams(body);
-      for (const [key, value] of params.entries()) {
-        ipnData[key] = value;
+      if (body) {
+        const params = new URLSearchParams(body);
+        for (const [key, value] of params.entries()) {
+          ipnData[key] = value;
+        }
       }
     }
 
@@ -42,15 +55,23 @@ serve(async (req) => {
     const {
       transaction_id,
       payout_id,
-      amount, // In satoshi
+      amount,
       currency,
-      custom,      // Our verification code
-      ref,         // Also check ref field
-      to_address,  // Recipient address
+      custom,
+      ref,
+      to_address,
+      from_address,
+      status: txStatus,
     } = ipnData;
 
     const verificationCode = custom || ref || '';
     
+    // If no data, maybe it's a ping or we should check pending deposits
+    if (!amount && !verificationCode) {
+      console.log('No IPN data, checking pending deposits...');
+      return await checkPendingDeposits(supabaseAdmin);
+    }
+
     if (!amount || !currency) {
       console.error('Missing required fields');
       return new Response('Missing fields', { status: 400, headers: corsHeaders });
@@ -62,7 +83,7 @@ serve(async (req) => {
     }
 
     const amountInDoge = parseInt(amount) / 100000000;
-    console.log(`Processing: ${amountInDoge} DOGE, code: ${verificationCode}`);
+    console.log(`Processing IPN: ${amountInDoge} DOGE, code: ${verificationCode}, status: ${txStatus}`);
 
     // Find pending deposit by verification code
     if (verificationCode) {
@@ -92,6 +113,13 @@ serve(async (req) => {
         return new Response('OK - Already processed', { headers: corsHeaders });
       }
 
+      // Verify amount matches (with 5% tolerance for fees)
+      const minExpected = deposit.amount * 0.95;
+      if (amountInDoge < minExpected) {
+        console.log(`Amount mismatch: received ${amountInDoge}, expected ${deposit.amount}`);
+        return new Response('OK - Amount mismatch', { headers: corsHeaders });
+      }
+
       // Complete the deposit
       const { data: result, error: completeError } = await supabaseAdmin.rpc('complete_deposit', {
         p_deposit_id: deposit.id,
@@ -110,7 +138,7 @@ serve(async (req) => {
           user_id: deposit.user_id,
           type: 'deposit',
           title: '¡Depósito recibido!',
-          message: `Se acreditaron ${amountInDoge.toFixed(4)} DOGE automáticamente.`,
+          message: `Se acreditaron ${amountInDoge.toFixed(4)} DOGE automáticamente vía FaucetPay.`,
           data: { amount: amountInDoge, tx_hash: txId }
         });
 
@@ -124,3 +152,113 @@ serve(async (req) => {
     return new Response('Error', { status: 500, headers: corsHeaders });
   }
 });
+
+// Function to check pending deposits using FaucetPay API
+async function checkPendingDeposits(supabaseAdmin: any) {
+  try {
+    // Get all pending deposits not expired
+    const { data: pendingDeposits, error } = await supabaseAdmin
+      .from('deposits')
+      .select('*')
+      .eq('status', 'pending')
+      .gt('expires_at', new Date().toISOString());
+
+    if (error || !pendingDeposits || pendingDeposits.length === 0) {
+      console.log('No pending deposits to check');
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: 'No pending deposits',
+        checked: 0 
+      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    console.log(`Checking ${pendingDeposits.length} pending deposits...`);
+
+    let completed = 0;
+    let failed = 0;
+
+    // For each pending deposit, we check via FaucetPay API
+    // Note: FaucetPay doesn't have a direct "list received payments" API,
+    // but we can check our transaction history
+    const formData = new FormData();
+    formData.append('api_key', FAUCETPAY_API_KEY);
+    formData.append('count', '50');
+
+    const response = await fetch(`${FAUCETPAY_API_URL}payouts`, {
+      method: 'POST',
+      body: formData
+    });
+
+    const apiResult = await response.json();
+    console.log('FaucetPay payouts result:', JSON.stringify(apiResult).substring(0, 500));
+
+    // Check each pending deposit against recent activity
+    for (const deposit of pendingDeposits) {
+      // Check if expired
+      if (new Date(deposit.expires_at) < new Date()) {
+        await supabaseAdmin
+          .from('deposits')
+          .update({ status: 'expired' })
+          .eq('id', deposit.id);
+        failed++;
+        continue;
+      }
+
+      // Look for matching transaction in payouts
+      if (apiResult.status === 200 && apiResult.payouts) {
+        const matchingTx = apiResult.payouts.find((tx: any) => {
+          // Check if custom field or reference matches
+          const customMatch = tx.custom === deposit.verification_code || 
+                             tx.referral === deposit.verification_code ||
+                             tx.ref === deposit.verification_code;
+          
+          // Also check amount (with tolerance)
+          const amountDoge = parseInt(tx.amount || '0') / 100000000;
+          const amountMatch = Math.abs(amountDoge - deposit.amount) < 0.01;
+          
+          return customMatch || (amountMatch && tx.currency === 'DOGE');
+        });
+
+        if (matchingTx) {
+          console.log(`Found matching tx for deposit ${deposit.id}:`, matchingTx);
+          
+          // Complete the deposit
+          const { error: completeError } = await supabaseAdmin.rpc('complete_deposit', {
+            p_deposit_id: deposit.id,
+            p_tx_hash: matchingTx.tx_id || matchingTx.id || `fp_${Date.now()}`
+          });
+
+          if (!completeError) {
+            // Create notification
+            await supabaseAdmin
+              .from('notifications')
+              .insert({
+                user_id: deposit.user_id,
+                type: 'deposit',
+                title: '¡Depósito recibido!',
+                message: `Se acreditaron ${deposit.amount.toFixed(4)} DOGE automáticamente.`,
+                data: { amount: deposit.amount }
+              });
+            
+            completed++;
+            console.log(`Auto-completed deposit ${deposit.id}`);
+          }
+        }
+      }
+    }
+
+    return new Response(JSON.stringify({ 
+      success: true, 
+      checked: pendingDeposits.length,
+      completed,
+      failed
+    }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
+  } catch (error) {
+    console.error('Check pending deposits error:', error);
+    return new Response(JSON.stringify({ 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  }
+}

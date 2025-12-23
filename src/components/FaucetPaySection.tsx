@@ -91,6 +91,17 @@ const FaucetPaySection = () => {
     if (!faucetPayDeposit) return;
 
     const checkCompletion = async () => {
+      // First, trigger backend check for pending deposits
+      try {
+        await supabase.functions.invoke('faucetpay-ipn', {
+          body: {},
+          headers: {}
+        });
+      } catch (e) {
+        // Ignore errors from IPN check
+      }
+
+      // Then check our deposit status
       const { data: deposit } = await supabase
         .from('deposits')
         .select('status')
@@ -100,7 +111,7 @@ const FaucetPaySection = () => {
       if (deposit?.status === 'completed') {
         toast({
           title: "¡Depósito acreditado! 🎉",
-          description: `${faucetPayDeposit.amount} DOGE agregados a tu balance`,
+          description: `${faucetPayDeposit.amount} DOGE agregados a tu balance automáticamente`,
         });
         setFaucetPayDeposit(null);
         await refreshBalance();
@@ -115,7 +126,10 @@ const FaucetPaySection = () => {
       }
     };
 
-    const interval = setInterval(checkCompletion, 10000); // Check every 10 seconds
+    // Check immediately when deposit is created
+    checkCompletion();
+    
+    const interval = setInterval(checkCompletion, 15000); // Check every 15 seconds
     return () => clearInterval(interval);
   }, [faucetPayDeposit]);
 
