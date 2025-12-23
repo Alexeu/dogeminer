@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Wallet, ArrowDownToLine, ArrowUpFromLine, Loader2, History, Clock, CheckCircle, XCircle, AlertCircle, Dog, Copy, Send, AlertTriangle, RefreshCw } from "lucide-react";
+import { Wallet, ArrowDownToLine, ArrowUpFromLine, Loader2, History, Clock, CheckCircle, XCircle, AlertCircle, Dog, Copy, Send, AlertTriangle, RefreshCw, ExternalLink } from "lucide-react";
 import { formatDoge } from "@/data/dogeData";
 
 const DAILY_LIMIT = 5.0000;
@@ -485,9 +485,9 @@ const FaucetPaySection = () => {
   };
 
   const openFaucetPayPayment = () => {
-    if (faucetPayDeposit?.payment_url) {
-      window.open(faucetPayDeposit.payment_url, '_blank');
-    }
+    // FaucetPay doesn't have a direct payment URL with parameters
+    // Open the send page and user will manually enter details
+    window.open('https://faucetpay.io/page/user-send-payment', '_blank');
   };
 
   const fetchBlockchainAddress = async () => {
@@ -757,21 +757,36 @@ const FaucetPaySection = () => {
                 {faucetPayDeposit && (
                   <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 space-y-3">
                     <p className="text-sm font-medium text-emerald-600">📋 Depósito pendiente:</p>
-                    <div className="text-xs space-y-2">
-                      <p>Envía exactamente <span className="font-bold">{faucetPayDeposit.amount} DOGE</span> a:</p>
-                      <div className="flex items-center gap-2 p-2 bg-background/50 rounded">
-                        <code className="flex-1 text-primary">{faucetPayDeposit.recipient}</code>
-                        <Button size="sm" variant="ghost" onClick={() => copyToClipboard(faucetPayDeposit.recipient)}>
-                          <Copy className="w-3 h-3" />
-                        </Button>
+                    <div className="text-xs space-y-3">
+                      <div className="p-3 bg-background/50 rounded-lg space-y-2">
+                        <p className="font-medium">1. Cantidad a enviar:</p>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-1 text-lg font-bold text-primary">{faucetPayDeposit.amount} DOGE</code>
+                          <Button size="sm" variant="ghost" onClick={() => copyToClipboard(faucetPayDeposit.amount.toString())}>
+                            <Copy className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="p-3 bg-background/50 rounded-lg space-y-2">
+                        <p className="font-medium">2. Enviar a (email):</p>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-1 text-primary break-all">{faucetPayDeposit.recipient}</code>
+                          <Button size="sm" variant="ghost" onClick={() => copyToClipboard(faucetPayDeposit.recipient)}>
+                            <Copy className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="p-3 bg-background/50 rounded-lg space-y-2">
+                        <p className="font-medium">3. Selecciona moneda: <span className="text-primary">DOGE</span></p>
                       </div>
                       <Button
                         onClick={openFaucetPayPayment}
                         className="w-full bg-emerald-500 hover:bg-emerald-600 text-white"
                       >
-                        Abrir FaucetPay para pagar
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Ir a FaucetPay - Enviar Pago
                       </Button>
-                      <p className="text-muted-foreground">El depósito se acreditará automáticamente.</p>
+                      <p className="text-muted-foreground text-center">El depósito se acreditará automáticamente tras enviar.</p>
                     </div>
                   </div>
                 )}
