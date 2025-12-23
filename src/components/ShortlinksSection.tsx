@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Link, ExternalLink, CheckCircle, Clock, Gift } from "lucide-react";
+import { Link, ExternalLink, CheckCircle, Clock, Gift, Timer } from "lucide-react";
 import { formatDoge } from "@/data/dogeData";
 
 interface Shortlink {
@@ -15,6 +16,7 @@ interface Shortlink {
   reward: number;
   description: string;
   color: string;
+  waitTime: number; // seconds to wait before claiming
 }
 
 const shortlinks: Shortlink[] = [
@@ -24,7 +26,8 @@ const shortlinks: Shortlink[] = [
     provider: 'adfly',
     reward: 0.055,
     description: 'Completa el shortlink de Adfly para ganar recompensas.',
-    color: 'from-blue-500 to-blue-600'
+    color: 'from-blue-500 to-blue-600',
+    waitTime: 30
   },
   {
     id: 'earnnow',
@@ -32,7 +35,8 @@ const shortlinks: Shortlink[] = [
     provider: 'earnnow',
     reward: 0.055,
     description: 'Completa el shortlink de EarnNow para ganar recompensas.',
-    color: 'from-green-500 to-green-600'
+    color: 'from-green-500 to-green-600',
+    waitTime: 30
   }
 ];
 
@@ -42,12 +46,22 @@ export const ShortlinksSection = () => {
   const [completedToday, setCompletedToday] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [activeLink, setActiveLink] = useState<string | null>(null);
+  const [startTime, setStartTime] = useState<Record<string, number>>({});
+  const [countdown, setCountdown] = useState<Record<string, number>>({});
+  const intervalRef = useRef<Record<string, NodeJS.Timeout>>({});
 
   useEffect(() => {
     if (user) {
       checkCompletedToday();
     }
   }, [user]);
+
+  // Cleanup intervals on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(intervalRef.current).forEach(interval => clearInterval(interval));
+    };
+  }, []);
 
   const checkCompletedToday = async () => {
     if (!user) return;
@@ -70,6 +84,26 @@ export const ShortlinksSection = () => {
     }
   };
 
+  const startCountdown = (provider: string, waitTime: number) => {
+    // Clear any existing interval for this provider
+    if (intervalRef.current[provider]) {
+      clearInterval(intervalRef.current[provider]);
+    }
+
+    setCountdown(prev => ({ ...prev, [provider]: waitTime }));
+
+    intervalRef.current[provider] = setInterval(() => {
+      setCountdown(prev => {
+        const newValue = (prev[provider] || 0) - 1;
+        if (newValue <= 0) {
+          clearInterval(intervalRef.current[provider]);
+          return { ...prev, [provider]: 0 };
+        }
+        return { ...prev, [provider]: newValue };
+      });
+    }, 1000);
+  };
+
   const startShortlink = (shortlink: Shortlink) => {
     if (!user) {
       toast({
@@ -89,9 +123,6 @@ export const ShortlinksSection = () => {
       return;
     }
 
-    // Generate a verification token
-    const verificationToken = `${user.id}_${shortlink.provider}_${Date.now()}`;
-    
     // Build the shortlink URL based on provider
     let shortlinkUrl = '';
     if (shortlink.provider === 'adfly') {
@@ -100,19 +131,41 @@ export const ShortlinksSection = () => {
       shortlinkUrl = 'http://earnow.online/EK8f';
     }
 
+    // Record start time
+    const now = Date.now();
+    setStartTime(prev => ({ ...prev, [shortlink.provider]: now }));
     setActiveLink(shortlink.provider);
+    
+    // Start countdown
+    startCountdown(shortlink.provider, shortlink.waitTime);
     
     // Open shortlink in new tab
     window.open(shortlinkUrl, '_blank');
 
     toast({
       title: "Shortlink abierto",
-      description: "Completa el shortlink en la nueva pestaña y luego haz clic en 'Reclamar recompensa'.",
+      description: `Completa el shortlink y espera ${shortlink.waitTime} segundos para reclamar tu recompensa.`,
     });
+  };
+
+  const canClaim = (provider: string): boolean => {
+    return (countdown[provider] || 0) <= 0 && activeLink === provider;
   };
 
   const claimReward = async (shortlink: Shortlink) => {
     if (!user) return;
+
+    // Check if enough time has passed
+    const elapsed = (Date.now() - (startTime[shortlink.provider] || 0)) / 1000;
+    if (elapsed < shortlink.waitTime) {
+      const remaining = Math.ceil(shortlink.waitTime - elapsed);
+      toast({
+        title: "Espera un momento",
+        description: `Debes esperar ${remaining} segundos más para reclamar la recompensa.`,
+        variant: "destructive",
+      });
+      return;
+    }
 
     setLoading(prev => ({ ...prev, [shortlink.provider]: true }));
 
@@ -138,6 +191,11 @@ export const ShortlinksSection = () => {
         });
         setCompletedToday(prev => ({ ...prev, [shortlink.provider]: true }));
         setActiveLink(null);
+        setStartTime(prev => ({ ...prev, [shortlink.provider]: 0 }));
+        setCountdown(prev => ({ ...prev, [shortlink.provider]: 0 }));
+        if (intervalRef.current[shortlink.provider]) {
+          clearInterval(intervalRef.current[shortlink.provider]);
+        }
         refreshBalance();
       } else {
         throw new Error(data.error || 'Error desconocido');
@@ -171,6 +229,9 @@ export const ShortlinksSection = () => {
             const isCompleted = completedToday[shortlink.provider];
             const isActive = activeLink === shortlink.provider;
             const isLoading = loading[shortlink.provider];
+            const remainingTime = countdown[shortlink.provider] || 0;
+            const canClaimNow = canClaim(shortlink.provider);
+            const progress = isActive ? ((shortlink.waitTime - remainingTime) / shortlink.waitTime) * 100 : 0;
 
             return (
               <div
@@ -198,6 +259,22 @@ export const ShortlinksSection = () => {
                     {shortlink.description}
                   </p>
 
+                  {/* Progress bar when waiting */}
+                  {isActive && remainingTime > 0 && (
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between text-sm mb-2">
+                        <span className="flex items-center gap-1 text-amber-500">
+                          <Timer className="w-4 h-4" />
+                          Esperando...
+                        </span>
+                        <span className="font-mono font-bold text-amber-500">
+                          {remainingTime}s
+                        </span>
+                      </div>
+                      <Progress value={progress} className="h-2" />
+                    </div>
+                  )}
+
                   <div className="flex gap-2">
                     {!isCompleted && !isActive && (
                       <Button
@@ -213,13 +290,22 @@ export const ShortlinksSection = () => {
                     {isActive && (
                       <Button
                         onClick={() => claimReward(shortlink)}
-                        className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90"
-                        disabled={isLoading}
+                        className={`flex-1 ${
+                          canClaimNow 
+                            ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90' 
+                            : 'bg-muted cursor-not-allowed'
+                        }`}
+                        disabled={isLoading || !canClaimNow}
                       >
                         {isLoading ? (
                           <>
                             <Clock className="w-4 h-4 mr-2 animate-spin" />
                             Verificando...
+                          </>
+                        ) : !canClaimNow ? (
+                          <>
+                            <Timer className="w-4 h-4 mr-2" />
+                            Completa el shortlink ({remainingTime}s)
                           </>
                         ) : (
                           <>
