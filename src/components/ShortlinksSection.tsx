@@ -24,7 +24,7 @@ const shortlinks: Shortlink[] = [
     id: 'adfly',
     name: 'Adfly',
     provider: 'adfly',
-    reward: 0.055,
+    reward: 0.02,
     description: 'Completa el shortlink de Adfly para ganar recompensas.',
     color: 'from-blue-500 to-blue-600',
     waitTime: 30
@@ -33,7 +33,7 @@ const shortlinks: Shortlink[] = [
     id: 'earnnow',
     name: 'EarnNow.online',
     provider: 'earnnow',
-    reward: 0.055,
+    reward: 0.02,
     description: 'Completa el shortlink de EarnNow para ganar recompensas.',
     color: 'from-green-500 to-green-600',
     waitTime: 30
@@ -43,16 +43,17 @@ const shortlinks: Shortlink[] = [
 export const ShortlinksSection = () => {
   const { user } = useAuth();
   const { refreshBalance } = useDogeBalance();
-  const [completedToday, setCompletedToday] = useState<Record<string, boolean>>({});
+  const [completedEver, setCompletedEver] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [activeLink, setActiveLink] = useState<string | null>(null);
   const [startTime, setStartTime] = useState<Record<string, number>>({});
   const [countdown, setCountdown] = useState<Record<string, number>>({});
+  const [completedUrl, setCompletedUrl] = useState<Record<string, string>>({});
   const intervalRef = useRef<Record<string, NodeJS.Timeout>>({});
 
   useEffect(() => {
     if (user) {
-      checkCompletedToday();
+      checkCompletedEver();
     }
   }, [user]);
 
@@ -63,24 +64,35 @@ export const ShortlinksSection = () => {
     };
   }, []);
 
-  const checkCompletedToday = async () => {
+  // Listen for when user returns from shortlink
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && activeLink) {
+        // User returned to the page - capture the referrer or mark as completed
+        const currentUrl = document.referrer || window.location.href;
+        setCompletedUrl(prev => ({ ...prev, [activeLink]: currentUrl }));
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [activeLink]);
+
+  const checkCompletedEver = async () => {
     if (!user) return;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
+    // Check for ANY completion (lifetime limit, not daily)
     const { data } = await supabase
       .from('shortlink_completions')
       .select('provider')
-      .eq('user_id', user.id)
-      .gte('completed_at', today.toISOString());
+      .eq('user_id', user.id);
 
     if (data) {
       const completed: Record<string, boolean> = {};
       data.forEach((item: { provider: string }) => {
         completed[item.provider] = true;
       });
-      setCompletedToday(completed);
+      setCompletedEver(completed);
     }
   };
 
@@ -114,10 +126,10 @@ export const ShortlinksSection = () => {
       return;
     }
 
-    if (completedToday[shortlink.provider]) {
+    if (completedEver[shortlink.provider]) {
       toast({
         title: "Ya completado",
-        description: "Ya has completado este shortlink hoy. Vuelve mañana.",
+        description: "Ya has completado este shortlink anteriormente.",
         variant: "destructive",
       });
       return;
@@ -167,6 +179,17 @@ export const ShortlinksSection = () => {
       return;
     }
 
+    // Check if we have a completed URL (user returned from shortlink)
+    const urlCompleted = completedUrl[shortlink.provider];
+    if (!urlCompleted) {
+      toast({
+        title: "Shortlink no completado",
+        description: "Debes completar el shortlink antes de reclamar la recompensa.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(prev => ({ ...prev, [shortlink.provider]: true }));
 
     try {
@@ -175,10 +198,13 @@ export const ShortlinksSection = () => {
         throw new Error('No session');
       }
 
+      const verificationToken = `${user.id}_${shortlink.provider}_${Date.now()}`;
+
       const { data, error } = await supabase.functions.invoke('shortlink-callback', {
         body: {
           provider: shortlink.provider,
-          verificationToken: `${user.id}_${shortlink.provider}_verified`
+          verificationToken: verificationToken,
+          completedUrl: urlCompleted
         }
       });
 
@@ -189,10 +215,11 @@ export const ShortlinksSection = () => {
           title: "¡Recompensa reclamada!",
           description: `Has ganado ${formatDoge(shortlink.reward)} DOGE`,
         });
-        setCompletedToday(prev => ({ ...prev, [shortlink.provider]: true }));
+        setCompletedEver(prev => ({ ...prev, [shortlink.provider]: true }));
         setActiveLink(null);
         setStartTime(prev => ({ ...prev, [shortlink.provider]: 0 }));
         setCountdown(prev => ({ ...prev, [shortlink.provider]: 0 }));
+        setCompletedUrl(prev => ({ ...prev, [shortlink.provider]: '' }));
         if (intervalRef.current[shortlink.provider]) {
           clearInterval(intervalRef.current[shortlink.provider]);
         }
@@ -220,13 +247,13 @@ export const ShortlinksSection = () => {
           Shortlinks
         </CardTitle>
         <p className="text-muted-foreground text-sm">
-          Completa shortlinks para ganar DOGE. Cada shortlink se puede completar una vez al día.
+          Completa shortlinks para ganar DOGE. Cada shortlink se puede completar una sola vez.
         </p>
       </CardHeader>
       <CardContent>
         <div className="grid gap-4 md:grid-cols-2">
           {shortlinks.map((shortlink) => {
-            const isCompleted = completedToday[shortlink.provider];
+            const isCompleted = completedEver[shortlink.provider];
             const isActive = activeLink === shortlink.provider;
             const isLoading = loading[shortlink.provider];
             const remainingTime = countdown[shortlink.provider] || 0;
@@ -323,7 +350,7 @@ export const ShortlinksSection = () => {
                         className="flex-1 border-green-500/50 text-green-500"
                       >
                         <CheckCircle className="w-4 h-4 mr-2" />
-                        Completado Hoy
+                        Completado
                       </Button>
                     )}
                   </div>

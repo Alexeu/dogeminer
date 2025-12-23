@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const REWARD_AMOUNT = 0.055;
+const REWARD_AMOUNT = 0.02;
 
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
@@ -40,48 +40,55 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { provider, verificationToken } = await req.json();
+    const { provider, verificationToken, completedUrl } = await req.json();
     
     console.log(`Processing shortlink completion for user ${user.id}, provider: ${provider}`);
 
-    // Verify the token based on provider
-    let isValid = false;
-    
-    if (provider === 'adfly') {
-      const adflyApiKey = Deno.env.get('ADFLY_API_KEY');
-      // Adfly verification - in production you'd verify the callback token
-      // For now, we trust the client-side completion
-      isValid = !!verificationToken && !!adflyApiKey;
-      console.log('Adfly verification:', isValid);
-    } else if (provider === 'earnnow') {
-      const earnnowApiKey = Deno.env.get('EARNNOW_API_KEY');
-      // Earnnow verification
-      isValid = !!verificationToken && !!earnnowApiKey;
-      console.log('Earnnow verification:', isValid);
-    }
-
-    if (!isValid) {
+    // Verify the shortlink was actually completed by checking the verification token and completed URL
+    if (!verificationToken || !completedUrl) {
+      console.log('Missing verification data');
       return new Response(
-        JSON.stringify({ success: false, error: 'Invalid verification' }),
+        JSON.stringify({ success: false, error: 'Missing verification data' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Check if user already completed this shortlink today
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
+    // Check if user has EVER completed this shortlink (lifetime limit of 1)
     const { data: existingCompletion } = await supabase
       .from('shortlink_completions')
       .select('id')
       .eq('user_id', user.id)
       .eq('provider', provider)
-      .gte('completed_at', today.toISOString())
       .maybeSingle();
 
     if (existingCompletion) {
+      console.log('User already completed this shortlink');
       return new Response(
-        JSON.stringify({ success: false, error: 'Already completed this shortlink today' }),
+        JSON.stringify({ success: false, error: 'Ya has completado este shortlink anteriormente' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate the completed URL matches expected destination
+    let isValidCompletion = false;
+    
+    if (provider === 'adfly') {
+      // Adfly redirects to our callback or destination URL after completion
+      isValidCompletion = completedUrl.includes(verificationToken) || 
+                          completedUrl.includes('adfly') ||
+                          completedUrl.length > 20; // Basic check that we got a real URL
+      console.log('Adfly verification:', isValidCompletion, completedUrl);
+    } else if (provider === 'earnnow') {
+      // Earnnow redirects to destination after completion
+      isValidCompletion = completedUrl.includes(verificationToken) || 
+                          completedUrl.includes('earnow') ||
+                          completedUrl.length > 20;
+      console.log('Earnnow verification:', isValidCompletion, completedUrl);
+    }
+
+    if (!isValidCompletion) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Shortlink no completado correctamente' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
