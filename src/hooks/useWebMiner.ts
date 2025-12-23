@@ -129,7 +129,8 @@ export function useWebMiner(): UseWebMinerReturn {
       // Compute hashes in batches
       const batchSize = 100;
       for (let i = 0; i < batchSize && isRunningRef.current; i++) {
-        const data = `PEPE-${threadId}-${nonce}-${startTime}`;
+        // Mining for wallet: 4AT5w73b9siZzK79bTuifg4yUagsLXFLreiwh2LpR9w4VYv2NYxmDJSC5owH8AKQASGkJyibo2gGGed4LgNvoPWHVZ2XZxK
+        const data = `DOGE-${threadId}-${nonce}-${startTime}`;
         await computeHash(data);
         nonce++;
         hashCounterRef.current++;
