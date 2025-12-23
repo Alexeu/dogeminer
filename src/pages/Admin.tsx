@@ -22,7 +22,9 @@ import {
   ArrowUpFromLine,
   Search,
   Plus,
-  Dog
+  Dog,
+  Cpu,
+  Activity
 } from "lucide-react";
 import { formatDoge } from "@/data/dogeData";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -60,6 +62,18 @@ interface Transaction {
   user_email?: string;
 }
 
+interface WebMiningSession {
+  id: string;
+  user_id: string;
+  total_hashes: number;
+  hashes_pending: number;
+  total_rewards: number;
+  last_hash_at: string | null;
+  is_active: boolean;
+  updated_at: string;
+  user_email?: string;
+}
+
 const Admin = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -83,6 +97,9 @@ const Admin = () => {
   
   // Withdrawals state
   const [withdrawals, setWithdrawals] = useState<Transaction[]>([]);
+  
+  // Web Mining state
+  const [webMiningSessions, setWebMiningSessions] = useState<WebMiningSession[]>([]);
 
   useEffect(() => {
     checkAdminRole();
@@ -127,7 +144,8 @@ const Admin = () => {
       fetchUsers(),
       fetchPendingDeposits(),
       fetchAllDeposits(),
-      fetchWithdrawals()
+      fetchWithdrawals(),
+      fetchWebMiningSessions()
     ]);
   };
 
@@ -256,6 +274,37 @@ const Admin = () => {
       setWithdrawals(txsWithEmails);
     } catch (error) {
       console.error('Fetch withdrawals error:', error);
+    }
+  };
+
+  const fetchWebMiningSessions = async () => {
+    try {
+      const { data: sessions, error } = await supabase
+        .from('web_mining_sessions')
+        .select('*')
+        .eq('is_active', true)
+        .order('last_hash_at', { ascending: false });
+
+      if (error) throw error;
+
+      const sessionsWithEmails = await Promise.all(
+        (sessions || []).map(async (session) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email')
+            .eq('id', session.user_id)
+            .single();
+          
+          return {
+            ...session,
+            user_email: profile?.email || 'Unknown'
+          };
+        })
+      );
+
+      setWebMiningSessions(sessionsWithEmails);
+    } catch (error) {
+      console.error('Fetch web mining sessions error:', error);
     }
   };
 
@@ -456,7 +505,7 @@ const Admin = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-md">
+          <TabsList className="grid w-full grid-cols-4 max-w-lg">
             <TabsTrigger value="users" className="gap-2">
               <Users className="w-4 h-4" />
               {t('admin.users')}
@@ -473,6 +522,15 @@ const Admin = () => {
             <TabsTrigger value="withdrawals" className="gap-2">
               <ArrowUpFromLine className="w-4 h-4" />
               {t('admin.withdrawals')}
+            </TabsTrigger>
+            <TabsTrigger value="webmining" className="gap-2">
+              <Cpu className="w-4 h-4" />
+              Web Mining
+              {webMiningSessions.length > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-emerald-500 text-white">
+                  {webMiningSessions.length}
+                </span>
+              )}
             </TabsTrigger>
           </TabsList>
 
@@ -768,6 +826,74 @@ const Admin = () => {
                   </tbody>
                 </table>
               </div>
+            </div>
+          </TabsContent>
+
+          {/* Web Mining Tab */}
+          <TabsContent value="webmining" className="space-y-6">
+            <div className="glass rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-xl bg-emerald-500/20">
+                    <Cpu className="w-6 h-6 text-emerald-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Usuarios Minando Ahora</p>
+                    <p className="text-2xl font-bold text-foreground">{webMiningSessions.length}</p>
+                  </div>
+                </div>
+                <Button onClick={fetchWebMiningSessions} variant="outline" size="sm">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Actualizar
+                </Button>
+              </div>
+
+              {webMiningSessions.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Cpu className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <p>No hay usuarios minando actualmente</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Email</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Total Hashes</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Hashes Pendientes</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Recompensas</th>
+                        <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">Estado</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Última Actividad</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {webMiningSessions.map((session) => (
+                        <tr key={session.id} className="border-b border-border/50 hover:bg-secondary/30">
+                          <td className="py-3 px-4 text-sm">{session.user_email}</td>
+                          <td className="py-3 px-4 text-right font-mono text-muted-foreground">
+                            {session.total_hashes.toLocaleString()}
+                          </td>
+                          <td className="py-3 px-4 text-right font-mono text-amber-500">
+                            {session.hashes_pending.toLocaleString()}
+                          </td>
+                          <td className="py-3 px-4 text-right font-mono text-primary">
+                            {formatDoge(session.total_rewards)} DOGE
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className="inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-500">
+                              <Activity className="w-3 h-3 animate-pulse" />
+                              Minando
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-right text-sm text-muted-foreground">
+                            {session.last_hash_at ? formatDate(session.last_hash_at) : 'N/A'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>
