@@ -84,24 +84,70 @@ Deno.serve(async (req) => {
 
     console.log('Verification passed for provider:', provider);
 
-    // Complete the shortlink and add reward using the database function
-    const { data: result, error } = await supabase.rpc('complete_shortlink', {
-      p_provider: provider,
-      p_reward: REWARD_AMOUNT
-    });
+    // Insert completion record directly
+    const { error: insertError } = await supabase
+      .from('shortlink_completions')
+      .insert({
+        user_id: user.id,
+        provider: provider,
+        reward_amount: REWARD_AMOUNT
+      });
 
-    if (error) {
-      console.error('Error completing shortlink:', error);
+    if (insertError) {
+      console.error('Error inserting completion:', insertError);
       return new Response(
-        JSON.stringify({ success: false, error: 'Failed to complete shortlink' }),
+        JSON.stringify({ success: false, error: 'Error al registrar completado' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Shortlink completed successfully:', result);
+    // Add reward to mining balance using service role
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({
+        mining_balance: supabase.rpc('internal_add_mining_balance', { amount: REWARD_AMOUNT }),
+      })
+      .eq('id', user.id);
+
+    // Use raw SQL update for adding to mining balance
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('mining_balance, total_earned')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError) {
+      console.error('Error fetching profile:', profileError);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Error al obtener perfil' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const newMiningBalance = (profile.mining_balance || 0) + REWARD_AMOUNT;
+    const newTotalEarned = (profile.total_earned || 0) + REWARD_AMOUNT;
+
+    const { error: balanceError } = await supabase
+      .from('profiles')
+      .update({
+        mining_balance: newMiningBalance,
+        total_earned: newTotalEarned,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', user.id);
+
+    if (balanceError) {
+      console.error('Error updating balance:', balanceError);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Error al actualizar balance' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Shortlink completed successfully for user:', user.id, 'reward:', REWARD_AMOUNT);
 
     return new Response(
-      JSON.stringify({ success: true, reward: REWARD_AMOUNT }),
+      JSON.stringify({ success: true, reward: REWARD_AMOUNT, new_balance: newMiningBalance }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
