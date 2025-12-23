@@ -43,7 +43,7 @@ const shortlinks: Shortlink[] = [
 export const ShortlinksSection = () => {
   const { user } = useAuth();
   const { refreshBalance } = useDogeBalance();
-  const [completedEver, setCompletedEver] = useState<Record<string, boolean>>({});
+  const [completedToday, setCompletedToday] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [activeLink, setActiveLink] = useState<string | null>(null);
   const [startTime, setStartTime] = useState<Record<string, number>>({});
@@ -53,7 +53,7 @@ export const ShortlinksSection = () => {
 
   useEffect(() => {
     if (user) {
-      checkCompletedEver();
+      checkCompletedToday();
     }
   }, [user]);
 
@@ -78,21 +78,25 @@ export const ShortlinksSection = () => {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [activeLink]);
 
-  const checkCompletedEver = async () => {
+  const checkCompletedToday = async () => {
     if (!user) return;
 
-    // Check for ANY completion (lifetime limit, not daily)
+    // Check for completions TODAY (daily limit)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
     const { data } = await supabase
       .from('shortlink_completions')
       .select('provider')
-      .eq('user_id', user.id);
+      .eq('user_id', user.id)
+      .gte('completed_at', today.toISOString());
 
     if (data) {
       const completed: Record<string, boolean> = {};
       data.forEach((item: { provider: string }) => {
         completed[item.provider] = true;
       });
-      setCompletedEver(completed);
+      setCompletedToday(completed);
     }
   };
 
@@ -126,10 +130,10 @@ export const ShortlinksSection = () => {
       return;
     }
 
-    if (completedEver[shortlink.provider]) {
+    if (completedToday[shortlink.provider]) {
       toast({
         title: "Ya completado",
-        description: "Ya has completado este shortlink anteriormente.",
+        description: "Ya has completado este shortlink hoy. Vuelve mañana.",
         variant: "destructive",
       });
       return;
@@ -215,7 +219,7 @@ export const ShortlinksSection = () => {
           title: "¡Recompensa reclamada!",
           description: `Has ganado ${formatDoge(shortlink.reward)} DOGE`,
         });
-        setCompletedEver(prev => ({ ...prev, [shortlink.provider]: true }));
+        setCompletedToday(prev => ({ ...prev, [shortlink.provider]: true }));
         setActiveLink(null);
         setStartTime(prev => ({ ...prev, [shortlink.provider]: 0 }));
         setCountdown(prev => ({ ...prev, [shortlink.provider]: 0 }));
@@ -247,13 +251,13 @@ export const ShortlinksSection = () => {
           Shortlinks
         </CardTitle>
         <p className="text-muted-foreground text-sm">
-          Completa shortlinks para ganar DOGE. Cada shortlink se puede completar una sola vez.
+          Completa shortlinks para ganar DOGE. Cada shortlink se puede completar una vez al día.
         </p>
       </CardHeader>
       <CardContent>
         <div className="grid gap-4 md:grid-cols-2">
           {shortlinks.map((shortlink) => {
-            const isCompleted = completedEver[shortlink.provider];
+            const isCompleted = completedToday[shortlink.provider];
             const isActive = activeLink === shortlink.provider;
             const isLoading = loading[shortlink.provider];
             const remainingTime = countdown[shortlink.provider] || 0;
@@ -350,7 +354,7 @@ export const ShortlinksSection = () => {
                         className="flex-1 border-green-500/50 text-green-500"
                       >
                         <CheckCircle className="w-4 h-4 mr-2" />
-                        Completado
+                        Completado Hoy
                       </Button>
                     )}
                   </div>

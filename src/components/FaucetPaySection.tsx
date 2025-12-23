@@ -9,7 +9,7 @@ import { Wallet, ArrowDownToLine, ArrowUpFromLine, Loader2, History, Clock, Chec
 import { formatDoge } from "@/data/dogeData";
 
 const DAILY_LIMIT = 5.0000;
-const MIN_DEPOSIT_FOR_WITHDRAWAL = 5;
+const MIN_DEPOSIT_FOR_WITHDRAWAL = 2;
 const MIN_WITHDRAWAL = 0.5;
 const MIN_DEPOSIT = 1;
 const DOGE_DEPOSIT_ADDRESS = "DFbsc22DdbvczjXJZfTu59Q7HdSFkeGUNv";

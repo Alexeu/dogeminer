@@ -21,7 +21,7 @@ interface DogeBalanceContextType {
 
 const DogeBalanceContext = createContext<DogeBalanceContextType | undefined>(undefined);
 
-const MIN_DEPOSIT_FOR_WITHDRAWAL = 5;
+const MIN_DEPOSIT_FOR_WITHDRAWAL = 2;
 
 export function DogeBalanceProvider({ children }: { children: ReactNode }) {
   const [balance, setBalance] = useState(0);
@@ -36,7 +36,7 @@ export function DogeBalanceProvider({ children }: { children: ReactNode }) {
   // Mining rate is calculated based on owned characters (set from InventoryContext)
   const miningRate = 0;
 
-  // User can withdraw only if they have deposited at least 5 DOGE
+  // User can withdraw only if they have deposited at least 2 DOGE
   const canWithdraw = totalDeposited >= MIN_DEPOSIT_FOR_WITHDRAWAL;
 
   const refreshBalance = useCallback(async () => {
