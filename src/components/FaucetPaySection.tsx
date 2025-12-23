@@ -485,9 +485,8 @@ const FaucetPaySection = () => {
   };
 
   const openFaucetPayPayment = () => {
-    // FaucetPay doesn't have a direct payment URL with parameters
-    // Open the send page and user will manually enter details
-    window.open('https://faucetpay.io/page/user-send-payment', '_blank');
+    // Open FaucetPay send-payment page (user will fill details manually)
+    window.open('https://faucetpay.io/page/send-payment', '_blank');
   };
 
   const fetchBlockchainAddress = async () => {
