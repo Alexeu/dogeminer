@@ -522,6 +522,38 @@ export type Database = {
         }
         Relationships: []
       }
+      shortlink_completions: {
+        Row: {
+          completed_at: string
+          id: string
+          provider: string
+          reward_amount: number
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          id?: string
+          provider: string
+          reward_amount?: number
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          id?: string
+          provider?: string
+          reward_amount?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shortlink_completions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           amount: number
@@ -702,6 +734,10 @@ export type Database = {
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       complete_deposit: {
         Args: { p_deposit_id: string; p_tx_hash?: string }
+        Returns: Json
+      }
+      complete_shortlink: {
+        Args: { p_provider: string; p_reward?: number }
         Returns: Json
       }
       create_deposit_request: {
