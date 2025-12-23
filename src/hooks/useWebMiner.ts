@@ -37,7 +37,7 @@ export function useWebMiner(): UseWebMinerReturn {
     sessionHashes: 0,
     pendingHashes: 0,
     totalRewards: 0,
-    hashesUntilReward: 100000,
+    hashesUntilReward: 1000000000, // 1 billion
     threads: navigator.hardwareConcurrency || 4,
   });
 
@@ -103,12 +103,13 @@ export function useWebMiner(): UseWebMinerReturn {
       };
       
       if (result.success) {
+        const hashesPerReward = 1000000000; // 1 billion
         setStats(prev => ({
           ...prev,
           totalHashes: result.total_hashes,
           pendingHashes: result.hashes_pending,
           totalRewards: prev.totalRewards + (result.reward_claimed || 0),
-          hashesUntilReward: 100000 - (result.hashes_pending % 100000),
+          hashesUntilReward: hashesPerReward - (result.hashes_pending % hashesPerReward),
         }));
         
         if (result.reward_claimed > 0) {

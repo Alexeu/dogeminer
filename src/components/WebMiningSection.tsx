@@ -41,7 +41,7 @@ const WebMiningSection = () => {
     totalRewards: { es: 'Recompensas Totales', en: 'Total Rewards' },
     hashesUntilReward: { es: 'Para próxima recompensa', en: 'Until next reward' },
     threads: { es: 'Hilos CPU', en: 'CPU Threads' },
-    rewardRate: { es: '0.01 DOGE por cada 100,000 hashes', en: '0.01 DOGE per 100,000 hashes' },
+    rewardRate: { es: '0.01 DOGE por cada 1,000,000,000 hashes', en: '0.01 DOGE per 1,000,000,000 hashes' },
     mining: { es: 'Minando...', en: 'Mining...' },
     notSupported: { es: 'Tu navegador no soporta minería web', en: 'Your browser does not support web mining' },
     settings: { es: 'Configuración', en: 'Settings' },
@@ -59,7 +59,8 @@ const WebMiningSection = () => {
     return num.toString();
   };
 
-  const progressToReward = ((100000 - stats.hashesUntilReward) / 100000) * 100;
+  const hashesPerReward = 1000000000; // 1 billion
+  const progressToReward = ((hashesPerReward - stats.hashesUntilReward) / hashesPerReward) * 100;
 
   if (!isSupported) {
     return (
