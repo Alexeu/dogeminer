@@ -641,108 +641,12 @@ const FaucetPaySection = () => {
               </div>
               <div>
                 <h3 className="text-xl font-bold">Depositar DOGE</h3>
-                <p className="text-sm text-muted-foreground">Via FaucetPay o blockchain</p>
+                <p className="text-sm text-muted-foreground">Envía DOGE a nuestra dirección</p>
               </div>
             </div>
 
-            {/* FaucetPay Deposit - Primary Option */}
+            {/* Blockchain Deposit */}
             <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/30 space-y-3">
-              <div className="flex items-center gap-2">
-                <Wallet className="w-5 h-5 text-emerald-500" />
-                <p className="text-sm font-bold text-emerald-600">Depósito Instantáneo FaucetPay</p>
-              </div>
-              
-              {faucetPayDeposit ? (
-                <div className="space-y-4">
-                  <div className="p-4 bg-background/50 rounded-lg text-center space-y-3">
-                    <div className="w-16 h-16 mx-auto rounded-full bg-emerald-500/20 flex items-center justify-center">
-                      <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
-                    </div>
-                    <div>
-                      <p className="text-lg font-bold text-emerald-500">{faucetPayDeposit.amount} DOGE</p>
-                      <p className="text-sm text-muted-foreground">Esperando pago...</p>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Se detectará automáticamente cuando completes el pago
-                    </p>
-                  </div>
-                  
-                  <Button
-                    onClick={openFaucetPayPayment}
-                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-white h-12 text-base font-bold"
-                  >
-                    <Send className="w-5 h-5 mr-2" />
-                    Pagar con FaucetPay
-                  </Button>
-                  
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Clock className="w-4 h-4" />
-                    <span>Expira: {new Date(faucetPayDeposit.expires_at).toLocaleTimeString()}</span>
-                    <span className="ml-auto">Ref: {faucetPayDeposit.verification_code}</span>
-                  </div>
-                  
-                  <Button
-                    onClick={() => setFaucetPayDeposit(null)}
-                    variant="ghost"
-                    size="sm"
-                    className="w-full text-muted-foreground"
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="grid grid-cols-3 gap-2">
-                    {[1, 5, 10].map((amount) => (
-                      <Button
-                        key={amount}
-                        variant={fpDepositAmount === String(amount) ? "default" : "outline"}
-                        onClick={() => setFpDepositAmount(String(amount))}
-                        className="h-12"
-                      >
-                        {amount} DOGE
-                      </Button>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <Input
-                      type="number"
-                      step="0.1"
-                      min="0.1"
-                      max="100"
-                      placeholder="Otra cantidad..."
-                      value={fpDepositAmount}
-                      onChange={(e) => setFpDepositAmount(e.target.value)}
-                      className="bg-background/50"
-                    />
-                    <Button
-                      onClick={createFaucetPayDeposit}
-                      className="shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white px-6"
-                      disabled={isCreatingFPDeposit || !fpDepositAmount}
-                    >
-                      {isCreatingFPDeposit ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Send className="w-4 h-4" />
-                      )}
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground text-center">
-                    ✨ Detección automática • Acreditación instantánea • Sin copiar emails
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Divider */}
-            <div className="flex items-center gap-3">
-              <div className="flex-1 border-t border-border/50"></div>
-              <span className="text-xs text-muted-foreground">o deposita directo</span>
-              <div className="flex-1 border-t border-border/50"></div>
-            </div>
-
-            {/* Blockchain Deposit - Alternative */}
-            <div className="p-4 rounded-xl bg-secondary/50 space-y-3">
               <p className="text-sm font-medium">Dirección de depósito DOGE:</p>
               <div className="flex items-center gap-2 p-3 bg-background/50 rounded-lg">
                 <code className="flex-1 text-xs font-mono break-all text-primary">
@@ -760,11 +664,12 @@ const FaucetPaySection = () => {
             </div>
 
             <div className="border-t border-border/50 pt-4">
-              <p className="text-sm font-medium mb-3">Reportar depósito blockchain:</p>
+              <p className="text-sm font-medium mb-3">Reportar depósito:</p>
               <Input
                 type="number"
                 step="0.0001"
-                placeholder="Cantidad enviada (DOGE)"
+                min="1"
+                placeholder="Cantidad enviada (mín. 1 DOGE)"
                 value={depositAmount}
                 onChange={(e) => setDepositAmount(e.target.value)}
                 className="bg-background/50 mb-2"
@@ -777,8 +682,7 @@ const FaucetPaySection = () => {
               />
               <Button
                 onClick={handleReportDeposit}
-                className="w-full"
-                variant="secondary"
+                className="w-full gradient-primary text-primary-foreground"
                 disabled={isReportingDeposit}
               >
                 {isReportingDeposit ? (
@@ -790,10 +694,11 @@ const FaucetPaySection = () => {
             </div>
 
             <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
-              <p className="text-sm font-medium text-amber-600 mb-2">💡 Tip:</p>
+              <p className="text-sm font-medium text-amber-600 mb-2">💡 Instrucciones:</p>
               <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
-                <li><span className="font-bold text-emerald-500">FaucetPay:</span> Depósito instantáneo, mínimo 0.1 DOGE</li>
-                <li><span className="font-bold text-primary">Blockchain:</span> Mínimo {MIN_DEPOSIT} DOGE, espera confirmación</li>
+                <li>Envía mínimo <span className="font-bold text-primary">{MIN_DEPOSIT} DOGE</span> a la dirección</li>
+                <li>Espera al menos 1 confirmación en la blockchain</li>
+                <li>Copia el TX Hash y repórtalo para verificación instantánea</li>
               </ul>
             </div>
           </div>
