@@ -13,19 +13,39 @@ const HeroSection = () => {
 
   return (
     <section className="min-h-screen gradient-hero relative overflow-hidden">
-      {/* Background decoration */}
+      {/* Christmas Snowflakes */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(15)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute text-2xl animate-snowfall opacity-60"
+            style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${5 + Math.random() * 5}s`,
+            }}
+          >
+            ❄️
+          </div>
+        ))}
+      </div>
+
+      {/* Background decoration with Christmas colors */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-doge-amber/10 rounded-full blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-red-500/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-green-500/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
       </div>
 
       <div className="container mx-auto px-4 pt-20 pb-12 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[80vh]">
           {/* Left content */}
           <div className="space-y-8 animate-slide-up">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/20 text-primary font-comic">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-red-500/20 via-green-500/20 to-red-500/20 text-primary font-comic border border-red-500/30">
+              <span className="text-lg">🎄</span>
               <Dog className="w-5 h-5" />
-              <span className="font-bold">Much WOW! Very Mine! 🚀</span>
+              <span className="font-bold">¡Especial Navidad! Much WOW! 🎅</span>
+              <span className="text-lg">🎁</span>
             </div>
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
