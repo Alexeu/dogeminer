@@ -43,8 +43,10 @@ interface PendingDeposit {
 interface UserProfile {
   id: string;
   email: string | null;
-  balance: number | null;
+  mining_balance: number | null;
+  deposit_balance: number | null;
   total_earned: number | null;
+  total_deposited: number | null;
   total_withdrawn: number | null;
   created_at: string | null;
   is_banned: boolean | null;
@@ -160,7 +162,7 @@ const Admin = () => {
       while (hasMore) {
         const { data, error } = await supabase
           .from('profiles')
-          .select('id, email, balance, total_earned, total_withdrawn, created_at, is_banned')
+          .select('id, email, mining_balance, deposit_balance, total_earned, total_deposited, total_withdrawn, created_at, is_banned')
           .order('created_at', { ascending: false })
           .range(from, from + batchSize - 1);
 
@@ -597,9 +599,11 @@ const Admin = () => {
                   <thead>
                     <tr className="border-b border-border">
                       <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Email</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.balance')}</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.totalEarned')}</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.totalWithdrawn')}</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Minado</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Depósito</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Total Ganado</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Total Depositado</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Total Retirado</th>
                       <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.actions')}</th>
                     </tr>
                   </thead>
@@ -615,13 +619,23 @@ const Admin = () => {
                           )}
                         </td>
                         <td className="py-3 px-4 text-right">
+                          <span className="font-mono text-blue-400 font-medium">
+                            {formatDoge(u.mining_balance || 0)}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right">
                           <span className="font-mono text-primary font-medium">
-                            {formatDoge(u.balance || 0)}
+                            {formatDoge(u.deposit_balance || 0)}
                           </span>
                         </td>
                         <td className="py-3 px-4 text-right">
                           <span className="font-mono text-emerald-500">
                             {formatDoge(u.total_earned || 0)}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <span className="font-mono text-cyan-400">
+                            {formatDoge(u.total_deposited || 0)}
                           </span>
                         </td>
                         <td className="py-3 px-4 text-right">
