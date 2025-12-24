@@ -490,6 +490,80 @@ const Admin = () => {
     }
   };
 
+  const handleApproveDepositRequest = async (request: DepositRequest) => {
+    setProcessingId(request.id);
+    try {
+      // Add balance to user
+      const { data: addResult, error: addError } = await supabase.rpc('admin_add_balance', {
+        p_user_id: request.user_id,
+        p_amount: request.amount
+      });
+
+      if (addError) throw addError;
+
+      const result = addResult as { success: boolean; error?: string };
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to add balance');
+      }
+
+      // Update deposit status
+      const { error: updateError } = await supabase
+        .from('deposits')
+        .update({ 
+          status: 'completed',
+          verified_at: new Date().toISOString()
+        })
+        .eq('id', request.id);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: t('common.success'),
+        description: `${formatDoge(request.amount)} DOGE acreditados a ${request.user_email}`,
+      });
+
+      fetchDepositRequests();
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Approve deposit request error:', error);
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleRejectDepositRequest = async (request: DepositRequest) => {
+    setProcessingId(request.id);
+    try {
+      const { error: updateError } = await supabase
+        .from('deposits')
+        .update({ status: 'failed' })
+        .eq('id', request.id);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: t('common.success'),
+        description: `Solicitud de depósito de ${request.user_email} rechazada`,
+      });
+
+      fetchDepositRequests();
+    } catch (error: any) {
+      console.error('Reject deposit request error:', error);
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: "Copiado", description: "Copiado al portapapeles" });
@@ -555,19 +629,23 @@ const Admin = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 max-w-lg">
+          <TabsList className="grid w-full grid-cols-5 max-w-2xl">
             <TabsTrigger value="users" className="gap-2">
               <Users className="w-4 h-4" />
               {t('admin.users')}
             </TabsTrigger>
+            <TabsTrigger value="pending-deposits" className="gap-2">
+              <Clock className="w-4 h-4" />
+              Pendientes
+              {depositRequests.filter(r => r.status === 'pending').length > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-amber-500 text-white">
+                  {depositRequests.filter(r => r.status === 'pending').length}
+                </span>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="deposits" className="gap-2">
               <ArrowDownToLine className="w-4 h-4" />
               {t('admin.deposits')}
-              {pendingDeposits.length > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-amber-500 text-white">
-                  {pendingDeposits.length}
-                </span>
-              )}
             </TabsTrigger>
             <TabsTrigger value="withdrawals" className="gap-2">
               <ArrowUpFromLine className="w-4 h-4" />
@@ -711,6 +789,110 @@ const Admin = () => {
                   </div>
                 )}
               </div>
+            </div>
+          </TabsContent>
+
+          {/* Pending Deposits Tab */}
+          <TabsContent value="pending-deposits" className="space-y-6">
+            <div className="glass rounded-2xl p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 rounded-xl bg-amber-500/20">
+                  <Clock className="w-6 h-6 text-amber-500" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">Depósitos Pendientes de Acreditar</h2>
+                  <p className="text-sm text-muted-foreground">Solicitudes de usuarios esperando verificación manual</p>
+                </div>
+                <span className="ml-auto px-3 py-1 rounded-full bg-amber-500/20 text-amber-500 text-lg font-bold">
+                  {depositRequests.filter(r => r.status === 'pending').length}
+                </span>
+              </div>
+
+              {depositRequests.filter(r => r.status === 'pending').length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <CheckCircle className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                  <p className="text-lg">¡No hay depósitos pendientes! 🎉</p>
+                  <p className="text-sm">Todos los depósitos han sido procesados</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {depositRequests
+                    .filter(r => r.status === 'pending')
+                    .map((request) => (
+                    <div 
+                      key={request.id}
+                      className="p-5 rounded-xl bg-secondary/30 border border-amber-500/30"
+                    >
+                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <div className="space-y-3 flex-1">
+                          <div className="flex items-center gap-3">
+                            <Dog className="w-6 h-6 text-primary" />
+                            <span className="text-2xl font-bold text-primary">
+                              {formatDoge(request.amount)} DOGE
+                            </span>
+                            <span className="text-xs px-2 py-1 rounded-full bg-amber-500/20 text-amber-500">
+                              Pendiente
+                            </span>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                            <div>
+                              <span className="text-muted-foreground">Usuario: </span>
+                              <span className="font-medium text-foreground">{request.user_email}</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">FaucetPay: </span>
+                              <span className="font-medium text-foreground">{request.faucetpay_email}</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Código: </span>
+                              <code className="bg-background/50 px-2 py-0.5 rounded font-mono text-cyan-400">
+                                {request.verification_code}
+                              </code>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Creado: </span>
+                              <span className="font-medium">{formatDate(request.created_at)}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 lg:flex-col">
+                          <Button
+                            onClick={() => handleApproveDepositRequest(request)}
+                            disabled={processingId === request.id}
+                            className="bg-emerald-500 hover:bg-emerald-600 text-white flex-1"
+                          >
+                            {processingId === request.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <>
+                                <CheckCircle className="w-4 h-4 mr-2" />
+                                Acreditar
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            onClick={() => handleRejectDepositRequest(request)}
+                            disabled={processingId === request.id}
+                            variant="destructive"
+                            className="flex-1"
+                          >
+                            {processingId === request.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <>
+                                <XCircle className="w-4 h-4 mr-2" />
+                                Rechazar
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </TabsContent>
 
