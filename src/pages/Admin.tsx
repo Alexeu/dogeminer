@@ -64,6 +64,19 @@ interface Transaction {
   user_email?: string;
 }
 
+interface DepositRequest {
+  id: string;
+  user_id: string;
+  amount: number;
+  faucetpay_email: string;
+  verification_code: string;
+  status: string;
+  created_at: string;
+  expires_at: string;
+  verified_at: string | null;
+  user_email?: string;
+}
+
 interface WebMiningSession {
   id: string;
   user_id: string;
@@ -95,7 +108,9 @@ const Admin = () => {
   // Deposits state
   const [pendingDeposits, setPendingDeposits] = useState<PendingDeposit[]>([]);
   const [allDeposits, setAllDeposits] = useState<Transaction[]>([]);
+  const [depositRequests, setDepositRequests] = useState<DepositRequest[]>([]);
   const [depositSearchQuery, setDepositSearchQuery] = useState("");
+  const [depositRequestSearchQuery, setDepositRequestSearchQuery] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
   
   // Withdrawals state
@@ -147,6 +162,7 @@ const Admin = () => {
       fetchUsers(),
       fetchPendingDeposits(),
       fetchAllDeposits(),
+      fetchDepositRequests(),
       fetchWithdrawals(),
       fetchWebMiningSessions()
     ]);
@@ -245,6 +261,37 @@ const Admin = () => {
       setAllDeposits(depositsWithEmails);
     } catch (error) {
       console.error('Fetch all deposits error:', error);
+    }
+  };
+
+  const fetchDepositRequests = async () => {
+    try {
+      const { data: requests, error } = await supabase
+        .from('deposits')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+
+      const requestsWithEmails = await Promise.all(
+        (requests || []).map(async (req) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email')
+            .eq('id', req.user_id)
+            .maybeSingle();
+          
+          return {
+            ...req,
+            user_email: profile?.email || 'Unknown'
+          };
+        })
+      );
+
+      setDepositRequests(requestsWithEmails);
+    } catch (error) {
+      console.error('Fetch deposit requests error:', error);
     }
   };
 
@@ -837,6 +884,86 @@ const Admin = () => {
                 ).length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
                     No se encontraron depósitos
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Deposit Requests (from deposits table) */}
+            <div className="glass rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <ArrowDownToLine className="w-5 h-5 text-cyan-500" />
+                  <h2 className="text-xl font-bold">Solicitudes de Depósito</h2>
+                  <span className="px-2 py-1 rounded-full bg-cyan-500/20 text-cyan-500 text-sm">
+                    {depositRequests.length}
+                  </span>
+                </div>
+                <div className="relative flex-1 max-w-md ml-4">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por email o código de verificación..."
+                    value={depositRequestSearchQuery}
+                    onChange={(e) => setDepositRequestSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Usuario</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">FaucetPay Email</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Código</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Monto</th>
+                      <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">Estado</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Creado</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Expira</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {depositRequests
+                      .filter(req => 
+                        !depositRequestSearchQuery ||
+                        req.user_email?.toLowerCase().includes(depositRequestSearchQuery.toLowerCase()) ||
+                        req.faucetpay_email?.toLowerCase().includes(depositRequestSearchQuery.toLowerCase()) ||
+                        req.verification_code?.toLowerCase().includes(depositRequestSearchQuery.toLowerCase())
+                      )
+                      .map((req) => (
+                      <tr key={req.id} className="border-b border-border/50">
+                        <td className="py-3 px-4 text-sm">{req.user_email}</td>
+                        <td className="py-3 px-4 text-sm text-muted-foreground">{req.faucetpay_email}</td>
+                        <td className="py-3 px-4">
+                          <code className="text-xs bg-background/50 px-2 py-1 rounded font-mono text-cyan-400">
+                            {req.verification_code}
+                          </code>
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono text-primary">{formatDoge(req.amount)}</td>
+                        <td className="py-3 px-4 text-center">
+                          <span className={`text-xs px-2 py-1 rounded-full ${getStatusBadge(req.status)}`}>
+                            {req.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right text-sm text-muted-foreground">
+                          {formatDate(req.created_at)}
+                        </td>
+                        <td className="py-3 px-4 text-right text-sm text-muted-foreground">
+                          {formatDate(req.expires_at)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {depositRequests.filter(req => 
+                  !depositRequestSearchQuery ||
+                  req.user_email?.toLowerCase().includes(depositRequestSearchQuery.toLowerCase()) ||
+                  req.faucetpay_email?.toLowerCase().includes(depositRequestSearchQuery.toLowerCase()) ||
+                  req.verification_code?.toLowerCase().includes(depositRequestSearchQuery.toLowerCase())
+                ).length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No se encontraron solicitudes de depósito
                   </div>
                 )}
               </div>
