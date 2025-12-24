@@ -95,6 +95,7 @@ const Admin = () => {
   // Deposits state
   const [pendingDeposits, setPendingDeposits] = useState<PendingDeposit[]>([]);
   const [allDeposits, setAllDeposits] = useState<Transaction[]>([]);
+  const [depositSearchQuery, setDepositSearchQuery] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
   
   // Withdrawals state
@@ -772,21 +773,50 @@ const Admin = () => {
 
             {/* All Deposits */}
             <div className="glass rounded-2xl p-6">
-              <h2 className="text-xl font-bold mb-6">{t('admin.allDeposits')}</h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold">{t('admin.allDeposits')}</h2>
+                <div className="relative flex-1 max-w-md ml-4">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por email de usuario o FaucetPay..."
+                    value={depositSearchQuery}
+                    onChange={(e) => setDepositSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              
+              {depositSearchQuery && (
+                <p className="text-sm text-muted-foreground mb-4">
+                  Mostrando {allDeposits.filter(tx => 
+                    tx.user_email?.toLowerCase().includes(depositSearchQuery.toLowerCase()) ||
+                    tx.faucetpay_address?.toLowerCase().includes(depositSearchQuery.toLowerCase())
+                  ).length} resultados
+                </p>
+              )}
+              
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-border">
                       <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.user')}</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">FaucetPay Email</th>
                       <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.amount')}</th>
                       <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.status')}</th>
                       <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.date')}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {allDeposits.map((tx) => (
+                    {allDeposits
+                      .filter(tx => 
+                        !depositSearchQuery ||
+                        tx.user_email?.toLowerCase().includes(depositSearchQuery.toLowerCase()) ||
+                        tx.faucetpay_address?.toLowerCase().includes(depositSearchQuery.toLowerCase())
+                      )
+                      .map((tx) => (
                       <tr key={tx.id} className="border-b border-border/50">
                         <td className="py-3 px-4 text-sm">{tx.user_email}</td>
+                        <td className="py-3 px-4 text-sm text-muted-foreground">{tx.faucetpay_address || '-'}</td>
                         <td className="py-3 px-4 text-right font-mono text-primary">{formatDoge(tx.amount)}</td>
                         <td className="py-3 px-4 text-center">
                           <span className={`text-xs px-2 py-1 rounded-full ${getStatusBadge(tx.status)}`}>
@@ -800,6 +830,15 @@ const Admin = () => {
                     ))}
                   </tbody>
                 </table>
+                {allDeposits.filter(tx => 
+                  !depositSearchQuery ||
+                  tx.user_email?.toLowerCase().includes(depositSearchQuery.toLowerCase()) ||
+                  tx.faucetpay_address?.toLowerCase().includes(depositSearchQuery.toLowerCase())
+                ).length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No se encontraron depósitos
+                  </div>
+                )}
               </div>
             </div>
           </TabsContent>
