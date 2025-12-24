@@ -123,6 +123,50 @@ const Admin = () => {
     checkAdminRole();
   }, [user]);
 
+  // Realtime subscriptions for deposits and web mining
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const depositsChannel = supabase
+      .channel('admin-deposits-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'deposits' },
+        () => {
+          fetchDepositRequests();
+        }
+      )
+      .subscribe();
+
+    const webMiningChannel = supabase
+      .channel('admin-webmining-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'web_mining_sessions' },
+        () => {
+          fetchWebMiningSessions();
+        }
+      )
+      .subscribe();
+
+    const profilesChannel = supabase
+      .channel('admin-profiles-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'profiles' },
+        () => {
+          fetchUsers();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(depositsChannel);
+      supabase.removeChannel(webMiningChannel);
+      supabase.removeChannel(profilesChannel);
+    };
+  }, [isAdmin]);
+
   const checkAdminRole = async () => {
     if (!user) {
       navigate('/auth');
