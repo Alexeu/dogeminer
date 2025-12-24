@@ -267,6 +267,15 @@ export const translations: Translations = {
   'admin.allDeposits': { es: 'Todos los Depósitos', en: 'All Deposits' },
   'admin.allWithdrawals': { es: 'Todos los Retiros', en: 'All Withdrawals' },
   
+  // Support
+  'support.badge': { es: '¿Necesitas ayuda?', en: 'Need help?' },
+  'support.title': { es: 'Soporte', en: 'Support' },
+  'support.subtitle': { es: '¿Tienes alguna pregunta o problema? ¡Estamos aquí para ayudarte! 🐕', en: 'Have a question or issue? We are here to help! 🐕' },
+  'support.contactUs': { es: 'Contáctanos', en: 'Contact Us' },
+  'support.description': { es: 'Envíanos un email y te responderemos lo antes posible. Describe tu problema o pregunta con el mayor detalle posible.', en: 'Send us an email and we will reply as soon as possible. Describe your issue or question in as much detail as possible.' },
+  'support.sendEmail': { es: 'Enviar Email', en: 'Send Email' },
+  'support.responseTime': { es: 'Tiempo de respuesta: 24-48 horas', en: 'Response time: 24-48 hours' },
+  
   // Common
   'common.loading': { es: 'Cargando...', en: 'Loading...' },
   'common.error': { es: 'Error', en: 'Error' },

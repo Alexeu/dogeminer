@@ -20,6 +20,7 @@ import OnlineMiningSection from "@/components/OnlineMiningSection";
 import WebMiningSection from "@/components/WebMiningSection";
 import { ShortlinksSection } from "@/components/ShortlinksSection";
 import AppSidebar from "@/components/AppSidebar";
+import SupportSection from "@/components/SupportSection";
 import { Loader2 } from "lucide-react";
 
 const Index = () => {
@@ -39,7 +40,7 @@ const Index = () => {
     const handleScroll = () => {
       const sections = [
         "hero", "mystery-boxes", "inventory", "collection", 
-        "web-mining", "online-mining", "lottery", "shortlinks", "ptc", "faucetpay", "referral"
+        "web-mining", "online-mining", "lottery", "shortlinks", "ptc", "faucetpay", "referral", "support"
       ];
       
       for (const sectionId of sections) {
@@ -128,6 +129,9 @@ const Index = () => {
         </div>
         <div id="referral">
           <ReferralSection />
+        </div>
+        <div id="support">
+          <SupportSection />
         </div>
         <HowItWorksSection />
         <WithdrawalsSection />
