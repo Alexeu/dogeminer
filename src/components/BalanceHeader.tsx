@@ -27,16 +27,10 @@ const BalanceHeader = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
-      {/* Alert Banner */}
-      <div className="bg-amber-500/90 text-amber-950 px-4 py-2 text-center text-sm font-medium">
+      {/* Christmas Banner */}
+      <div className="bg-gradient-to-r from-red-600 via-green-600 to-red-600 text-white px-4 py-2 text-center text-sm font-medium animate-pulse">
         <span className="inline-flex items-center gap-2 flex-wrap justify-center">
-          ⚠️ {t('header.depositAlert')} 
-          <a 
-            href="mailto:rpgdoge30@gmail.com?subject=Deposit%20Verification" 
-            className="underline font-bold hover:text-amber-800"
-          >
-            rpgdoge30@gmail.com
-          </a>
+          🎄✨ ¡Feliz Navidad y Próspero Año Nuevo! 🎅🎁 ¡Gracias por ser parte de RPG Doge! ❄️🌟
         </span>
       </div>
       <div className="glass border-b border-border/50">
