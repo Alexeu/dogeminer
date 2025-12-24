@@ -20,3 +20,6 @@ verify_jwt = true
 
 [functions.shortlink-callback]
 verify_jwt = true
+
+[functions.expire-deposits]
+verify_jwt = false
