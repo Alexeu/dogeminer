@@ -14,7 +14,8 @@ import {
   Shield,
   Link,
   TrendingUp,
-  Cpu
+  Cpu,
+  HelpCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -41,6 +42,7 @@ const menuItems: MenuItem[] = [
   { id: "ptc", labelKey: "sidebar.ptc", icon: Play, section: "ptc" },
   { id: "faucetpay", labelKey: "sidebar.faucetpay", icon: Wallet, section: "faucetpay" },
   { id: "referral", labelKey: "sidebar.referral", icon: Users, section: "referral" },
+  { id: "support", labelKey: "support.title", icon: HelpCircle, section: "support" },
 ];
 
 interface AppSidebarProps {
