@@ -123,7 +123,7 @@ const Admin = () => {
     checkAdminRole();
   }, [user]);
 
-  // Realtime subscriptions for deposits and web mining
+  // Realtime subscriptions for deposits, web mining, profiles and transactions
   useEffect(() => {
     if (!isAdmin) return;
 
@@ -160,10 +160,24 @@ const Admin = () => {
       )
       .subscribe();
 
+    const transactionsChannel = supabase
+      .channel('admin-transactions-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'transactions' },
+        () => {
+          fetchPendingDeposits();
+          fetchAllDeposits();
+          fetchWithdrawals();
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(depositsChannel);
       supabase.removeChannel(webMiningChannel);
       supabase.removeChannel(profilesChannel);
+      supabase.removeChannel(transactionsChannel);
     };
   }, [isAdmin]);
 
