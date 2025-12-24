@@ -16,6 +16,7 @@ export const translations: Translations = {
   'header.depositBalance': { es: 'Balance de Depósito', en: 'Deposit Balance' },
   'header.depositBalanceDesc': { es: 'Para comprar cajas, anuncios, minería online', en: 'For boxes, ads, online mining' },
   'header.logout': { es: '¡Hasta pronto! Much goodbye!', en: 'See you soon! Much goodbye!' },
+  'header.depositAlert': { es: 'Por problemas con la API de FaucetPay, los depósitos no se procesan automáticamente. Envía tu ID de transacción y email a:', en: 'Due to FaucetPay API issues, deposits are not being processed automatically. Send your transaction ID and email to:' },
   
   // Sidebar
   'sidebar.home': { es: 'Inicio', en: 'Home' },
