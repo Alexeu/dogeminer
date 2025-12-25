@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { boxTypes, BoxType } from "@/data/dogeData";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import MysteryBoxModal from "@/components/MysteryBoxModal";
-import { Gift, Sparkles, Zap, Lock } from "lucide-react";
+import { Gift, Sparkles, Zap, Lock, Clock } from "lucide-react";
 import boxCommon from "@/assets/box-common.png";
 import boxRare from "@/assets/box-rare.png";
 import boxLegendary from "@/assets/box-legendary.png";
@@ -12,15 +12,56 @@ const boxImages: Record<string, string> = {
   common: boxCommon,
   rare: boxRare,
   legendary: boxLegendary,
-  christmas: boxLegendary, // Usamos legendary como base
+  christmas: boxLegendary,
+};
+
+// Fecha de expiración: 6 de enero 2026 (Día de Reyes)
+const CHRISTMAS_BOX_EXPIRY = new Date("2026-01-06T23:59:59");
+
+const useCountdown = (targetDate: Date) => {
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    expired: false,
+  });
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const now = new Date().getTime();
+      const target = targetDate.getTime();
+      const difference = target - now;
+
+      if (difference <= 0) {
+        return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: true };
+      }
+
+      return {
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+        minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+        seconds: Math.floor((difference % (1000 * 60)) / 1000),
+        expired: false,
+      };
+    };
+
+    setTimeLeft(calculateTimeLeft());
+    const timer = setInterval(() => setTimeLeft(calculateTimeLeft()), 1000);
+    return () => clearInterval(timer);
+  }, [targetDate]);
+
+  return timeLeft;
 };
 
 const MysteryBoxSection = () => {
   const [selectedBox, setSelectedBox] = useState<BoxType | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { depositBalance } = useDogeBalance();
+  const countdown = useCountdown(CHRISTMAS_BOX_EXPIRY);
 
   const handleOpenBox = (box: BoxType) => {
+    if (box.id === "christmas" && countdown.expired) return;
     setSelectedBox(box);
     setIsModalOpen(true);
   };
@@ -31,6 +72,11 @@ const MysteryBoxSection = () => {
     }
     return price.toFixed(4);
   };
+
+  // Filtrar la caja navideña si ha expirado
+  const availableBoxes = boxTypes.filter(
+    (box) => box.id !== "christmas" || !countdown.expired
+  );
 
   return (
     <section id="mystery-boxes" className="py-20 bg-background relative overflow-hidden">
@@ -55,8 +101,8 @@ const MysteryBoxSection = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-          {boxTypes.map((box, index) => {
+        <div className={`grid md:grid-cols-2 ${availableBoxes.length === 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-6 max-w-6xl mx-auto`}>
+          {availableBoxes.map((box, index) => {
             const canAfford = depositBalance >= box.price;
             const isChristmas = box.id === "christmas";
             
@@ -68,10 +114,38 @@ const MysteryBoxSection = () => {
                 } ${isChristmas ? "ring-2 ring-red-500/50 bg-gradient-to-b from-red-500/10 via-green-500/5 to-red-500/10" : ""}`}
                 style={{ animationDelay: `${index * 150}ms` }}
               >
-                {/* Christmas Badge */}
+                {/* Christmas Badge with Countdown */}
                 {isChristmas && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-500 to-green-500 text-white px-3 py-1 rounded-full text-xs font-bold animate-pulse">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-500 to-green-500 text-white px-3 py-1 rounded-full text-xs font-bold animate-pulse whitespace-nowrap">
                     ✨ ¡EDICIÓN LIMITADA! ✨
+                  </div>
+                )}
+                
+                {/* Countdown Timer for Christmas Box */}
+                {isChristmas && !countdown.expired && (
+                  <div className="mb-4 p-3 rounded-xl bg-gradient-to-r from-red-500/20 via-green-500/10 to-red-500/20 border border-red-500/30">
+                    <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mb-2">
+                      <Clock className="w-3 h-3" />
+                      <span>Expira en:</span>
+                    </div>
+                    <div className="grid grid-cols-4 gap-1 text-center">
+                      <div className="bg-background/80 rounded-lg p-1">
+                        <div className="text-lg font-bold text-red-500">{countdown.days}</div>
+                        <div className="text-[10px] text-muted-foreground">días</div>
+                      </div>
+                      <div className="bg-background/80 rounded-lg p-1">
+                        <div className="text-lg font-bold text-green-500">{countdown.hours.toString().padStart(2, '0')}</div>
+                        <div className="text-[10px] text-muted-foreground">hrs</div>
+                      </div>
+                      <div className="bg-background/80 rounded-lg p-1">
+                        <div className="text-lg font-bold text-red-500">{countdown.minutes.toString().padStart(2, '0')}</div>
+                        <div className="text-[10px] text-muted-foreground">min</div>
+                      </div>
+                      <div className="bg-background/80 rounded-lg p-1">
+                        <div className="text-lg font-bold text-green-500">{countdown.seconds.toString().padStart(2, '0')}</div>
+                        <div className="text-[10px] text-muted-foreground">seg</div>
+                      </div>
+                    </div>
                   </div>
                 )}
                 {/* Box visual */}
