@@ -7,12 +7,13 @@ import { Gift, Sparkles, Zap, Lock, Clock } from "lucide-react";
 import boxCommon from "@/assets/box-common.png";
 import boxRare from "@/assets/box-rare.png";
 import boxLegendary from "@/assets/box-legendary.png";
+import boxChristmas from "@/assets/box-christmas.png";
 
 const boxImages: Record<string, string> = {
   common: boxCommon,
   rare: boxRare,
   legendary: boxLegendary,
-  christmas: boxLegendary,
+  christmas: boxChristmas,
 };
 
 // Fecha de expiración: 6 de enero 2026 (Día de Reyes)
