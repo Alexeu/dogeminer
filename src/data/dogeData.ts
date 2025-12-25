@@ -21,7 +21,7 @@ import dogePhoenix from "@/assets/doge-phoenix.png";
 import dogeDragon from "@/assets/doge-dragon.png";
 
 
-export type Rarity = "starter" | "common" | "rare" | "epic" | "legendary";
+export type Rarity = "starter" | "common" | "rare" | "epic" | "legendary" | "christmas";
 
 export interface DogeCharacter {
   id: string;
@@ -32,14 +32,15 @@ export interface DogeCharacter {
 }
 
 // Tasas de minado por hora por rareza (en DOGE) - +30% boost aplicado
-// Base rates: starter=0.0025, common=0.0015, rare=0.0035, epic=0.0075, legendary=0.01
-// With 30% boost: starter=0.0025 (no boost), common=0.00195, rare=0.00455, epic=0.00975, legendary=0.013
+// Base rates: starter=0.0025, common=0.0015, rare=0.0035, epic=0.0075, legendary=0.01, christmas=0.015
+// With 30% boost: starter=0.0025 (no boost), common=0.00195, rare=0.00455, epic=0.00975, legendary=0.013, christmas=0.0195
 export const miningRatesByRarity: Record<Rarity, number> = {
   starter: 0.0025, // Sin bonus, tasa fija
   common: 0.00195, // 0.0015 * 1.3
   rare: 0.00455,   // 0.0035 * 1.3
   epic: 0.00975,   // 0.0075 * 1.3
   legendary: 0.013, // 0.01 * 1.3
+  christmas: 0.0195, // 0.015 * 1.3 - Superior a legendary!
 };
 
 // Personaje starter gratuito al registrarse (sin bonus, 0.0025 DOGE/hora)
@@ -81,6 +82,14 @@ export const characters: DogeCharacter[] = [
   { id: "dragon", name: "Doge Dragon", image: dogeDragon, rarity: "legendary", miningRate: 0.013 },
 ];
 
+// Christmas Special Characters (0.0195 DOGE/hour - Superior a legendary!)
+export const christmasCharacters: DogeCharacter[] = [
+  { id: "santa-doge", name: "Santa Doge", image: dogeKing, rarity: "christmas", miningRate: 0.0195 },
+  { id: "elf-doge", name: "Elf Doge", image: dogeWizard, rarity: "christmas", miningRate: 0.0195 },
+  { id: "snowman-doge", name: "Snowman Doge", image: dogeGold, rarity: "christmas", miningRate: 0.0195 },
+  { id: "reindeer-doge", name: "Reindeer Doge", image: dogeDragon, rarity: "christmas", miningRate: 0.0195 },
+];
+
 
 export const rarityConfig = {
   starter: {
@@ -118,6 +127,13 @@ export const rarityConfig = {
     textColor: "text-yellow-600",
     glowColor: "shadow-yellow-400/50",
   },
+  christmas: {
+    label: "🎄 Christmas",
+    color: "from-red-500 via-green-500 to-red-500",
+    bgColor: "bg-gradient-to-r from-red-100 to-green-100",
+    textColor: "text-red-600",
+    glowColor: "shadow-red-400/50",
+  },
 };
 
 export interface BoxType {
@@ -135,7 +151,7 @@ export const boxTypes: BoxType[] = [
     id: "common",
     name: "Common Box",
     price: 1,
-    dropRates: { starter: 0, common: 100, rare: 0, epic: 0, legendary: 0 },
+    dropRates: { starter: 0, common: 100, rare: 0, epic: 0, legendary: 0, christmas: 0 },
     gradient: "from-gray-500 to-gray-700",
     description: "Solo personajes comunes garantizados",
   },
@@ -143,7 +159,7 @@ export const boxTypes: BoxType[] = [
     id: "rare",
     name: "Rare Box",
     price: 4,
-    dropRates: { starter: 0, common: 40, rare: 40, epic: 20, legendary: 0 },
+    dropRates: { starter: 0, common: 40, rare: 40, epic: 20, legendary: 0, christmas: 0 },
     gradient: "from-blue-500 to-indigo-600",
     description: "40% común, 40% raro, 20% épico",
   },
@@ -151,9 +167,17 @@ export const boxTypes: BoxType[] = [
     id: "legendary",
     name: "Legendary Box",
     price: 9,
-    dropRates: { starter: 0, common: 0, rare: 40, epic: 40, legendary: 20 },
+    dropRates: { starter: 0, common: 0, rare: 40, epic: 40, legendary: 20, christmas: 0 },
     gradient: "from-yellow-500 to-amber-600",
     description: "40% raro, 40% épico, 20% legendario",
+  },
+  {
+    id: "christmas",
+    name: "🎄 Christmas Box",
+    price: 15,
+    dropRates: { starter: 0, common: 0, rare: 0, epic: 30, legendary: 40, christmas: 30 },
+    gradient: "from-red-500 via-green-500 to-red-500",
+    description: "¡Edición limitada! 30% épico, 40% legendario, 30% Christmas",
   },
 ];
 
@@ -168,6 +192,11 @@ export function getRandomCharacter(dropRates: Record<Rarity, number>, boxId?: st
       selectedRarity = rarity;
       break;
     }
+  }
+
+  // Si es Christmas rarity, usar los personajes navideños
+  if (selectedRarity === "christmas") {
+    return christmasCharacters[Math.floor(Math.random() * christmasCharacters.length)];
   }
 
   const charactersOfRarity = characters.filter((c) => c.rarity === selectedRarity);

@@ -12,6 +12,7 @@ const boxImages: Record<string, string> = {
   common: boxCommon,
   rare: boxRare,
   legendary: boxLegendary,
+  christmas: boxLegendary, // Usamos legendary como base
 };
 
 const MysteryBoxSection = () => {
@@ -54,18 +55,25 @@ const MysteryBoxSection = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
           {boxTypes.map((box, index) => {
             const canAfford = depositBalance >= box.price;
+            const isChristmas = box.id === "christmas";
             
             return (
               <div
                 key={box.id}
-                className={`glass rounded-2xl p-6 text-center transition-all duration-300 animate-slide-up group ${
+                className={`glass rounded-2xl p-6 text-center transition-all duration-300 animate-slide-up group relative ${
                   canAfford ? "hover:shadow-doge-lg hover:-translate-y-2" : "opacity-75"
-                }`}
+                } ${isChristmas ? "ring-2 ring-red-500/50 bg-gradient-to-b from-red-500/10 via-green-500/5 to-red-500/10" : ""}`}
                 style={{ animationDelay: `${index * 150}ms` }}
               >
+                {/* Christmas Badge */}
+                {isChristmas && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-500 to-green-500 text-white px-3 py-1 rounded-full text-xs font-bold animate-pulse">
+                    ✨ ¡EDICIÓN LIMITADA! ✨
+                  </div>
+                )}
                 {/* Box visual */}
                 <div className="relative mb-6">
                   <div
@@ -104,23 +112,42 @@ const MysteryBoxSection = () => {
                 <div className="space-y-2 mb-6">
                   <p className="text-xs text-muted-foreground uppercase tracking-wider">Drop Rates</p>
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="flex justify-between px-2 py-1 rounded bg-gray-100">
-                      <span className="text-gray-600">Common</span>
-                      <span className="font-semibold">{box.dropRates.common}%</span>
-                    </div>
-                    <div className="flex justify-between px-2 py-1 rounded bg-blue-100">
-                      <span className="text-blue-600">Rare</span>
-                      <span className="font-semibold">{box.dropRates.rare}%</span>
-                    </div>
-                    <div className="flex justify-between px-2 py-1 rounded bg-purple-100">
-                      <span className="text-purple-600">Epic</span>
-                      <span className="font-semibold">{box.dropRates.epic}%</span>
-                    </div>
-                    <div className="flex justify-between px-2 py-1 rounded bg-amber-100">
-                      <span className="text-amber-600">Legendary</span>
-                      <span className="font-semibold">{box.dropRates.legendary}%</span>
-                    </div>
+                    {box.dropRates.common > 0 && (
+                      <div className="flex justify-between px-2 py-1 rounded bg-gray-100">
+                        <span className="text-gray-600">Common</span>
+                        <span className="font-semibold">{box.dropRates.common}%</span>
+                      </div>
+                    )}
+                    {box.dropRates.rare > 0 && (
+                      <div className="flex justify-between px-2 py-1 rounded bg-blue-100">
+                        <span className="text-blue-600">Rare</span>
+                        <span className="font-semibold">{box.dropRates.rare}%</span>
+                      </div>
+                    )}
+                    {box.dropRates.epic > 0 && (
+                      <div className="flex justify-between px-2 py-1 rounded bg-purple-100">
+                        <span className="text-purple-600">Epic</span>
+                        <span className="font-semibold">{box.dropRates.epic}%</span>
+                      </div>
+                    )}
+                    {box.dropRates.legendary > 0 && (
+                      <div className="flex justify-between px-2 py-1 rounded bg-amber-100">
+                        <span className="text-amber-600">Legendary</span>
+                        <span className="font-semibold">{box.dropRates.legendary}%</span>
+                      </div>
+                    )}
+                    {box.dropRates.christmas > 0 && (
+                      <div className="flex justify-between px-2 py-1 rounded bg-gradient-to-r from-red-100 to-green-100 col-span-2">
+                        <span className="text-red-600">🎄 Christmas</span>
+                        <span className="font-semibold text-green-600">{box.dropRates.christmas}%</span>
+                      </div>
+                    )}
                   </div>
+                  {isChristmas && (
+                    <p className="text-xs text-green-600 font-medium mt-2">
+                      ⚡ +50% minado vs Legendary
+                    </p>
+                  )}
                 </div>
 
                 {/* Price and button */}
@@ -133,15 +160,15 @@ const MysteryBoxSection = () => {
                 </div>
 
                 <Button
-                  variant={box.id === "legendary" ? "hero" : "default"}
-                  className={`w-full ${!canAfford ? "opacity-50" : ""}`}
+                  variant={box.id === "legendary" || box.id === "christmas" ? "hero" : "default"}
+                  className={`w-full ${!canAfford ? "opacity-50" : ""} ${isChristmas ? "bg-gradient-to-r from-red-500 via-green-500 to-red-500 hover:from-red-600 hover:via-green-600 hover:to-red-600" : ""}`}
                   onClick={() => handleOpenBox(box)}
                   disabled={!canAfford}
                 >
                   {canAfford ? (
                     <>
                       <Gift className="w-4 h-4" />
-                      Open Box
+                      {isChristmas ? "🎁 Abrir Regalo" : "Open Box"}
                     </>
                   ) : (
                     <>
