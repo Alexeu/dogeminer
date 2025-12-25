@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Button } from "@/components/ui/button";
-import { BoxType, DogeCharacter, rarityConfig, characters } from "@/data/dogeData";
+import { BoxType, DogeCharacter, rarityConfig, characters, christmasCharacters } from "@/data/dogeData";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { useInventory } from "@/contexts/InventoryContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,9 +17,10 @@ interface MysteryBoxModalProps {
 
 type AnimationPhase = "idle" | "shaking" | "opening" | "revealing" | "revealed";
 
-// Map character IDs to their images
+// Map character IDs to their images (including Christmas characters)
 const getCharacterImage = (characterId: string): string => {
-  const char = characters.find(c => c.id === characterId);
+  const allCharacters = [...characters, ...christmasCharacters];
+  const char = allCharacters.find(c => c.id === characterId);
   return char?.image || characters[0].image;
 };
 
@@ -141,7 +143,10 @@ const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => 
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md bg-card border-border overflow-hidden">
+      <DialogContent className="sm:max-w-md bg-card border-border overflow-hidden" aria-describedby={undefined}>
+        <VisuallyHidden>
+          <DialogTitle>Abrir {boxType.name}</DialogTitle>
+        </VisuallyHidden>
         <div className="relative min-h-[400px] flex flex-col items-center justify-center p-6">
           {/* Background effects */}
           <div className="absolute inset-0 overflow-hidden">
