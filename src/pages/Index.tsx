@@ -21,7 +21,6 @@ import WebMiningSection from "@/components/WebMiningSection";
 import { ShortlinksSection } from "@/components/ShortlinksSection";
 import AppSidebar from "@/components/AppSidebar";
 import SupportSection from "@/components/SupportSection";
-import AAdsBanner from "@/components/AAdsBanner";
 import { Loader2 } from "lucide-react";
 
 const Index = () => {
@@ -88,7 +87,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
-      <AAdsBanner />
       <BalanceHeader />
       <AppSidebar activeSection={activeSection} onNavigate={scrollToSection} />
       
