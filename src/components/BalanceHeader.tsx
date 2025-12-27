@@ -33,6 +33,13 @@ const BalanceHeader = () => {
           🎄✨ ¡Feliz Navidad y Próspero Año Nuevo! 🎅🎁 ¡Gracias por ser parte de RPG Doge! ❄️🌟
         </span>
       </div>
+      
+      {/* FaucetPay Issue Resolved Banner */}
+      <div className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 text-white px-4 py-2 text-center text-sm font-medium">
+        <span className="inline-flex items-center gap-2 flex-wrap justify-center">
+          ✅ ¡Problema solucionado! Todos los depósitos han sido acreditados correctamente. Gracias por su paciencia. 💚
+        </span>
+      </div>
       <div className="glass border-b border-border/50">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
