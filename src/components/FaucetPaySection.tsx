@@ -323,7 +323,7 @@ const FaucetPaySection = () => {
   };
 
   const openFaucetPayPayment = () => {
-    window.open('https://faucetpay.io/page/send-payment', '_blank');
+    window.open('https://faucetpay.io/transfer', '_blank');
   };
 
   const formatDate = (dateStr: string) => {
