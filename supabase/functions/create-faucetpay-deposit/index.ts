@@ -117,6 +117,28 @@ serve(async (req) => {
 
     console.log(`Created deposit ${deposit.id} for ${numAmount} DOGE, code: ${verificationCode}`);
 
+    // Send email notification to admin
+    try {
+      const emailResponse = await fetch(`${SUPABASE_URL}/functions/v1/send-deposit-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          user_email: user.email,
+          amount: numAmount,
+          created_at: new Date().toISOString(),
+          deposit_id: deposit.id,
+          verification_code: verificationCode
+        })
+      });
+      const emailResult = await emailResponse.json();
+      console.log('Admin email notification:', emailResult);
+    } catch (emailError) {
+      console.error('Failed to send admin email, but deposit was created:', emailError);
+    }
+
     return new Response(JSON.stringify({
       success: true,
       deposit_id: deposit.id,
