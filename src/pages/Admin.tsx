@@ -599,7 +599,7 @@ const Admin = () => {
     try {
       const { error: updateError } = await supabase
         .from('deposits')
-        .update({ status: 'failed' })
+        .update({ status: 'rejected' })
         .eq('id', request.id);
 
       if (updateError) throw updateError;
