@@ -38,6 +38,17 @@ const shortlinks: Shortlink[] = [
     color: 'from-purple-500 to-purple-600',
     waitTime: 30
   }
+
+  {
+    id: 'shrink',
+    name: 'Shrink',
+    provider: 'shrink',
+    reward: 0.01,
+    description: 'Completa el shortlink de Shrink para ganar recompensas.',
+    color: 'from-green-500 to-green-600',
+    waitTime: 30
+  }
+  
 ];
 
 export const ShortlinksSection = () => {
@@ -171,6 +182,9 @@ export const ShortlinksSection = () => {
       shortlinkUrl = 'https://adfly.site/PEPERPG';
     } else if (shortlink.provider === 'eazyurl') {
       shortlinkUrl = 'https://eazyurl.xyz/LpSXh';
+    }
+    else if (shortlink.provider === 'shrink') {
+      shortlinkUrl = 'https://shrinkme.click/PEPEminer';
     }
 
     // Record start time
