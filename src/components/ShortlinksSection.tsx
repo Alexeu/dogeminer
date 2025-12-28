@@ -28,7 +28,7 @@ const shortlinks: Shortlink[] = [
     description: 'Completa el shortlink de Adfly para ganar recompensas.',
     color: 'from-blue-500 to-blue-600',
     waitTime: 30
-  },
+  }
   {
     id: 'eazyurl',
     name: 'EazyURL',
