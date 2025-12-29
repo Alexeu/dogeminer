@@ -182,7 +182,7 @@ export const ShortlinksSection = () => {
     } else if (shortlink.provider === "eazyurl") {
       shortlinkUrl = "https://eazyurl.xyz/LpSXh";
     } else if (shortlink.provider === "shrink") {
-      shortlinkUrl = "https://shrinkme.io/st?api=4f1a2b3c5d6e7f8a9b0c1d2e3f4a5b6c&url=https://pepeminer.lovable.app";
+      shortlinkUrl = "https://shrinkme.click/PEPEminer";
     }
 
     // Record start time
