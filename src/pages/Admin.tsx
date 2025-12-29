@@ -24,7 +24,10 @@ import {
   Plus,
   Dog,
   Cpu,
-  Activity
+  Activity,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from "lucide-react";
 import { formatDoge } from "@/data/dogeData";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -112,9 +115,12 @@ const Admin = () => {
   const [depositSearchQuery, setDepositSearchQuery] = useState("");
   const [depositRequestSearchQuery, setDepositRequestSearchQuery] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [depositSortOrder, setDepositSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [depositRequestSortOrder, setDepositRequestSortOrder] = useState<'asc' | 'desc'>('desc');
   
   // Withdrawals state
   const [withdrawals, setWithdrawals] = useState<Transaction[]>([]);
+  const [withdrawalSortOrder, setWithdrawalSortOrder] = useState<'asc' | 'desc'>('desc');
   
   // Web Mining state
   const [webMiningSessions, setWebMiningSessions] = useState<WebMiningSession[]>([]);
@@ -1107,7 +1113,19 @@ const Admin = () => {
                       <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">FaucetPay Email</th>
                       <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.amount')}</th>
                       <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.status')}</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.date')}</th>
+                      <th 
+                        className="text-right py-3 px-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                        onClick={() => setDepositSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+                      >
+                        <div className="flex items-center justify-end gap-1">
+                          {t('admin.date')}
+                          {depositSortOrder === 'desc' ? (
+                            <ArrowDown className="w-3 h-3" />
+                          ) : (
+                            <ArrowUp className="w-3 h-3" />
+                          )}
+                        </div>
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1117,6 +1135,11 @@ const Admin = () => {
                         tx.user_email?.toLowerCase().includes(depositSearchQuery.toLowerCase()) ||
                         tx.faucetpay_address?.toLowerCase().includes(depositSearchQuery.toLowerCase())
                       )
+                      .sort((a, b) => {
+                        const dateA = new Date(a.created_at).getTime();
+                        const dateB = new Date(b.created_at).getTime();
+                        return depositSortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+                      })
                       .map((tx) => (
                       <tr key={tx.id} className="border-b border-border/50">
                         <td className="py-3 px-4 text-sm">{tx.user_email}</td>
@@ -1176,7 +1199,19 @@ const Admin = () => {
                       <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Código</th>
                       <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Monto</th>
                       <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">Estado</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Creado</th>
+                      <th 
+                        className="text-right py-3 px-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                        onClick={() => setDepositRequestSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+                      >
+                        <div className="flex items-center justify-end gap-1">
+                          Creado
+                          {depositRequestSortOrder === 'desc' ? (
+                            <ArrowDown className="w-3 h-3" />
+                          ) : (
+                            <ArrowUp className="w-3 h-3" />
+                          )}
+                        </div>
+                      </th>
                       <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Expira</th>
                     </tr>
                   </thead>
@@ -1188,6 +1223,11 @@ const Admin = () => {
                         req.faucetpay_email?.toLowerCase().includes(depositRequestSearchQuery.toLowerCase()) ||
                         req.verification_code?.toLowerCase().includes(depositRequestSearchQuery.toLowerCase())
                       )
+                      .sort((a, b) => {
+                        const dateA = new Date(a.created_at).getTime();
+                        const dateB = new Date(b.created_at).getTime();
+                        return depositRequestSortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+                      })
                       .map((req) => (
                       <tr key={req.id} className="border-b border-border/50">
                         <td className="py-3 px-4 text-sm">{req.user_email}</td>
@@ -1239,11 +1279,29 @@ const Admin = () => {
                       <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.amount')}</th>
                       <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">FaucetPay</th>
                       <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.status')}</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.date')}</th>
+                      <th 
+                        className="text-right py-3 px-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                        onClick={() => setWithdrawalSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+                      >
+                        <div className="flex items-center justify-end gap-1">
+                          {t('admin.date')}
+                          {withdrawalSortOrder === 'desc' ? (
+                            <ArrowDown className="w-3 h-3" />
+                          ) : (
+                            <ArrowUp className="w-3 h-3" />
+                          )}
+                        </div>
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {withdrawals.map((tx) => (
+                    {withdrawals
+                      .sort((a, b) => {
+                        const dateA = new Date(a.created_at).getTime();
+                        const dateB = new Date(b.created_at).getTime();
+                        return withdrawalSortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+                      })
+                      .map((tx) => (
                       <tr key={tx.id} className="border-b border-border/50">
                         <td className="py-3 px-4 text-sm">{tx.user_email}</td>
                         <td className="py-3 px-4 text-right font-mono text-amber-500">{formatDoge(tx.amount)}</td>
