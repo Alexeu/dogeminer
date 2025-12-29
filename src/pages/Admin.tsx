@@ -324,16 +324,33 @@ const Admin = () => {
 
   const fetchDepositRequests = async () => {
     try {
-      const { data: requests, error } = await supabase
-        .from('deposits')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
+      // Fetch ALL deposit requests without limit, sorted by status and date
+      let allRequests: DepositRequest[] = [];
+      let from = 0;
+      const batchSize = 500;
+      let hasMore = true;
 
-      if (error) throw error;
+      while (hasMore) {
+        const { data: requests, error } = await supabase
+          .from('deposits')
+          .select('*')
+          .order('status', { ascending: true }) // pending first
+          .order('created_at', { ascending: false })
+          .range(from, from + batchSize - 1);
+
+        if (error) throw error;
+        
+        if (requests && requests.length > 0) {
+          allRequests = [...allRequests, ...requests];
+          from += batchSize;
+          hasMore = requests.length === batchSize;
+        } else {
+          hasMore = false;
+        }
+      }
 
       const requestsWithEmails = await Promise.all(
-        (requests || []).map(async (req) => {
+        allRequests.map(async (req) => {
           const { data: profile } = await supabase
             .from('profiles')
             .select('email')

@@ -5,7 +5,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const ADMIN_EMAIL = "Alexeu@hormail.es";
+const ADMIN_EMAIL = "Alexeu@hotmail.es";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 interface DepositEmailRequest {
