@@ -102,15 +102,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Add reward to mining balance using service role
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({
-        mining_balance: supabase.rpc("internal_add_mining_balance", { amount: REWARD_AMOUNT }),
-      })
-      .eq("id", user.id);
-
-    // Use raw SQL update for adding to mining balance
+    // Update user's balances
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("mining_balance, total_earned")
@@ -125,8 +117,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const newMiningBalance = (profile.mining_balance || 0) + REWARD_AMOUNT;
-    const newTotalEarned = (profile.total_earned || 0) + REWARD_AMOUNT;
+    const newMiningBalance = (profile.mining_balance ?? 0) + REWARD_AMOUNT;
+    const newTotalEarned = (profile.total_earned ?? 0) + REWARD_AMOUNT;
 
     const { error: balanceError } = await supabase
       .from("profiles")
