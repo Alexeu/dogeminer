@@ -574,6 +574,24 @@ const FaucetPaySection = () => {
                 <li>El depósito se acredita automáticamente en segundos</li>
               </ul>
             </div>
+
+            {/* FaucetPay Registration CTA */}
+            <div className="p-4 rounded-xl bg-primary/10 border border-primary/30">
+              <p className="text-sm font-medium mb-2">¿No tienes cuenta en FaucetPay?</p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Regístrate gratis y empieza a depositar y retirar DOGE al instante.
+              </p>
+              <Button
+                asChild
+                variant="outline"
+                className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+              >
+                <a href="https://faucetpay.io/?r=9590682" target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Registrarse en FaucetPay
+                </a>
+              </Button>
+            </div>
           </div>
         </div>
 
