@@ -1,7 +1,7 @@
 import { useInventory } from "@/contexts/InventoryContext";
 import { rarityConfig } from "@/data/dogeData";
 import { Button } from "@/components/ui/button";
-import { Play, Gift, Clock, Coins, ArrowUp, Star } from "lucide-react";
+import { Play, Gift, Clock, Coins, ArrowUp, Star, RefreshCw, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
@@ -9,11 +9,24 @@ import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 const MINING_DURATION = 60 * 60 * 1000; // 1 hour
 
 const InventorySection = () => {
-  const { inventory, startMining, claimRewards, getClaimableAmount, levelUpCharacter, getLevelUpCost } = useInventory();
-  const { depositBalance, refreshBalance } = useDogeBalance();
+  const { 
+    inventory, 
+    startMining, 
+    claimRewards, 
+    getClaimableAmount, 
+    levelUpCharacter, 
+    getLevelUpCost,
+    renewCharacter,
+    getRenewalCost,
+    isExpired,
+    getDaysRemaining,
+  } = useInventory();
+  const { depositBalance, miningBalance, refreshBalance } = useDogeBalance();
+  const totalBalance = depositBalance + miningBalance;
   const [claimingId, setClaimingId] = useState<string | null>(null);
   const [startingId, setStartingId] = useState<string | null>(null);
   const [levelingId, setLevelingId] = useState<string | null>(null);
+  const [renewingId, setRenewingId] = useState<string | null>(null);
 
   const handleStartMining = async (characterId: string) => {
     setStartingId(characterId);
@@ -55,6 +68,25 @@ const InventorySection = () => {
       toast.success(`¡Carta subida a nivel ${result.newLevel}!`);
     } else {
       toast.error(result.error || "Error al subir de nivel");
+    }
+  };
+
+  const handleRenew = async (characterId: string, rarity: string) => {
+    const cost = getRenewalCost(rarity);
+    if (totalBalance < cost) {
+      toast.error(`Necesitas ${cost} DOGE para renovar este personaje`);
+      return;
+    }
+    
+    setRenewingId(characterId);
+    const result = await renewCharacter(characterId);
+    setRenewingId(null);
+    
+    if (result.success) {
+      await refreshBalance();
+      toast.success(`¡Personaje renovado por 40 días más! (-${result.cost} DOGE)`);
+    } else {
+      toast.error(result.error || "Error al renovar personaje");
     }
   };
 
@@ -111,27 +143,51 @@ const InventorySection = () => {
             const isLeveling = levelingId === item.character.id;
             const levelUpCost = getLevelUpCost(item.character.rarity);
             const isMaxLevel = item.level >= 5;
+            const expired = isExpired(item);
+            const daysRemaining = getDaysRemaining(item);
+            const renewalCost = getRenewalCost(item.character.rarity);
+            const isRenewing = renewingId === item.character.id;
 
             return (
               <div
                 key={item.character.id}
-                className={`relative bg-card rounded-2xl p-4 border border-border overflow-hidden transition-all hover:scale-[1.02] ${
-                  canClaim ? "ring-2 ring-primary animate-pulse" : ""
+                className={`relative bg-card rounded-2xl p-4 border overflow-hidden transition-all hover:scale-[1.02] ${
+                  expired ? "border-destructive/50 ring-1 ring-destructive/30" :
+                  canClaim ? "border-border ring-2 ring-primary animate-pulse" : "border-border"
                 }`}
               >
                 {/* Rarity gradient background */}
                 <div
-                  className={`absolute inset-0 bg-gradient-to-br ${config.color} opacity-10`}
+                  className={`absolute inset-0 bg-gradient-to-br ${config.color} ${expired ? 'opacity-5' : 'opacity-10'}`}
                 />
 
+                {/* Expired overlay */}
+                {expired && (
+                  <div className="absolute inset-0 bg-background/60 z-10 flex flex-col items-center justify-center p-4">
+                    <AlertTriangle className="w-10 h-10 text-destructive mb-2" />
+                    <p className="text-destructive font-bold text-center mb-2">Minado Expirado</p>
+                    <p className="text-muted-foreground text-xs text-center mb-4">
+                      Renueva para seguir minando
+                    </p>
+                    <Button
+                      onClick={() => handleRenew(item.character.id, item.character.rarity)}
+                      disabled={isRenewing || totalBalance < renewalCost}
+                      className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+                    >
+                      <RefreshCw className={`w-4 h-4 mr-2 ${isRenewing ? 'animate-spin' : ''}`} />
+                      {isRenewing ? "Renovando..." : `Renovar (${renewalCost} DOGE)`}
+                    </Button>
+                  </div>
+                )}
+
                 {/* Content */}
-                <div className="relative z-10">
+                <div className="relative z-0">
                   {/* Character image */}
                   <div className="relative w-full aspect-square mb-4 rounded-xl overflow-hidden bg-background/50">
                     <img
                       src={item.character.image}
                       alt={item.character.name}
-                      className="w-full h-full object-contain"
+                      className={`w-full h-full object-contain ${expired ? 'grayscale opacity-50' : ''}`}
                     />
                     {/* Level badge */}
                     <div className="absolute top-2 left-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
@@ -160,8 +216,17 @@ const InventorySection = () => {
                     </span>
                   </div>
 
+                  {/* Expiration warning */}
+                  {!expired && daysRemaining !== null && daysRemaining <= 7 && (
+                    <div className={`text-xs mb-2 px-2 py-1 rounded-full text-center ${
+                      daysRemaining <= 3 ? 'bg-destructive/20 text-destructive' : 'bg-amber-500/20 text-amber-500'
+                    }`}>
+                      ⏱️ {daysRemaining === 0 ? 'Expira hoy' : `Expira en ${daysRemaining} día${daysRemaining > 1 ? 's' : ''}`}
+                    </div>
+                  )}
+
                   {/* Level up button */}
-                  {!isMaxLevel && (
+                  {!isMaxLevel && !expired && (
                     <Button
                       onClick={() => handleLevelUp(item.character.id, item.character.rarity)}
                       disabled={isLeveling || depositBalance < levelUpCost}
@@ -173,50 +238,54 @@ const InventorySection = () => {
                       {isLeveling ? "Subiendo..." : `Subir Nv.${item.level + 1} (${levelUpCost} DOGE)`}
                     </Button>
                   )}
-                  {isMaxLevel && (
+                  {isMaxLevel && !expired && (
                     <div className="w-full mb-3 text-center text-xs text-amber-500 font-medium py-1">
                       ⭐ Nivel Máximo ⭐
                     </div>
                   )}
 
                   {/* Mining progress or action button */}
-                  {isMining && !canClaim ? (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="flex items-center gap-1 text-muted-foreground">
-                          <Clock className="w-4 h-4" />
-                          {timeRemaining}
-                        </span>
-                        <span className="text-primary font-medium">
-                          +{claimableAmount.toFixed(4)} DOGE
-                        </span>
-                      </div>
-                      <div className="w-full bg-background rounded-full h-2 overflow-hidden">
-                        <div
-                          className="h-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-1000"
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                    </div>
-                  ) : canClaim ? (
-                    <Button
-                      onClick={() => handleClaim(item.character.id)}
-                      disabled={isClaiming}
-                      className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
-                    >
-                      <Gift className="w-4 h-4 mr-2" />
-                      {isClaiming ? "Reclamando..." : `Reclamar ${item.accumulatedDoge.toFixed(4)} DOGE`}
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={() => handleStartMining(item.character.id)}
-                      disabled={isStarting}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      <Play className="w-4 h-4 mr-2" />
-                      {isStarting ? "Iniciando..." : "Iniciar Minado"}
-                    </Button>
+                  {!expired && (
+                    <>
+                      {isMining && !canClaim ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="flex items-center gap-1 text-muted-foreground">
+                              <Clock className="w-4 h-4" />
+                              {timeRemaining}
+                            </span>
+                            <span className="text-primary font-medium">
+                              +{claimableAmount.toFixed(4)} DOGE
+                            </span>
+                          </div>
+                          <div className="w-full bg-background rounded-full h-2 overflow-hidden">
+                            <div
+                              className="h-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-1000"
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                        </div>
+                      ) : canClaim ? (
+                        <Button
+                          onClick={() => handleClaim(item.character.id)}
+                          disabled={isClaiming}
+                          className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+                        >
+                          <Gift className="w-4 h-4 mr-2" />
+                          {isClaiming ? "Reclamando..." : `Reclamar ${item.accumulatedDoge.toFixed(4)} DOGE`}
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={() => handleStartMining(item.character.id)}
+                          disabled={isStarting}
+                          variant="outline"
+                          className="w-full"
+                        >
+                          <Play className="w-4 h-4 mr-2" />
+                          {isStarting ? "Iniciando..." : "Iniciar Minado"}
+                        </Button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>

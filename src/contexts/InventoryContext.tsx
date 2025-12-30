@@ -9,6 +9,7 @@ export interface InventoryItem {
   level: number;
   miningStartTime: number | null;
   accumulatedDoge: number;
+  miningExpiresAt: Date | null;
 }
 
 interface RpcResponse {
@@ -32,9 +33,13 @@ interface InventoryContextType {
   startMining: (characterId: string) => Promise<boolean>;
   claimRewards: (characterId: string) => Promise<number>;
   levelUpCharacter: (characterId: string) => Promise<{ success: boolean; error?: string; newLevel?: number }>;
+  renewCharacter: (characterId: string) => Promise<{ success: boolean; error?: string; cost?: number }>;
   getTotalMiningRate: () => number;
   getClaimableAmount: (characterId: string) => number;
   getLevelUpCost: (rarity: string) => number;
+  getRenewalCost: (rarity: string) => number;
+  isExpired: (item: InventoryItem) => boolean;
+  getDaysRemaining: (item: InventoryItem) => number | null;
   refreshInventory: () => Promise<void>;
 }
 
@@ -97,6 +102,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
             level: uc.level || 1,
             miningStartTime: miningSession ? new Date(miningSession.started_at).getTime() : null,
             accumulatedDoge: 0,
+            miningExpiresAt: uc.mining_expires_at ? new Date(uc.mining_expires_at) : null,
           };
         }
 
@@ -109,6 +115,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
           level: uc.level || 1,
           miningStartTime: miningSession ? new Date(miningSession.started_at).getTime() : null,
           accumulatedDoge: 0,
+          miningExpiresAt: uc.mining_expires_at ? new Date(uc.mining_expires_at) : null,
         };
       });
 
@@ -318,6 +325,67 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const getRenewalCost = (rarity: string): number => {
+    switch (rarity) {
+      case 'common': return 1;
+      case 'rare': return 3;
+      case 'epic': return 6;
+      case 'legendary': return 9;
+      case 'christmas': return 6;
+      default: return 1; // starter
+    }
+  };
+
+  const isExpired = (item: InventoryItem): boolean => {
+    if (!item.miningExpiresAt) return false;
+    return new Date() > item.miningExpiresAt;
+  };
+
+  const getDaysRemaining = (item: InventoryItem): number | null => {
+    if (!item.miningExpiresAt) return null;
+    const now = new Date();
+    const diff = item.miningExpiresAt.getTime() - now.getTime();
+    if (diff <= 0) return 0;
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  };
+
+  const renewCharacter = async (characterId: string): Promise<{ success: boolean; error?: string; cost?: number }> => {
+    if (!user) return { success: false, error: 'Not authenticated' };
+
+    // Find the character's UUID from inventory
+    const { data: charData, error: charError } = await supabase
+      .from('user_characters')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('character_id', characterId)
+      .maybeSingle();
+
+    if (charError || !charData) {
+      return { success: false, error: 'Character not found' };
+    }
+
+    try {
+      const { data, error } = await supabase.rpc('renew_character_mining', {
+        p_character_id: charData.id,
+      });
+
+      if (error) {
+        console.error('Error renewing character:', error);
+        return { success: false, error: error.message };
+      }
+
+      const result = data as unknown as { success: boolean; error?: string; cost?: number };
+      if (result?.success) {
+        await refreshInventory();
+        return { success: true, cost: result.cost };
+      }
+      return { success: false, error: result?.error || 'Unknown error' };
+    } catch (error) {
+      console.error('Error renewing character:', error);
+      return { success: false, error: 'Error al renovar personaje' };
+    }
+  };
+
   const levelUpCharacter = async (characterId: string): Promise<{ success: boolean; error?: string; newLevel?: number }> => {
     if (!user) return { success: false, error: 'Not authenticated' };
 
@@ -352,9 +420,13 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
         startMining,
         claimRewards,
         levelUpCharacter,
+        renewCharacter,
         getTotalMiningRate,
         getClaimableAmount,
         getLevelUpCost,
+        getRenewalCost,
+        isExpired,
+        getDaysRemaining,
         refreshInventory,
       }}
     >
