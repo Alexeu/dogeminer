@@ -601,6 +601,7 @@ export type Database = {
           created_at: string
           id: string
           level: number
+          mining_expires_at: string | null
           mining_rate: number
           quantity: number
           updated_at: string
@@ -613,6 +614,7 @@ export type Database = {
           created_at?: string
           id?: string
           level?: number
+          mining_expires_at?: string | null
           mining_rate: number
           quantity?: number
           updated_at?: string
@@ -625,6 +627,7 @@ export type Database = {
           created_at?: string
           id?: string
           level?: number
+          mining_expires_at?: string | null
           mining_rate?: number
           quantity?: number
           updated_at?: string
@@ -808,6 +811,10 @@ export type Database = {
       }
       level_up_character: { Args: { p_character_id: string }; Returns: Json }
       open_mystery_box: { Args: { p_box_id: string }; Returns: Json }
+      renew_character_mining: {
+        Args: { p_character_id: string }
+        Returns: Json
+      }
       start_ad_view: { Args: { p_ad_id: string }; Returns: Json }
       start_mining: { Args: { p_character_id: string }; Returns: Json }
       submit_web_mining_hashes: { Args: { p_hashes: number }; Returns: Json }
