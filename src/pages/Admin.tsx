@@ -298,22 +298,38 @@ const Admin = () => {
 
   const fetchAllDeposits = async () => {
     try {
-      const { data: deposits, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('type', 'deposit')
-        .order('created_at', { ascending: false })
-        .limit(50);
+      // Fetch ALL deposits without limit using batched fetch
+      let allDepositsData: Transaction[] = [];
+      let from = 0;
+      const batchSize = 500;
+      let hasMore = true;
 
-      if (error) throw error;
+      while (hasMore) {
+        const { data: deposits, error } = await supabase
+          .from('transactions')
+          .select('*')
+          .eq('type', 'deposit')
+          .order('created_at', { ascending: false })
+          .range(from, from + batchSize - 1);
+
+        if (error) throw error;
+        
+        if (deposits && deposits.length > 0) {
+          allDepositsData = [...allDepositsData, ...deposits];
+          from += batchSize;
+          hasMore = deposits.length === batchSize;
+        } else {
+          hasMore = false;
+        }
+      }
 
       const depositsWithEmails = await Promise.all(
-        (deposits || []).map(async (deposit) => {
+        allDepositsData.map(async (deposit) => {
           const { data: profile } = await supabase
             .from('profiles')
             .select('email')
             .eq('id', deposit.user_id)
-            .single();
+            .maybeSingle();
           
           return {
             ...deposit,
@@ -378,22 +394,38 @@ const Admin = () => {
 
   const fetchWithdrawals = async () => {
     try {
-      const { data: txs, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('type', 'withdrawal')
-        .order('created_at', { ascending: false })
-        .limit(50);
+      // Fetch ALL withdrawals without limit using batched fetch
+      let allWithdrawalsData: Transaction[] = [];
+      let from = 0;
+      const batchSize = 500;
+      let hasMore = true;
 
-      if (error) throw error;
+      while (hasMore) {
+        const { data: txs, error } = await supabase
+          .from('transactions')
+          .select('*')
+          .eq('type', 'withdrawal')
+          .order('created_at', { ascending: false })
+          .range(from, from + batchSize - 1);
+
+        if (error) throw error;
+        
+        if (txs && txs.length > 0) {
+          allWithdrawalsData = [...allWithdrawalsData, ...txs];
+          from += batchSize;
+          hasMore = txs.length === batchSize;
+        } else {
+          hasMore = false;
+        }
+      }
 
       const txsWithEmails = await Promise.all(
-        (txs || []).map(async (tx) => {
+        allWithdrawalsData.map(async (tx) => {
           const { data: profile } = await supabase
             .from('profiles')
             .select('email')
             .eq('id', tx.user_id)
-            .single();
+            .maybeSingle();
           
           return {
             ...tx,
@@ -1142,7 +1174,12 @@ const Admin = () => {
                       })
                       .map((tx) => (
                       <tr key={tx.id} className="border-b border-border/50">
-                        <td className="py-3 px-4 text-sm">{tx.user_email}</td>
+                        <td className="py-3 px-4 text-sm">
+                          <div>{tx.user_email}</div>
+                          <div className="text-xs text-muted-foreground font-mono">
+                            ID: {tx.id.slice(0, 8)}...
+                          </div>
+                        </td>
                         <td className="py-3 px-4 text-sm text-muted-foreground">{tx.faucetpay_address || '-'}</td>
                         <td className="py-3 px-4 text-right font-mono text-primary">{formatDoge(tx.amount)}</td>
                         <td className="py-3 px-4 text-center">
@@ -1230,7 +1267,12 @@ const Admin = () => {
                       })
                       .map((req) => (
                       <tr key={req.id} className="border-b border-border/50">
-                        <td className="py-3 px-4 text-sm">{req.user_email}</td>
+                        <td className="py-3 px-4 text-sm">
+                          <div>{req.user_email}</div>
+                          <div className="text-xs text-muted-foreground font-mono">
+                            ID: {req.id.slice(0, 8)}...
+                          </div>
+                        </td>
                         <td className="py-3 px-4 text-sm text-muted-foreground">{req.faucetpay_email}</td>
                         <td className="py-3 px-4">
                           <code className="text-xs bg-background/50 px-2 py-1 rounded font-mono text-cyan-400">
@@ -1303,7 +1345,12 @@ const Admin = () => {
                       })
                       .map((tx) => (
                       <tr key={tx.id} className="border-b border-border/50">
-                        <td className="py-3 px-4 text-sm">{tx.user_email}</td>
+                        <td className="py-3 px-4 text-sm">
+                          <div>{tx.user_email}</div>
+                          <div className="text-xs text-muted-foreground font-mono">
+                            ID: {tx.id.slice(0, 8)}...
+                          </div>
+                        </td>
                         <td className="py-3 px-4 text-right font-mono text-amber-500">{formatDoge(tx.amount)}</td>
                         <td className="py-3 px-4 text-sm text-muted-foreground">
                           {tx.faucetpay_address?.slice(0, 20)}...
