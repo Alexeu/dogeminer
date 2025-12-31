@@ -10,6 +10,22 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const FAUCETPAY_DEPOSIT_EMAIL = 'rpgdoge30@gmail.com'; // Email donde recibimos depósitos
 
+// New Year Promo Configuration
+const PROMO_END_DATE = new Date('2025-01-07T00:00:00Z'); // Ends January 6th at midnight
+const PROMO_MIN_DEPOSIT = 3;
+const PROMO_BONUS_PERCENT = 25;
+
+function isPromoActive(): boolean {
+  return new Date() < PROMO_END_DATE;
+}
+
+function calculateBonus(amount: number): number {
+  if (isPromoActive() && amount >= PROMO_MIN_DEPOSIT) {
+    return amount * (PROMO_BONUS_PERCENT / 100);
+  }
+  return 0;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -56,6 +72,10 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // Calculate bonus for promo
+    const bonus = calculateBonus(numAmount);
+    const promoActive = isPromoActive();
 
     // Check for existing pending deposit
     const { data: existingDeposit } = await supabaseAdmin
@@ -115,7 +135,7 @@ serve(async (req) => {
     // Generate FaucetPay payment URL
     const paymentUrl = generateFaucetPayUrl(numAmount, verificationCode);
 
-    console.log(`Created deposit ${deposit.id} for ${numAmount} DOGE, code: ${verificationCode}`);
+    console.log(`Created deposit ${deposit.id} for ${numAmount} DOGE (bonus: ${bonus}), code: ${verificationCode}, promo: ${promoActive}`);
 
     // Send email notification to admin
     try {
@@ -144,6 +164,9 @@ serve(async (req) => {
       deposit_id: deposit.id,
       verification_code: verificationCode,
       amount: numAmount,
+      bonus: bonus,
+      total_credited: numAmount + bonus,
+      promo_active: promoActive,
       payment_url: paymentUrl,
       expires_at: expiresAt.toISOString(),
       recipient: FAUCETPAY_DEPOSIT_EMAIL
