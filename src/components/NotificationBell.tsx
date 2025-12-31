@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, Trophy, Gift, X, Check } from "lucide-react";
+import { Bell, Trophy, Gift, Check, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -108,6 +108,8 @@ const NotificationBell = () => {
         return <Trophy className="w-5 h-5 text-amber-500" />;
       case "gift":
         return <Gift className="w-5 h-5 text-purple-500" />;
+      case "character_expiring":
+        return <Clock className="w-5 h-5 text-orange-500" />;
       default:
         return <Bell className="w-5 h-5 text-primary" />;
     }
