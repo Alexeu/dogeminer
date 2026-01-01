@@ -634,12 +634,31 @@ const FaucetPaySection = () => {
               </div>
             )}
 
+            {/* Promo info in deposit card */}
+            {isPromoActive && (
+              <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-500/20 via-primary/20 to-amber-500/20 border border-emerald-500/40">
+                <div className="flex items-center gap-2 mb-2">
+                  <Gift className="w-5 h-5 text-emerald-500" />
+                  <p className="text-sm font-bold text-emerald-600">🎉 ¡Promoción Activa!</p>
+                </div>
+                <ul className="text-xs space-y-1 text-muted-foreground">
+                  <li>✓ <span className="font-semibold text-emerald-500">+{PROMO_BONUS_PERCENT}%</span> extra en depósitos de {PROMO_MIN_DEPOSIT}+ DOGE</li>
+                  <li>✓ Bonus acreditado automáticamente</li>
+                  <li>✓ Válido hasta el <span className="font-semibold">6 de Enero 2025</span></li>
+                  <li className="text-xs text-amber-600 font-medium">⏰ ¡Quedan {daysUntilPromoEnds} días!</li>
+                </ul>
+              </div>
+            )}
+
             <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
               <p className="text-sm font-medium text-amber-600 mb-2">💡 Instrucciones:</p>
               <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
                 <li>Mínimo: <span className="font-bold text-primary">0.1 DOGE</span> - Máximo: 100 DOGE</li>
                 <li>Entra a FaucetPay → Send Payment</li>
                 <li>El depósito se acredita automáticamente en segundos</li>
+                {isPromoActive && (
+                  <li className="text-emerald-600 font-medium">🎁 Deposita 3+ DOGE y recibe +25% extra</li>
+                )}
               </ul>
             </div>
 
