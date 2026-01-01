@@ -1,8 +1,8 @@
 import { Gift, Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// New Year Promo 2025
-const PROMO_END_DATE = new Date('2025-01-07T00:00:00Z');
+// New Year Promo 2025/2026
+const PROMO_END_DATE = new Date('2026-01-07T00:00:00Z');
 const PROMO_MIN_DEPOSIT = 3;
 const PROMO_BONUS_PERCENT = 25;
 

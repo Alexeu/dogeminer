@@ -744,7 +744,7 @@ const Admin = () => {
         </div>
 
         {/* Promo Banner */}
-        {new Date() < new Date('2025-01-07T00:00:00Z') && (
+        {new Date() < new Date('2026-01-07T00:00:00Z') && (
           <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-emerald-500/20 to-amber-500/20 border border-emerald-500/30">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-primary flex items-center justify-center">
@@ -757,7 +757,7 @@ const Admin = () => {
                   <Sparkles className="w-4 h-4 text-primary" />
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  +25% bonus en depósitos &gt; 3 DOGE • Termina: 6 de Enero 2025 ({Math.ceil((new Date('2025-01-07T00:00:00Z').getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} días restantes)
+                  +25% bonus en depósitos &gt; 3 DOGE • Termina: 6 de Enero 2026 ({Math.ceil((new Date('2026-01-07T00:00:00Z').getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} días restantes)
                 </p>
               </div>
             </div>

@@ -11,7 +11,7 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const FAUCETPAY_DEPOSIT_EMAIL = 'rpgdoge30@gmail.com'; // Email donde recibimos depósitos
 
 // New Year Promo Configuration
-const PROMO_END_DATE = new Date('2025-01-07T00:00:00Z'); // Ends January 6th at midnight
+const PROMO_END_DATE = new Date('2026-01-07T00:00:00Z'); // Ends January 6th at midnight
 const PROMO_MIN_DEPOSIT = 3;
 const PROMO_BONUS_PERCENT = 25;
 
