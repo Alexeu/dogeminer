@@ -21,6 +21,7 @@ import WebMiningSection from "@/components/WebMiningSection";
 import { ShortlinksSection } from "@/components/ShortlinksSection";
 import AppSidebar from "@/components/AppSidebar";
 import SupportSection from "@/components/SupportSection";
+import PromoBanner from "@/components/PromoBanner";
 import { Loader2 } from "lucide-react";
 
 const Index = () => {
@@ -95,6 +96,9 @@ const Index = () => {
         ref={mainContentRef}
         className="pt-16 lg:pl-64 transition-all duration-300"
       >
+        {/* Promo Banner */}
+        <PromoBanner />
+        
         <div id="hero">
           <HeroSection />
         </div>
