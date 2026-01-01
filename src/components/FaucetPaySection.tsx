@@ -13,8 +13,8 @@ const MIN_DEPOSIT_FOR_WITHDRAWAL = 2;
 const MIN_WITHDRAWAL = 0.5;
 const FAUCETPAY_DEPOSIT_EMAIL = "rpgdoge30@gmail.com";
 
-// New Year Promo 2025
-const PROMO_END_DATE = new Date('2025-01-07T00:00:00Z'); // Ends January 6th at midnight
+// New Year Promo 2025/2026
+const PROMO_END_DATE = new Date('2026-01-07T00:00:00Z'); // Ends January 6th at midnight
 const PROMO_MIN_DEPOSIT = 3;
 const PROMO_BONUS_PERCENT = 25;
 
