@@ -110,6 +110,8 @@ const NotificationBell = () => {
         return <Gift className="w-5 h-5 text-purple-500" />;
       case "character_expiring":
         return <Clock className="w-5 h-5 text-orange-500" />;
+      case "promo_bonus":
+        return <Gift className="w-5 h-5 text-emerald-500" />;
       default:
         return <Bell className="w-5 h-5 text-primary" />;
     }
