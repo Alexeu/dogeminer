@@ -787,6 +787,7 @@ export type Database = {
         Args: { p_amount: number; p_plan_type: string }
         Returns: Json
       }
+      deactivate_ad: { Args: { p_ad_id: string }; Returns: Json }
       draw_lottery_winner: { Args: { p_pool_id: string }; Returns: Json }
       get_balance: { Args: never; Returns: Json }
       get_users_by_fingerprint: {
