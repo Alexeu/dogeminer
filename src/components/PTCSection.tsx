@@ -311,23 +311,41 @@ export default function PTCSection() {
   };
 
   const handleDeleteAd = async (adId: string) => {
-    if (!user) return;
+    if (!user) {
+      console.error("handleDeleteAd: No user found");
+      toast.error("Debes iniciar sesión para eliminar anuncios");
+      return;
+    }
     
+    console.log("handleDeleteAd: Starting deletion for ad:", adId, "user:", user.id);
     setDeleting(adId);
+    
     try {
-      const { error } = await supabase
+      const { data, error, count } = await supabase
         .from("ads")
         .update({ is_active: false })
         .eq("id", adId)
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .select();
 
-      if (error) throw error;
+      console.log("handleDeleteAd: Response - data:", data, "error:", error, "count:", count);
+
+      if (error) {
+        console.error("handleDeleteAd: Supabase error:", error);
+        throw error;
+      }
+
+      if (!data || data.length === 0) {
+        console.error("handleDeleteAd: No rows updated - ad may not belong to user");
+        toast.error("No se pudo eliminar el anuncio");
+        return;
+      }
 
       toast.success("Anuncio eliminado");
       setMyAds(myAds.filter(a => a.id !== adId));
-    } catch (error) {
-      console.error("Error deleting ad:", error);
-      toast.error("Error al eliminar el anuncio");
+    } catch (error: any) {
+      console.error("handleDeleteAd: Catch error:", error);
+      toast.error(error?.message || "Error al eliminar el anuncio");
     } finally {
       setDeleting(null);
     }
