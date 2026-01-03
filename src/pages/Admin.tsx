@@ -109,6 +109,8 @@ const Admin = () => {
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [addBalanceAmount, setAddBalanceAmount] = useState("");
   const [addingBalance, setAddingBalance] = useState(false);
+  const [balanceType, setBalanceType] = useState<'mining_balance' | 'deposit_balance'>('deposit_balance');
+  const [balanceOperation, setBalanceOperation] = useState<'add' | 'subtract'>('add');
   
   // Deposits state
   const [pendingDeposits, setPendingDeposits] = useState<PendingDeposit[]>([]);
@@ -473,7 +475,7 @@ const Admin = () => {
     }
   };
 
-  const handleAddBalance = async () => {
+  const handleModifyBalance = async () => {
     if (!selectedUser) return;
     
     const amount = parseFloat(addBalanceAmount);
@@ -488,28 +490,35 @@ const Admin = () => {
 
     setAddingBalance(true);
     try {
-      const { data, error } = await supabase.rpc('admin_add_balance', {
+      const { data, error } = await supabase.rpc('admin_modify_balance', {
         p_user_id: selectedUser.id,
+        p_balance_type: balanceType,
+        p_operation: balanceOperation,
         p_amount: amount
       });
 
       if (error) throw error;
 
-      const result = data as { success: boolean; error?: string; new_balance?: number };
+      const result = data as { success: boolean; error?: string; new_balance?: number; previous_balance?: number };
       if (!result.success) {
-        throw new Error(result.error || 'Failed to add balance');
+        throw new Error(result.error || 'Failed to modify balance');
       }
+
+      const balanceLabel = balanceType === 'mining_balance' ? 'Minado' : 'Depósito';
+      const opLabel = balanceOperation === 'add' ? 'agregados a' : 'restados de';
 
       toast({
         title: t('common.success'),
-        description: `${formatDoge(amount)} DOGE agregados a ${selectedUser.email}`,
+        description: `${formatDoge(amount)} DOGE ${opLabel} ${balanceLabel} de ${selectedUser.email}`,
       });
 
       setAddBalanceAmount("");
       setSelectedUser(null);
+      setBalanceOperation('add');
+      setBalanceType('deposit_balance');
       await fetchUsers();
     } catch (error: any) {
-      console.error('Add balance error:', error);
+      console.error('Modify balance error:', error);
       toast({
         title: t('common.error'),
         description: error.message,
@@ -830,29 +839,98 @@ const Admin = () => {
                 </p>
               )}
 
-              {/* Add Balance Modal */}
+              {/* Modify Balance Modal */}
               {selectedUser && (
                 <div className="mb-6 p-4 rounded-xl bg-primary/10 border border-primary/30">
                   <h3 className="font-bold mb-3 flex items-center gap-2">
-                    <Plus className="w-4 h-4" />
-                    {t('admin.addBalanceToUser')}: {selectedUser.email}
+                    <ArrowUpDown className="w-4 h-4" />
+                    Modificar saldo de: {selectedUser.email}
                   </h3>
+                  <div className="flex flex-wrap gap-3 mb-3">
+                    {/* Balance Type */}
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant={balanceType === 'mining_balance' ? 'default' : 'outline'}
+                        onClick={() => setBalanceType('mining_balance')}
+                        className={balanceType === 'mining_balance' ? 'bg-blue-500 hover:bg-blue-600' : ''}
+                      >
+                        <Cpu className="w-3 h-3 mr-1" />
+                        Minado
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={balanceType === 'deposit_balance' ? 'default' : 'outline'}
+                        onClick={() => setBalanceType('deposit_balance')}
+                        className={balanceType === 'deposit_balance' ? 'bg-primary hover:bg-primary/90' : ''}
+                      >
+                        <ArrowDownToLine className="w-3 h-3 mr-1" />
+                        Depósito
+                      </Button>
+                    </div>
+                    {/* Operation Type */}
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant={balanceOperation === 'add' ? 'default' : 'outline'}
+                        onClick={() => setBalanceOperation('add')}
+                        className={balanceOperation === 'add' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}
+                      >
+                        <Plus className="w-3 h-3 mr-1" />
+                        Añadir
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={balanceOperation === 'subtract' ? 'default' : 'outline'}
+                        onClick={() => setBalanceOperation('subtract')}
+                        className={balanceOperation === 'subtract' ? 'bg-destructive hover:bg-destructive/90' : ''}
+                      >
+                        <ArrowDown className="w-3 h-3 mr-1" />
+                        Restar
+                      </Button>
+                    </div>
+                  </div>
                   <div className="flex gap-2">
                     <Input
                       type="number"
                       step="0.0001"
-                      placeholder={t('admin.amountToAdd')}
+                      placeholder="Cantidad DOGE"
                       value={addBalanceAmount}
                       onChange={(e) => setAddBalanceAmount(e.target.value)}
                       className="max-w-xs"
                     />
-                    <Button onClick={handleAddBalance} disabled={addingBalance}>
-                      {addingBalance ? <Loader2 className="w-4 h-4 animate-spin" /> : t('admin.add')}
+                    <Button 
+                      onClick={handleModifyBalance} 
+                      disabled={addingBalance}
+                      className={balanceOperation === 'subtract' ? 'bg-destructive hover:bg-destructive/90' : ''}
+                    >
+                      {addingBalance ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : balanceOperation === 'add' ? (
+                        <>
+                          <Plus className="w-4 h-4 mr-1" />
+                          Añadir
+                        </>
+                      ) : (
+                        <>
+                          <ArrowDown className="w-4 h-4 mr-1" />
+                          Restar
+                        </>
+                      )}
                     </Button>
-                    <Button variant="ghost" onClick={() => setSelectedUser(null)}>
+                    <Button variant="ghost" onClick={() => {
+                      setSelectedUser(null);
+                      setBalanceOperation('add');
+                      setBalanceType('deposit_balance');
+                      setAddBalanceAmount('');
+                    }}>
                       {t('common.cancel')}
                     </Button>
                   </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Saldo actual: Minado <span className="text-blue-400 font-mono">{formatDoge(selectedUser.mining_balance || 0)}</span> | 
+                    Depósito <span className="text-primary font-mono">{formatDoge(selectedUser.deposit_balance || 0)}</span>
+                  </p>
                 </div>
               )}
 
@@ -911,8 +989,8 @@ const Admin = () => {
                             variant="outline"
                             onClick={() => setSelectedUser(u)}
                           >
-                            <Plus className="w-3 h-3 mr-1" />
-                            {t('admin.addBalance')}
+                            <ArrowUpDown className="w-3 h-3 mr-1" />
+                            Modificar
                           </Button>
                         </td>
                       </tr>

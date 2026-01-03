@@ -745,6 +745,15 @@ export type Database = {
         Args: { p_amount: number; p_user_id: string }
         Returns: Json
       }
+      admin_modify_balance: {
+        Args: {
+          p_amount: number
+          p_balance_type: string
+          p_operation: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       apply_referral_code: { Args: { p_code: string }; Returns: Json }
       buy_lottery_tickets: {
         Args: { p_pool_id: string; p_ticket_count: number }
