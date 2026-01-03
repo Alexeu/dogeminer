@@ -337,7 +337,7 @@ serve(async (req) => {
         // CRITICAL: Check user's database balance before withdrawal
         const { data: profile, error: profileError } = await supabaseAdmin
           .from('profiles')
-          .select('balance')
+          .select('mining_balance, deposit_balance, total_withdrawn')
           .eq('id', userId)
           .single();
 
@@ -352,7 +352,10 @@ serve(async (req) => {
           });
         }
 
-        const userBalance = Number(profile.balance) || 0;
+        // Combine mining_balance and deposit_balance for total available
+        const miningBalance = Number(profile.mining_balance) || 0;
+        const depositBalance = Number(profile.deposit_balance) || 0;
+        const userBalance = miningBalance + depositBalance;
         console.log(`User ${userId} balance: ${userBalance}, requested: ${amount}`);
 
         if (userBalance < amount) {
@@ -431,12 +434,25 @@ serve(async (req) => {
 
         console.log(`Created pending transaction: ${transaction.id}`);
 
-        // Deduct balance from user's profile
+        // Deduct balance from user's profile - deduct from mining_balance first, then deposit_balance
+        let newMiningBalance = miningBalance;
+        let newDepositBalance = depositBalance;
+        
+        if (miningBalance >= amount) {
+          newMiningBalance = miningBalance - amount;
+        } else {
+          // Deduct from mining first, then remainder from deposit
+          const remainingToDeduct = amount - miningBalance;
+          newMiningBalance = 0;
+          newDepositBalance = depositBalance - remainingToDeduct;
+        }
+        
         const { error: deductError } = await supabaseAdmin
           .from('profiles')
           .update({ 
-            balance: userBalance - amount,
-            total_withdrawn: (profile as any).total_withdrawn ? Number((profile as any).total_withdrawn) + amount : amount
+            mining_balance: newMiningBalance,
+            deposit_balance: newDepositBalance,
+            total_withdrawn: Number(profile.total_withdrawn || 0) + amount
           })
           .eq('id', userId);
 
@@ -502,10 +518,13 @@ serve(async (req) => {
           // FaucetPay failed - refund the user
           console.error('FaucetPay send failed:', fpData.message);
           
+          // Restore original balances on failure
           await supabaseAdmin
             .from('profiles')
             .update({ 
-              balance: userBalance // Restore original balance
+              mining_balance: miningBalance,
+              deposit_balance: depositBalance,
+              total_withdrawn: Number(profile.total_withdrawn || 0)
             })
             .eq('id', userId);
 
