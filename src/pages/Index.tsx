@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useInactivityLogout } from "@/hooks/useInactivityLogout";
 import HeroSection from "@/components/HeroSection";
 import CharacterCarousel from "@/components/CharacterCarousel";
 import FeaturesSection from "@/components/FeaturesSection";
@@ -29,6 +30,9 @@ const Index = () => {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("hero");
   const mainContentRef = useRef<HTMLDivElement>(null);
+  
+  // Auto-logout after 5 minutes of inactivity (except admins)
+  useInactivityLogout();
 
   useEffect(() => {
     if (!loading && !user) {
