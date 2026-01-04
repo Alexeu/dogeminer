@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { DogeBalanceProvider } from "@/contexts/DogeBalanceContext";
 import { InventoryProvider } from "@/contexts/InventoryContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import AdBlockDetector from "@/components/AdBlockDetector";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
@@ -17,25 +18,27 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <LanguageProvider>
-      <TooltipProvider>
-        <AuthProvider>
-          <DogeBalanceProvider>
-            <InventoryProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/admin" element={<Admin />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </BrowserRouter>
-            </InventoryProvider>
-          </DogeBalanceProvider>
-        </AuthProvider>
-      </TooltipProvider>
+      <AdBlockDetector>
+        <TooltipProvider>
+          <AuthProvider>
+            <DogeBalanceProvider>
+              <InventoryProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/admin" element={<Admin />} />
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </BrowserRouter>
+              </InventoryProvider>
+            </DogeBalanceProvider>
+          </AuthProvider>
+        </TooltipProvider>
+      </AdBlockDetector>
     </LanguageProvider>
   </QueryClientProvider>
 );
