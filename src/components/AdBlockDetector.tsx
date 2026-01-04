@@ -1,6 +1,7 @@
 import { useState, useEffect, ReactNode } from "react";
 import { Shield, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AdBlockDetectorProps {
   children: ReactNode;
@@ -9,11 +10,28 @@ interface AdBlockDetectorProps {
 const AdBlockDetector = ({ children }: AdBlockDetectorProps) => {
   const [adBlockDetected, setAdBlockDetected] = useState<boolean | null>(null);
   const [checking, setChecking] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const detectAdBlock = async () => {
+    const checkAdminAndAdBlock = async () => {
+      // First check if user is admin
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        const { data: hasAdminRole } = await supabase.rpc('has_role', {
+          _user_id: session.user.id,
+          _role: 'admin'
+        });
+        
+        if (hasAdminRole) {
+          setIsAdmin(true);
+          setChecking(false);
+          return; // Skip ad block detection for admins
+        }
+      }
+
+      // Detect ad blocker for non-admin users
       try {
-        // Method 1: Try to fetch a common ad script
         const testAd = document.createElement("div");
         testAd.innerHTML = "&nbsp;";
         testAd.className = "adsbox ad-banner ad-placeholder pub_300x250 pub_300x250m pub_728x90 text-ad textAd text_ad text_ads text-ads text-ad-links";
@@ -29,10 +47,9 @@ const AdBlockDetector = ({ children }: AdBlockDetectorProps) => {
 
         document.body.removeChild(testAd);
 
-        // Method 2: Try to load a bait script
         if (!isBlocked) {
           try {
-            const response = await fetch("https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js", {
+            await fetch("https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js", {
               method: "HEAD",
               mode: "no-cors",
             });
@@ -50,7 +67,7 @@ const AdBlockDetector = ({ children }: AdBlockDetectorProps) => {
       }
     };
 
-    detectAdBlock();
+    checkAdminAndAdBlock();
   }, []);
 
   const handleRefresh = () => {
@@ -63,6 +80,11 @@ const AdBlockDetector = ({ children }: AdBlockDetectorProps) => {
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
+  }
+
+  // Allow admins to bypass ad blocker detection
+  if (isAdmin) {
+    return <>{children}</>;
   }
 
   if (adBlockDetected) {
