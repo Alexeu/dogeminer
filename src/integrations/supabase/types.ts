@@ -554,6 +554,51 @@ export type Database = {
           },
         ]
       }
+      staking: {
+        Row: {
+          amount: number
+          bonus_rate: number
+          completed_at: string | null
+          created_at: string
+          duration_days: number
+          ends_at: string
+          id: string
+          reward_amount: number | null
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          bonus_rate: number
+          completed_at?: string | null
+          created_at?: string
+          duration_days: number
+          ends_at: string
+          id?: string
+          reward_amount?: number | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          bonus_rate?: number
+          completed_at?: string | null
+          created_at?: string
+          duration_days?: number
+          ends_at?: string
+          id?: string
+          reward_amount?: number | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -771,6 +816,7 @@ export type Database = {
         Args: { p_amount: number; p_character_id: string }
         Returns: Json
       }
+      claim_stake: { Args: { p_stake_id: string }; Returns: Json }
       claim_starter_gift: {
         Args: {
           p_character_id: string
@@ -796,9 +842,14 @@ export type Database = {
         Args: { p_amount: number; p_plan_type: string }
         Returns: Json
       }
+      create_stake: {
+        Args: { p_amount: number; p_duration_days: number }
+        Returns: Json
+      }
       deactivate_ad: { Args: { p_ad_id: string }; Returns: Json }
       draw_lottery_winner: { Args: { p_pool_id: string }; Returns: Json }
       get_balance: { Args: never; Returns: Json }
+      get_total_staked: { Args: never; Returns: number }
       get_users_by_fingerprint: {
         Args: { fp: string }
         Returns: {

@@ -15,7 +15,8 @@ import {
   Link,
   TrendingUp,
   Cpu,
-  HelpCircle
+  HelpCircle,
+  Lock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -37,6 +38,7 @@ const menuItems: MenuItem[] = [
   { id: "collection", labelKey: "sidebar.collection", icon: Trophy, section: "collection" },
   { id: "web-mining", labelKey: "sidebar.webMining", icon: Cpu, section: "web-mining" },
   { id: "online-mining", labelKey: "sidebar.onlineMining", icon: TrendingUp, section: "online-mining" },
+  { id: "staking", labelKey: "sidebar.staking", icon: Lock, section: "staking" },
   { id: "lottery", labelKey: "sidebar.lottery", icon: Ticket, section: "lottery" },
   { id: "shortlinks", labelKey: "sidebar.shortlinks", icon: Link, section: "shortlinks" },
   { id: "ptc", labelKey: "sidebar.ptc", icon: Play, section: "ptc" },

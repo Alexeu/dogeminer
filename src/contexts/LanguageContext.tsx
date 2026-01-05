@@ -30,6 +30,7 @@ export const translations: Translations = {
   'sidebar.ptc': { es: 'Ver Anuncios (PTC)', en: 'View Ads (PTC)' },
   'sidebar.faucetpay': { es: 'Depósito / Retiro', en: 'Deposit / Withdraw' },
   'sidebar.referral': { es: 'Referidos', en: 'Referrals' },
+  'sidebar.staking': { es: 'Staking', en: 'Staking' },
   'sidebar.admin': { es: 'Panel Admin', en: 'Admin Panel' },
   
   // Hero
