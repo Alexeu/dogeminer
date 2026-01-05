@@ -319,20 +319,42 @@ export default function PTCSection() {
     setDeleting(adId);
     
     try {
-      const { error } = await supabase
+      // First verify the ad belongs to this user
+      const { data: adData, error: fetchError } = await supabase
         .from("ads")
-        .update({ is_active: false })
+        .select("id, user_id")
         .eq("id", adId)
-        .eq("user_id", user.id);
+        .single();
 
-      if (error) throw error;
+      if (fetchError) {
+        console.error("Error fetching ad:", fetchError);
+        toast.error("Error al verificar el anuncio");
+        return;
+      }
+
+      if (!adData || adData.user_id !== user.id) {
+        toast.error("No tienes permiso para eliminar este anuncio");
+        return;
+      }
+
+      // Now update the ad to inactive
+      const { error: updateError } = await supabase
+        .from("ads")
+        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .eq("id", adId);
+
+      if (updateError) {
+        console.error("Error deleting ad:", updateError);
+        toast.error(`Error al eliminar: ${updateError.message}`);
+        return;
+      }
 
       toast.success("Anuncio eliminado");
+      // Update local state immediately
       setMyAds(prev => prev.filter(a => a.id !== adId));
-      fetchMyAds();
     } catch (error: any) {
       console.error("Error deleting ad:", error);
-      toast.error("Error al eliminar el anuncio");
+      toast.error(`Error al eliminar el anuncio: ${error.message || 'Error desconocido'}`);
     } finally {
       setDeleting(null);
     }
