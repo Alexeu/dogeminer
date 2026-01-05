@@ -29,7 +29,8 @@ import {
   ArrowUp,
   ArrowDown,
   Gift,
-  Sparkles
+  Sparkles,
+  Trophy
 } from "lucide-react";
 import { formatDoge } from "@/data/dogeData";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -94,6 +95,15 @@ interface WebMiningSession {
   user_email?: string;
 }
 
+interface ReferralStat {
+  user_id: string;
+  email: string | null;
+  username: string | null;
+  referral_code: string | null;
+  total_referrals: number;
+  contest_referrals: number;
+}
+
 const Admin = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -128,6 +138,10 @@ const Admin = () => {
   
   // Web Mining state
   const [webMiningSessions, setWebMiningSessions] = useState<WebMiningSession[]>([]);
+
+  // Referral stats state
+  const [referralStats, setReferralStats] = useState<ReferralStat[]>([]);
+  const [referralSearchQuery, setReferralSearchQuery] = useState("");
 
   useEffect(() => {
     checkAdminRole();
@@ -232,8 +246,19 @@ const Admin = () => {
       fetchAllDeposits(),
       fetchDepositRequests(),
       fetchWithdrawals(),
-      fetchWebMiningSessions()
+      fetchWebMiningSessions(),
+      fetchReferralStats()
     ]);
+  };
+
+  const fetchReferralStats = async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_all_referral_stats');
+      if (error) throw error;
+      setReferralStats(data || []);
+    } catch (error) {
+      console.error('Fetch referral stats error:', error);
+    }
   };
 
   const fetchUsers = async () => {
@@ -774,7 +799,7 @@ const Admin = () => {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 max-w-2xl">
+          <TabsList className="grid w-full grid-cols-6 max-w-3xl">
             <TabsTrigger value="users" className="gap-2">
               <Users className="w-4 h-4" />
               {t('admin.users')}
@@ -804,6 +829,10 @@ const Admin = () => {
                   {webMiningSessions.length}
                 </span>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="referrals" className="gap-2">
+              <Trophy className="w-4 h-4" />
+              Referidos
             </TabsTrigger>
           </TabsList>
 
@@ -1535,6 +1564,134 @@ const Admin = () => {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Referrals Tab */}
+          <TabsContent value="referrals" className="space-y-6">
+            <div className="glass rounded-2xl p-6">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-xl bg-primary/20">
+                    <Trophy className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Concurso de Referidos</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {referralStats.filter(s => s.contest_referrals > 0).length} participantes
+                    </p>
+                  </div>
+                </div>
+                <div className="relative flex-1 max-w-md ml-4">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por email o código..."
+                    value={referralSearchQuery}
+                    onChange={(e) => setReferralSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              {/* Top 3 Podium */}
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                {referralStats.slice(0, 3).map((stat, index) => (
+                  <div 
+                    key={stat.user_id}
+                    className={`p-4 rounded-xl border ${
+                      index === 0 ? 'bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 border-yellow-500/30' :
+                      index === 1 ? 'bg-gradient-to-br from-gray-400/20 to-gray-500/10 border-gray-400/30' :
+                      'bg-gradient-to-br from-amber-600/20 to-amber-700/10 border-amber-600/30'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">{index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}</span>
+                      <span className="font-bold text-lg">#{index + 1}</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground truncate">{stat.email || 'Sin email'}</p>
+                    <p className="text-xs text-muted-foreground/70">@{stat.username || 'anónimo'}</p>
+                    <div className="mt-2 flex justify-between items-center">
+                      <span className="text-xs text-muted-foreground">Ref. Concurso:</span>
+                      <span className="font-bold text-primary">{stat.contest_referrals}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-muted-foreground">Ref. Total:</span>
+                      <span className="font-mono text-muted-foreground">{stat.total_referrals}</span>
+                    </div>
+                    <div className="mt-2 pt-2 border-t border-border/50">
+                      <span className="text-xs text-muted-foreground">Premio: </span>
+                      <span className={`font-bold ${
+                        index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-400' : 'text-amber-600'
+                      }`}>
+                        {index === 0 ? '15' : index === 1 ? '10' : '6'} DOGE
+                      </span>
+                      {stat.contest_referrals < 10 && (
+                        <span className="ml-2 text-xs text-destructive">(Mín. 10 ref.)</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Full Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">#</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Email</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Username</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Código Referido</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Ref. Concurso</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Ref. Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {referralStats
+                      .filter(s => 
+                        (s.email?.toLowerCase().includes(referralSearchQuery.toLowerCase()) ||
+                         s.referral_code?.toLowerCase().includes(referralSearchQuery.toLowerCase()) ||
+                         s.username?.toLowerCase().includes(referralSearchQuery.toLowerCase()))
+                      )
+                      .map((stat, index) => (
+                        <tr key={stat.user_id} className="border-b border-border/50 hover:bg-secondary/30">
+                          <td className="py-3 px-4 text-sm font-medium">
+                            {index + 1}
+                            {index < 3 && stat.contest_referrals >= 10 && (
+                              <span className="ml-1">{index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-sm">{stat.email || 'Sin email'}</td>
+                          <td className="py-3 px-4 text-sm text-muted-foreground">@{stat.username || 'anónimo'}</td>
+                          <td className="py-3 px-4">
+                            {stat.referral_code && (
+                              <code className="text-xs bg-secondary px-2 py-1 rounded">{stat.referral_code}</code>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <span className={`font-mono ${stat.contest_referrals >= 10 ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
+                              {stat.contest_referrals}
+                            </span>
+                            {stat.contest_referrals >= 10 && (
+                              <span className="ml-1 text-emerald-500">✓</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-right font-mono text-muted-foreground">
+                            {stat.total_referrals}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {referralStats.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <p>No hay datos de referidos disponibles</p>
                 </div>
               )}
             </div>
