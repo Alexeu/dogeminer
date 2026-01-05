@@ -10,6 +10,7 @@ import HowItWorksSection from "@/components/HowItWorksSection";
 import WithdrawalsSection from "@/components/WithdrawalsSection";
 import RaritySection from "@/components/RaritySection";
 import ReferralSection from "@/components/ReferralSection";
+import ReferralContestSection from "@/components/ReferralContestSection";
 import CTASection from "@/components/CTASection";
 import BalanceHeader from "@/components/BalanceHeader";
 import InventorySection from "@/components/InventorySection";
@@ -140,6 +141,7 @@ const Index = () => {
           <FaucetPaySection />
         </div>
         <div id="referral">
+          <ReferralContestSection />
           <ReferralSection />
         </div>
         <div id="support">

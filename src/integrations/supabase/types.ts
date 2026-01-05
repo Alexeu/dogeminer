@@ -522,6 +522,86 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_contests: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          end_date: string
+          first_prize: number
+          id: string
+          min_referrals: number
+          second_prize: number
+          start_date: string
+          status: string
+          third_prize: number
+          winner_first_id: string | null
+          winner_second_id: string | null
+          winner_third_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          end_date: string
+          first_prize?: number
+          id?: string
+          min_referrals?: number
+          second_prize?: number
+          start_date?: string
+          status?: string
+          third_prize?: number
+          winner_first_id?: string | null
+          winner_second_id?: string | null
+          winner_third_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          end_date?: string
+          first_prize?: number
+          id?: string
+          min_referrals?: number
+          second_prize?: number
+          start_date?: string
+          status?: string
+          third_prize?: number
+          winner_first_id?: string | null
+          winner_second_id?: string | null
+          winner_third_id?: string | null
+        }
+        Relationships: []
+      }
+      referral_entries: {
+        Row: {
+          contest_id: string | null
+          created_at: string
+          id: string
+          referred_id: string
+          referrer_id: string
+        }
+        Insert: {
+          contest_id?: string | null
+          created_at?: string
+          id?: string
+          referred_id: string
+          referrer_id: string
+        }
+        Update: {
+          contest_id?: string | null
+          created_at?: string
+          id?: string
+          referred_id?: string
+          referrer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_entries_contest_id_fkey"
+            columns: ["contest_id"]
+            isOneToOne: false
+            referencedRelation: "referral_contests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shortlink_completions: {
         Row: {
           completed_at: string
@@ -848,7 +928,40 @@ export type Database = {
       }
       deactivate_ad: { Args: { p_ad_id: string }; Returns: Json }
       draw_lottery_winner: { Args: { p_pool_id: string }; Returns: Json }
+      get_active_contest: {
+        Args: never
+        Returns: {
+          days_remaining: number
+          end_date: string
+          first_prize: number
+          id: string
+          min_referrals: number
+          second_prize: number
+          start_date: string
+          third_prize: number
+        }[]
+      }
+      get_all_referral_stats: {
+        Args: never
+        Returns: {
+          contest_referrals: number
+          email: string
+          referral_code: string
+          total_referrals: number
+          user_id: string
+          username: string
+        }[]
+      }
       get_balance: { Args: never; Returns: Json }
+      get_referral_leaderboard: {
+        Args: never
+        Returns: {
+          rank: number
+          referral_count: number
+          user_id: string
+          username: string
+        }[]
+      }
       get_total_staked: { Args: never; Returns: number }
       get_users_by_fingerprint: {
         Args: { fp: string }

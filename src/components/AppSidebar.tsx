@@ -43,7 +43,7 @@ const menuItems: MenuItem[] = [
   { id: "shortlinks", labelKey: "sidebar.shortlinks", icon: Link, section: "shortlinks" },
   { id: "ptc", labelKey: "sidebar.ptc", icon: Play, section: "ptc" },
   { id: "faucetpay", labelKey: "sidebar.faucetpay", icon: Wallet, section: "faucetpay" },
-  { id: "referral", labelKey: "sidebar.referral", icon: Users, section: "referral" },
+  { id: "referral", labelKey: "sidebar.referral", icon: Trophy, section: "referral" },
   { id: "support", labelKey: "support.title", icon: HelpCircle, section: "support" },
 ];
 
