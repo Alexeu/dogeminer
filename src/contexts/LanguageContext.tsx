@@ -343,7 +343,7 @@ export const translations: Translations = {
   'birds.info1': { es: 'Compra pájaros con tu balance de depósito', en: 'Buy birds with your deposit balance', th: 'ซื้อนกด้วยยอดเงินฝากของคุณ', ru: 'Покупай птиц за депозитный баланс' },
   'birds.info2': { es: 'Los pájaros generan huevos automáticamente cada hora', en: 'Birds automatically generate eggs every hour', th: 'นกสร้างไข่อัตโนมัติทุกชั่วโมง', ru: 'Птицы автоматически производят яйца каждый час' },
   'birds.info3': { es: 'Almacena los huevos en tu granero (¡mejóralo para más capacidad!)', en: 'Store eggs in your barn (upgrade it for more capacity!)', th: 'เก็บไข่ในยุ้งฉาง (อัพเกรดเพื่อเพิ่มความจุ!)', ru: 'Храни яйца в амбаре (улучши его для большей вместимости!)' },
-  'birds.info4': { es: 'Convierte 60,000 huevos en 0.0060 DOGE', en: 'Convert 60,000 eggs into 0.0060 DOGE', th: 'แปลง 60,000 ไข่เป็น 0.0060 DOGE', ru: 'Обменивай 60 000 яиц на 0.0060 DOGE' },
+  'birds.info4': { es: 'Convierte 45,000 huevos en 0.0075 DOGE', en: 'Convert 45,000 eggs into 0.0075 DOGE', th: 'แปลง 45,000 ไข่เป็น 0.0075 DOGE', ru: 'Обменивай 45 000 яиц на 0.0075 DOGE' },
   'birds.insufficientBalance': { es: 'Balance insuficiente', en: 'Insufficient balance', th: 'ยอดเงินไม่เพียงพอ', ru: 'Недостаточно средств' },
   'birds.birdPurchased': { es: '¡Pájaro comprado!', en: 'Bird purchased!', th: 'ซื้อนกแล้ว!', ru: 'Птица куплена!' },
   'birds.purchaseFailed': { es: 'Error al comprar', en: 'Purchase failed', th: 'ซื้อไม่สำเร็จ', ru: 'Ошибка покупки' },
