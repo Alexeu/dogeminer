@@ -169,15 +169,17 @@ export default function Auth() {
     }
   };
 
-  // Validate fingerprint after successful auth
-  const validateAndRegisterFingerprint = async () => {
+  // Validate fingerprint BEFORE auth for signup, AFTER for login
+  const validateAndRegisterFingerprint = async (isPreCheck = false) => {
     if (!fingerprintData) return { success: true };
     
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return { success: true };
+      
+      // For pre-check (before signup), we don't have a session yet
+      if (!isPreCheck && !session) return { success: true };
 
-      // Check if fingerprint is banned
+      // Check if fingerprint is banned or has too many accounts
       const { data: checkResult, error: checkError } = await supabase.functions.invoke('validate-fingerprint', {
         body: {
           action: 'check',
@@ -188,7 +190,7 @@ export default function Auth() {
 
       if (checkError) {
         console.error('Fingerprint check error:', checkError);
-        return { success: true }; // Allow login on error to not block legitimate users
+        return { success: true }; // Allow on error to not block legitimate users
       }
 
       if (checkResult?.banned) {
@@ -199,19 +201,54 @@ export default function Auth() {
         return { success: false, reason: 'too_many_accounts' };
       }
 
-      // Register fingerprint
-      await supabase.functions.invoke('validate-fingerprint', {
+      // Register fingerprint (only after successful auth, not pre-check)
+      if (!isPreCheck && session) {
+        await supabase.functions.invoke('validate-fingerprint', {
+          body: {
+            action: 'register',
+            fingerprint: fingerprintData.fingerprint,
+            userAgent: fingerprintData.components.userAgent,
+          },
+        });
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Fingerprint validation error:', error);
+      return { success: true }; // Allow on error
+    }
+  };
+
+  // Pre-validate fingerprint for signup (before creating account)
+  const preValidateForSignup = async (): Promise<{ success: boolean; reason?: string }> => {
+    if (!fingerprintData) return { success: true };
+    
+    try {
+      // Check fingerprint limits without auth
+      const { data: checkResult, error: checkError } = await supabase.functions.invoke('validate-fingerprint-public', {
         body: {
-          action: 'register',
           fingerprint: fingerprintData.fingerprint,
           userAgent: fingerprintData.components.userAgent,
         },
       });
 
+      if (checkError) {
+        console.error('Pre-validation error:', checkError);
+        return { success: true }; 
+      }
+
+      if (checkResult?.banned) {
+        return { success: false, reason: 'banned' };
+      }
+
+      if (checkResult?.tooManyAccounts) {
+        return { success: false, reason: 'too_many_accounts' };
+      }
+
       return { success: true };
     } catch (error) {
-      console.error('Fingerprint validation error:', error);
-      return { success: true }; // Allow login on error
+      console.error('Pre-validation error:', error);
+      return { success: true };
     }
   };
 
@@ -245,7 +282,7 @@ export default function Auth() {
             setFingerprintBlocked(true);
             setBlockReason(fpResult.reason === 'banned' 
               ? 'Este dispositivo está asociado a una cuenta baneada.' 
-              : 'Demasiadas cuentas desde esta IP.');
+              : 'Demasiadas cuentas desde este dispositivo/IP.');
             toast.error("Acceso denegado.");
             return;
           }
@@ -256,6 +293,18 @@ export default function Auth() {
           navigate("/");
         }
       } else {
+        // Pre-validate fingerprint BEFORE creating account
+        const preCheck = await preValidateForSignup();
+        if (!preCheck.success) {
+          setFingerprintBlocked(true);
+          setBlockReason(preCheck.reason === 'banned' 
+            ? 'Este dispositivo está asociado a una cuenta baneada.' 
+            : 'Demasiadas cuentas desde este dispositivo/IP.');
+          toast.error("No puedes crear más cuentas desde este dispositivo.");
+          setLoading(false);
+          return;
+        }
+
         const { error } = await signUp(email, password);
         if (error) {
           recordFailedAttempt();
@@ -265,14 +314,14 @@ export default function Auth() {
             toast.error(error.message);
           }
         } else {
-          // Validate fingerprint after successful signup
+          // Register fingerprint after successful signup
           const fpResult = await validateAndRegisterFingerprint();
           if (!fpResult.success) {
             await supabase.auth.signOut();
             setFingerprintBlocked(true);
             setBlockReason(fpResult.reason === 'banned' 
               ? 'Este dispositivo está asociado a una cuenta baneada.' 
-              : 'Demasiadas cuentas desde esta IP.');
+              : 'Demasiadas cuentas desde este dispositivo/IP.');
             toast.error("Acceso denegado.");
             return;
           }

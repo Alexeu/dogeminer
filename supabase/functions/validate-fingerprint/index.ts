@@ -82,7 +82,28 @@ serve(async (req) => {
         );
       }
 
-      // Check if this IP has too many accounts
+      // Check if this fingerprint already has accounts (limit: 2 accounts per device)
+      const { data: fpAccounts, error: fpError } = await supabaseAdmin
+        .from('device_fingerprints')
+        .select('user_id')
+        .eq('fingerprint', fingerprint);
+
+      if (!fpError && fpAccounts) {
+        const uniqueFpUsers = new Set(fpAccounts.map(a => a.user_id));
+        if (uniqueFpUsers.size >= 2 && !uniqueFpUsers.has(user.id)) {
+          console.warn(`[validate-fingerprint] Too many accounts from fingerprint: ${fingerprint}`);
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              tooManyAccounts: true,
+              error: 'Too many accounts from this device' 
+            }),
+            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+
+      // Check if this IP has too many accounts (limit: 3 accounts per IP)
       const { data: ipAccounts, error: ipError } = await supabaseAdmin
         .from('device_fingerprints')
         .select('user_id')
