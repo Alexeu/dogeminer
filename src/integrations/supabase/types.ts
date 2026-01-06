@@ -718,6 +718,57 @@ export type Database = {
         }
         Relationships: []
       }
+      user_barn: {
+        Row: {
+          created_at: string
+          eggs: number
+          id: string
+          last_collected_at: string
+          level: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          eggs?: number
+          id?: string
+          last_collected_at?: string
+          level?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          eggs?: number
+          id?: string
+          last_collected_at?: string
+          level?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_birds: {
+        Row: {
+          bird_type: string
+          id: string
+          purchased_at: string
+          quantity: number
+          user_id: string
+        }
+        Insert: {
+          bird_type: string
+          id?: string
+          purchased_at?: string
+          quantity?: number
+          user_id: string
+        }
+        Update: {
+          bird_type?: string
+          id?: string
+          purchased_at?: string
+          quantity?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_characters: {
         Row: {
           character_id: string
@@ -880,6 +931,7 @@ export type Database = {
         Returns: Json
       }
       apply_referral_code: { Args: { p_code: string }; Returns: Json }
+      buy_bird: { Args: { bird_type_param: string }; Returns: Json }
       buy_lottery_tickets: {
         Args: { p_pool_id: string; p_ticket_count: number }
         Returns: Json
@@ -906,6 +958,7 @@ export type Database = {
         Returns: Json
       }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      collect_eggs: { Args: never; Returns: Json }
       complete_deposit: {
         Args: { p_deposit_id: string; p_tx_hash?: string }
         Returns: Json
@@ -914,6 +967,7 @@ export type Database = {
         Args: { p_provider: string; p_reward?: number }
         Returns: Json
       }
+      convert_eggs_to_doge: { Args: { eggs_amount: number }; Returns: Json }
       create_deposit_request: {
         Args: { p_amount: number; p_faucetpay_email: string }
         Returns: Json
@@ -953,6 +1007,7 @@ export type Database = {
         }[]
       }
       get_balance: { Args: never; Returns: Json }
+      get_barn_capacity: { Args: { barn_level: number }; Returns: number }
       get_referral_leaderboard: {
         Args: never
         Returns: {
@@ -993,6 +1048,7 @@ export type Database = {
       start_mining: { Args: { p_character_id: string }; Returns: Json }
       submit_web_mining_hashes: { Args: { p_hashes: number }; Returns: Json }
       subtract_balance: { Args: { p_amount: number }; Returns: Json }
+      upgrade_barn: { Args: never; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
