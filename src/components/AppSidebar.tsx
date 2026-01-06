@@ -16,8 +16,7 @@ import {
   TrendingUp,
   Cpu,
   HelpCircle,
-  Lock,
-  Gift
+  Lock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -42,7 +41,6 @@ const menuItems: MenuItem[] = [
   { id: "staking", labelKey: "sidebar.staking", icon: Lock, section: "staking" },
   { id: "lottery", labelKey: "sidebar.lottery", icon: Ticket, section: "lottery" },
   { id: "shortlinks", labelKey: "sidebar.shortlinks", icon: Link, section: "shortlinks" },
-  { id: "offerwalls", labelKey: "sidebar.offerwalls", icon: Gift, section: "offerwalls" },
   { id: "ptc", labelKey: "sidebar.ptc", icon: Play, section: "ptc" },
   { id: "faucetpay", labelKey: "sidebar.faucetpay", icon: Wallet, section: "faucetpay" },
   { id: "referral", labelKey: "sidebar.referral", icon: Trophy, section: "referral" },

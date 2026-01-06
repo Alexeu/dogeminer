@@ -21,7 +21,6 @@ import LotterySection from "@/components/LotterySection";
 import OnlineMiningSection from "@/components/OnlineMiningSection";
 import WebMiningSection from "@/components/WebMiningSection";
 import { ShortlinksSection } from "@/components/ShortlinksSection";
-import OfferwallsSection from "@/components/OfferwallsSection";
 import AppSidebar from "@/components/AppSidebar";
 import SupportSection from "@/components/SupportSection";
 import StakingSection from "@/components/StakingSection";
@@ -47,7 +46,7 @@ const Index = () => {
     const handleScroll = () => {
       const sections = [
         "hero", "mystery-boxes", "inventory", "collection", 
-        "web-mining", "online-mining", "staking", "lottery", "shortlinks", "offerwalls", "ptc", "faucetpay", "referral", "support"
+        "web-mining", "online-mining", "staking", "lottery", "shortlinks", "ptc", "faucetpay", "referral", "support"
       ];
       
       for (const sectionId of sections) {
@@ -131,9 +130,6 @@ const Index = () => {
         </div>
         <div id="shortlinks">
           <ShortlinksSection />
-        </div>
-        <div id="offerwalls">
-          <OfferwallsSection />
         </div>
         <div id="ptc">
           <PTCSection />
