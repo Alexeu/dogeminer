@@ -27,6 +27,7 @@ interface BirdType {
   eggsPerHour: number;
   color: string;
   gradient: string;
+  textColor?: string;
 }
 
 const birds: BirdType[] = [
@@ -34,7 +35,7 @@ const birds: BirdType[] = [
   { id: "red", name: "Red Bird", nameKey: "birds.red", image: birdRed, price: 15, eggsPerHour: 475, color: "#EF4444", gradient: "from-red-400 to-red-500" },
   { id: "green", name: "Green Bird", nameKey: "birds.green", image: birdGreen, price: 45, eggsPerHour: 2375, color: "#22C55E", gradient: "from-green-400 to-green-500" },
   { id: "blue", name: "Blue Bird", nameKey: "birds.blue", image: birdBlue, price: 85, eggsPerHour: 7500, color: "#3B82F6", gradient: "from-blue-400 to-blue-500" },
-  { id: "black", name: "Black Bird", nameKey: "birds.black", image: birdBlack, price: 250, eggsPerHour: 35000, color: "#1F2937", gradient: "from-gray-700 to-gray-900" },
+  { id: "black", name: "Black Bird", nameKey: "birds.black", image: birdBlack, price: 250, eggsPerHour: 35000, color: "#1F2937", gradient: "from-gray-700 to-gray-900", textColor: "text-white" },
 ];
 
 const barnLevels = [
@@ -511,7 +512,7 @@ const DogeBirdsSection = () => {
                   <Button
                     onClick={() => handleBuyBird(bird.id, bird.price)}
                     disabled={buyingBird === bird.id || !canAfford}
-                    className={`w-full bg-gradient-to-r ${bird.gradient} hover:opacity-90 transition-all hover:scale-105`}
+                    className={`w-full bg-gradient-to-r ${bird.gradient} hover:opacity-90 transition-all hover:scale-105 ${bird.textColor || 'text-white'}`}
                     size="sm"
                   >
                     {buyingBird === bird.id ? (
