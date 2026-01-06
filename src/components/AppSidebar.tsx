@@ -16,7 +16,8 @@ import {
   TrendingUp,
   Cpu,
   HelpCircle,
-  Lock
+  Lock,
+  Bird
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -36,6 +37,7 @@ const menuItems: MenuItem[] = [
   { id: "mystery-boxes", labelKey: "sidebar.mysteryBoxes", icon: Package, section: "mystery-boxes" },
   { id: "inventory", labelKey: "sidebar.inventory", icon: Pickaxe, section: "inventory" },
   { id: "collection", labelKey: "sidebar.collection", icon: Trophy, section: "collection" },
+  { id: "doge-birds", labelKey: "sidebar.dogeBirds", icon: Bird, section: "doge-birds" },
   { id: "web-mining", labelKey: "sidebar.webMining", icon: Cpu, section: "web-mining" },
   { id: "online-mining", labelKey: "sidebar.onlineMining", icon: TrendingUp, section: "online-mining" },
   { id: "staking", labelKey: "sidebar.staking", icon: Lock, section: "staking" },

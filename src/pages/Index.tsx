@@ -24,6 +24,7 @@ import { ShortlinksSection } from "@/components/ShortlinksSection";
 import AppSidebar from "@/components/AppSidebar";
 import SupportSection from "@/components/SupportSection";
 import StakingSection from "@/components/StakingSection";
+import DogeBirdsSection from "@/components/DogeBirdsSection";
 import { Loader2 } from "lucide-react";
 
 const Index = () => {
@@ -45,7 +46,7 @@ const Index = () => {
   useEffect(() => {
     const handleScroll = () => {
       const sections = [
-        "hero", "mystery-boxes", "inventory", "collection", 
+        "hero", "mystery-boxes", "inventory", "collection", "doge-birds",
         "web-mining", "online-mining", "staking", "lottery", "shortlinks", "ptc", "faucetpay", "referral", "support"
       ];
       
@@ -115,6 +116,9 @@ const Index = () => {
         </div>
         <div id="collection">
           <CollectionSection />
+        </div>
+        <div id="doge-birds">
+          <DogeBirdsSection />
         </div>
         <div id="web-mining">
           <WebMiningSection />
