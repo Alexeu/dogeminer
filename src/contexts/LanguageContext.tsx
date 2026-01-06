@@ -306,6 +306,20 @@ export const translations: Translations = {
   'admin.allDeposits': { es: 'Todos los Depósitos', en: 'All Deposits', th: 'การฝากทั้งหมด', ru: 'Все депозиты' },
   'admin.allWithdrawals': { es: 'Todos los Retiros', en: 'All Withdrawals', th: 'การถอนทั้งหมด', ru: 'Все выводы' },
   
+  // Offerwalls
+  'offerwalls.title': { es: 'Offerwalls', en: 'Offerwalls', th: 'Offerwalls', ru: 'Offerwalls' },
+  'offerwalls.subtitle': { es: 'Completa tareas y ofertas para ganar DOGE. ¡Cuantas más completes, más ganas! 🎯', en: 'Complete tasks and offers to earn DOGE. The more you complete, the more you earn! 🎯', th: 'ทำภารกิจและข้อเสนอเพื่อรับ DOGE ยิ่งทำมากยิ่งได้มาก! 🎯', ru: 'Выполняй задания и офферы, чтобы заработать DOGE. Чем больше выполнишь, тем больше заработаешь! 🎯' },
+  'offerwalls.timewallDesc': { es: 'Completa encuestas, instala apps y realiza tareas para ganar DOGE al instante.', en: 'Complete surveys, install apps and do tasks to earn DOGE instantly.', th: 'ทำแบบสำรวจ ติดตั้งแอป และทำภารกิจเพื่อรับ DOGE ทันที', ru: 'Проходи опросы, устанавливай приложения и выполняй задания, чтобы получить DOGE мгновенно.' },
+  'offerwalls.bitcotaskDesc': { es: 'Descubre ofertas exclusivas con las mejores recompensas en DOGE.', en: 'Discover exclusive offers with the best DOGE rewards.', th: 'ค้นพบข้อเสนอพิเศษที่ให้รางวัล DOGE ดีที่สุด', ru: 'Открой эксклюзивные офферы с лучшими наградами в DOGE.' },
+  'offerwalls.hot': { es: '¡Popular!', en: 'Hot!', th: 'ยอดนิยม!', ru: 'Популярно!' },
+  'offerwalls.instant': { es: 'Pago instantáneo', en: 'Instant payout', th: 'จ่ายทันที', ru: 'Мгновенная выплата' },
+  'offerwalls.openButton': { es: 'Abrir Offerwall', en: 'Open Offerwall', th: 'เปิด Offerwall', ru: 'Открыть Offerwall' },
+  'offerwalls.tipsTitle': { es: 'Consejos para ganar más', en: 'Tips to earn more', th: 'เคล็ดลับเพื่อรับมากขึ้น', ru: 'Советы для большего заработка' },
+  'offerwalls.tip1': { es: 'Completa tu perfil para recibir ofertas mejor adaptadas a ti', en: 'Complete your profile to receive better tailored offers', th: 'กรอกโปรไฟล์ของคุณเพื่อรับข้อเสนอที่เหมาะกับคุณมากขึ้น', ru: 'Заполни профиль, чтобы получать подходящие офферы' },
+  'offerwalls.tip2': { es: 'Las encuestas y descargas de apps suelen dar más recompensas', en: 'Surveys and app downloads usually give higher rewards', th: 'แบบสำรวจและการดาวน์โหลดแอปมักให้รางวัลมากกว่า', ru: 'Опросы и загрузка приложений обычно дают больше наград' },
+  'offerwalls.tip3': { es: 'Revisa las offerwalls diariamente para nuevas ofertas', en: 'Check offerwalls daily for new offers', th: 'ตรวจสอบ offerwall ทุกวันเพื่อดูข้อเสนอใหม่', ru: 'Проверяй offerwalls ежедневно для новых офферов' },
+  'sidebar.offerwalls': { es: 'Offerwalls', en: 'Offerwalls', th: 'Offerwalls', ru: 'Offerwalls' },
+  
   // Support
   'support.badge': { es: '¿Necesitas ayuda?', en: 'Need help?', th: 'ต้องการความช่วยเหลือ?', ru: 'Нужна помощь?' },
   'support.title': { es: 'Soporte', en: 'Support', th: 'ช่วยเหลือ', ru: 'Поддержка' },
