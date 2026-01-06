@@ -106,9 +106,11 @@ const DogeBirdsSection = () => {
     fetchUserData();
   }, [fetchUserData]);
 
-  // Calculate pending eggs in real-time
+  // Calculate eggs accumulating in real-time (directly in barn)
+  const barnCapacity = barnLevels.find(l => l.level === barn.level)?.capacity || 60000;
+  
   useEffect(() => {
-    const calculatePendingEggs = () => {
+    const calculateBarnEggs = () => {
       let totalEggsPerHour = 0;
       birds.forEach(bird => {
         const quantity = userBirds[bird.id] || 0;
@@ -116,14 +118,16 @@ const DogeBirdsSection = () => {
       });
       
       const hoursElapsed = (Date.now() - barn.lastCollectedAt.getTime()) / (1000 * 60 * 60);
-      const pending = Math.floor(totalEggsPerHour * hoursElapsed);
-      setPendingEggs(pending);
+      const generatedEggs = Math.floor(totalEggsPerHour * hoursElapsed);
+      // Cap at barn capacity
+      const totalEggs = Math.min(barn.eggs + generatedEggs, barnCapacity);
+      setPendingEggs(totalEggs);
     };
     
-    calculatePendingEggs();
-    const interval = setInterval(calculatePendingEggs, 1000);
+    calculateBarnEggs();
+    const interval = setInterval(calculateBarnEggs, 1000);
     return () => clearInterval(interval);
-  }, [userBirds, barn.lastCollectedAt]);
+  }, [userBirds, barn.lastCollectedAt, barn.eggs, barnCapacity]);
 
   const handleBuyBird = async (birdId: string, price: number) => {
     if (!user) return;
@@ -219,16 +223,23 @@ const DogeBirdsSection = () => {
   };
 
   const handleConvertEggs = async () => {
-    if (!user || barn.eggs < 45000) {
+    if (!user || pendingEggs < 45000) {
       toast.error(t("birds.minEggsRequired"));
       return;
     }
     
-    // Convert all available eggs (in multiples of 45000)
-    const eggsToConvert = Math.floor(barn.eggs / 45000) * 45000;
-    
     setConvertingEggs(true);
     try {
+      // First collect eggs to sync with database
+      const { error: collectError } = await supabase.rpc("collect_eggs");
+      if (collectError) throw collectError;
+      
+      // Refresh to get updated barn eggs
+      await fetchUserData();
+      
+      // Now convert (use pendingEggs since it reflects the real-time total)
+      const eggsToConvert = Math.floor(pendingEggs / 45000) * 45000;
+      
       const { data, error } = await supabase.rpc("convert_eggs_to_doge", { eggs_amount: eggsToConvert });
       
       if (error) throw error;
@@ -264,8 +275,7 @@ const DogeBirdsSection = () => {
     }, 0);
   };
 
-  const barnCapacity = getBarnCapacity();
-  const barnProgress = (barn.eggs / barnCapacity) * 100;
+  const barnProgress = (pendingEggs / barnCapacity) * 100;
   const nextBarnLevel = getNextBarnLevel();
   const totalEggsPerHour = getTotalEggsPerHour();
 
@@ -287,19 +297,12 @@ const DogeBirdsSection = () => {
         </div>
 
         {/* Stats Bar */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card className="bg-card/50 border-green-500/20">
             <CardContent className="p-4 text-center">
-              <Egg className="w-6 h-6 mx-auto mb-2 text-yellow-400" />
-              <p className="text-2xl font-bold text-yellow-400">{barn.eggs.toLocaleString()}</p>
+              <Warehouse className="w-6 h-6 mx-auto mb-2 text-amber-400" />
+              <p className="text-2xl font-bold text-amber-400">{pendingEggs.toLocaleString()}</p>
               <p className="text-xs text-muted-foreground">{t("birds.storedEggs")}</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card/50 border-green-500/20">
-            <CardContent className="p-4 text-center">
-              <RefreshCw className="w-6 h-6 mx-auto mb-2 text-green-400 animate-spin" />
-              <p className="text-2xl font-bold text-green-400">{pendingEggs.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">{t("birds.pendingEggs")}</p>
             </CardContent>
           </Card>
           <Card className="bg-card/50 border-green-500/20">
@@ -328,7 +331,7 @@ const DogeBirdsSection = () => {
                 {t("birds.barn")} - {t("birds.level")} {barn.level}
               </CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                {t("birds.capacity")}: {barn.eggs.toLocaleString()} / {barnCapacity.toLocaleString()}
+                {t("birds.capacity")}: {pendingEggs.toLocaleString()} / {barnCapacity.toLocaleString()}
               </p>
             </div>
           </CardHeader>
@@ -337,23 +340,9 @@ const DogeBirdsSection = () => {
             
             <div className="flex flex-wrap gap-3">
               <Button
-                onClick={handleCollectEggs}
-                disabled={collectingEggs || pendingEggs <= 0}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                {collectingEggs ? (
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Egg className="w-4 h-4 mr-2" />
-                )}
-                {t("birds.collectEggs")} ({pendingEggs.toLocaleString()})
-              </Button>
-              
-              <Button
                 onClick={handleConvertEggs}
-                disabled={convertingEggs || barn.eggs < 45000}
-                variant="outline"
-                className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/20"
+                disabled={convertingEggs || pendingEggs < 45000}
+                className="bg-yellow-600 hover:bg-yellow-700"
               >
                 {convertingEggs ? (
                   <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
