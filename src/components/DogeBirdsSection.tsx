@@ -218,13 +218,13 @@ const DogeBirdsSection = () => {
   };
 
   const handleConvertEggs = async () => {
-    if (!user || barn.eggs < 60000) {
+    if (!user || barn.eggs < 45000) {
       toast.error(t("birds.minEggsRequired"));
       return;
     }
     
-    // Convert all available eggs (in multiples of 60000)
-    const eggsToConvert = Math.floor(barn.eggs / 60000) * 60000;
+    // Convert all available eggs (in multiples of 45000)
+    const eggsToConvert = Math.floor(barn.eggs / 45000) * 45000;
     
     setConvertingEggs(true);
     try {
@@ -350,7 +350,7 @@ const DogeBirdsSection = () => {
               
               <Button
                 onClick={handleConvertEggs}
-                disabled={convertingEggs || barn.eggs < 60000}
+                disabled={convertingEggs || barn.eggs < 45000}
                 variant="outline"
                 className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/20"
               >
@@ -380,7 +380,7 @@ const DogeBirdsSection = () => {
             </div>
             
             <p className="text-xs text-muted-foreground mt-4">
-              💱 {t("birds.exchangeRate")}: 60,000 🥚 = 0.0060 DOGE
+              💱 {t("birds.exchangeRate")}: 45,000 🥚 = 0.0075 DOGE
             </p>
           </CardContent>
         </Card>
