@@ -30,11 +30,11 @@ interface BirdType {
 }
 
 const birds: BirdType[] = [
-  { id: "yellow", name: "Yellow Bird", nameKey: "birds.yellow", image: birdYellow, price: 4, eggsPerHour: 80, color: "#FCD34D", gradient: "from-yellow-400 to-yellow-500" },
-  { id: "red", name: "Red Bird", nameKey: "birds.red", image: birdRed, price: 15, eggsPerHour: 380, color: "#EF4444", gradient: "from-red-400 to-red-500" },
-  { id: "green", name: "Green Bird", nameKey: "birds.green", image: birdGreen, price: 45, eggsPerHour: 1900, color: "#22C55E", gradient: "from-green-400 to-green-500" },
-  { id: "blue", name: "Blue Bird", nameKey: "birds.blue", image: birdBlue, price: 85, eggsPerHour: 6000, color: "#3B82F6", gradient: "from-blue-400 to-blue-500" },
-  { id: "black", name: "Black Bird", nameKey: "birds.black", image: birdBlack, price: 250, eggsPerHour: 28000, color: "#1F2937", gradient: "from-gray-700 to-gray-900" },
+  { id: "yellow", name: "Yellow Bird", nameKey: "birds.yellow", image: birdYellow, price: 4, eggsPerHour: 100, color: "#FCD34D", gradient: "from-yellow-400 to-yellow-500" },
+  { id: "red", name: "Red Bird", nameKey: "birds.red", image: birdRed, price: 15, eggsPerHour: 475, color: "#EF4444", gradient: "from-red-400 to-red-500" },
+  { id: "green", name: "Green Bird", nameKey: "birds.green", image: birdGreen, price: 45, eggsPerHour: 2375, color: "#22C55E", gradient: "from-green-400 to-green-500" },
+  { id: "blue", name: "Blue Bird", nameKey: "birds.blue", image: birdBlue, price: 85, eggsPerHour: 7500, color: "#3B82F6", gradient: "from-blue-400 to-blue-500" },
+  { id: "black", name: "Black Bird", nameKey: "birds.black", image: birdBlack, price: 250, eggsPerHour: 35000, color: "#1F2937", gradient: "from-gray-700 to-gray-900" },
 ];
 
 const barnLevels = [
