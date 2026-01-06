@@ -394,29 +394,116 @@ const DogeBirdsSection = () => {
           {birds.map((bird) => {
             const owned = userBirds[bird.id] || 0;
             const canAfford = depositBalance >= bird.price;
+            const isGenerating = owned > 0;
             
             return (
               <Card 
                 key={bird.id} 
-                className={`relative overflow-hidden transition-all hover:scale-105 bg-gradient-to-br ${bird.gradient}/20 border-2`}
-                style={{ borderColor: `${bird.color}40` }}
+                className={`bird-card relative overflow-hidden bg-gradient-to-br ${bird.gradient}/20 border-2 ${isGenerating ? 'animate-glow-pulse' : ''}`}
+                style={{ 
+                  borderColor: `${bird.color}40`,
+                  '--bird-color': `${bird.color}60`
+                } as React.CSSProperties}
               >
-                <div className="absolute top-2 right-2 px-2 py-1 rounded-full bg-black/50 text-xs font-bold">
+                {/* Quantity badge */}
+                <div className="absolute top-2 right-2 px-2 py-1 rounded-full bg-black/50 text-xs font-bold z-10">
                   x{owned}
                 </div>
-                <CardContent className="p-4 text-center">
-                  <img 
-                    src={bird.image} 
-                    alt={bird.name}
-                    className="w-24 h-24 mx-auto mb-3 object-contain animate-bounce"
-                    style={{ animationDuration: "2s" }}
-                  />
-                  <h4 className="font-bold text-lg mb-1" style={{ color: bird.color }}>
+                
+                {/* Floating eggs animation when generating */}
+                {isGenerating && (
+                  <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                    {[...Array(3)].map((_, i) => (
+                      <span
+                        key={i}
+                        className="absolute text-lg animate-egg-drop"
+                        style={{
+                          left: `${20 + i * 25}%`,
+                          bottom: '20%',
+                          animationDelay: `${i * 0.5}s`,
+                          animationIterationCount: 'infinite',
+                          animationDuration: '2s'
+                        }}
+                      >
+                        🥚
+                      </span>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Floating feathers when generating */}
+                {isGenerating && (
+                  <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                    {[...Array(2)].map((_, i) => (
+                      <span
+                        key={i}
+                        className="absolute text-sm animate-feather-float"
+                        style={{
+                          left: `${30 + i * 40}%`,
+                          bottom: '40%',
+                          animationDelay: `${i * 1.5}s`,
+                          animationIterationCount: 'infinite',
+                          animationDuration: '3s'
+                        }}
+                      >
+                        🪶
+                      </span>
+                    ))}
+                  </div>
+                )}
+                
+                <CardContent className="p-4 text-center relative">
+                  {/* Bird image with animations */}
+                  <div className="relative">
+                    <img 
+                      src={bird.image} 
+                      alt={bird.name}
+                      className={`bird-image w-24 h-24 mx-auto mb-3 object-contain transition-all ${
+                        isGenerating 
+                          ? 'animate-bird-hop' 
+                          : 'animate-bird-idle'
+                      }`}
+                      style={{
+                        filter: isGenerating ? `drop-shadow(0 0 10px ${bird.color}80)` : 'none'
+                      }}
+                    />
+                    
+                    {/* Heart pop effect when generating */}
+                    {isGenerating && (
+                      <span 
+                        className="absolute -top-1 right-4 text-lg animate-heart-pop"
+                        style={{ animationIterationCount: 'infinite', animationDuration: '3s' }}
+                      >
+                        💛
+                      </span>
+                    )}
+                    
+                    {/* Generating indicator */}
+                    {isGenerating && (
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2">
+                        <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-xs animate-pulse">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-ping"></span>
+                          Generando
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <h4 className="font-bold text-lg mb-1 mt-2" style={{ color: bird.color }}>
                     {t(bird.nameKey)}
                   </h4>
                   <p className="text-sm text-muted-foreground mb-2">
                     {bird.eggsPerHour.toLocaleString()} 🥚/{t("birds.hour")}
                   </p>
+                  
+                  {/* Egg production preview */}
+                  {isGenerating && (
+                    <div className="mb-2 text-xs text-green-400 flex items-center justify-center gap-1">
+                      <img src={eggGolden} alt="egg" className="w-3 h-3 animate-egg-shimmer" />
+                      +{(bird.eggsPerHour * owned).toLocaleString()}/h
+                    </div>
+                  )}
+                  
                   <div className="flex items-center justify-center gap-1 mb-3">
                     <img src={eggGolden} alt="egg" className="w-4 h-4" />
                     <span className="font-bold text-primary">{bird.price} DOGE</span>
@@ -424,7 +511,7 @@ const DogeBirdsSection = () => {
                   <Button
                     onClick={() => handleBuyBird(bird.id, bird.price)}
                     disabled={buyingBird === bird.id || !canAfford}
-                    className={`w-full bg-gradient-to-r ${bird.gradient} hover:opacity-90`}
+                    className={`w-full bg-gradient-to-r ${bird.gradient} hover:opacity-90 transition-all hover:scale-105`}
                     size="sm"
                   >
                     {buyingBird === bird.id ? (
