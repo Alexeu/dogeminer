@@ -18,7 +18,8 @@ import {
   HelpCircle,
   Lock,
   Bird,
-  Gift
+  Gift,
+  Sword
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -49,6 +50,7 @@ const menuItems: MenuItem[] = [
   { id: "faucetpay", labelKey: "sidebar.faucetpay", icon: Wallet, section: "faucetpay" },
   { id: "referral", labelKey: "sidebar.referral", icon: Trophy, section: "referral" },
   { id: "support", labelKey: "support.title", icon: HelpCircle, section: "support" },
+  { id: "rpgdoge", labelKey: "sidebar.rpgdoge", icon: Sword, section: "rpgdoge" },
 ];
 
 interface AppSidebarProps {
@@ -83,6 +85,11 @@ const AppSidebar = ({ activeSection, onNavigate }: AppSidebarProps) => {
   }, [user]);
 
   const handleNavigate = (sectionId: string) => {
+    if (sectionId === 'rpgdoge') {
+      navigate('/rpgdoge');
+      setIsOpen(false);
+      return;
+    }
     onNavigate(sectionId);
     setIsOpen(false);
   };

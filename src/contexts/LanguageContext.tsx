@@ -65,6 +65,7 @@ export const translations: Translations = {
   'sidebar.staking': { es: 'Staking', en: 'Staking', th: 'สเตกกิ้ง', ru: 'Стейкинг' },
   'sidebar.socialTasks': { es: 'Tareas Sociales', en: 'Social Tasks', th: 'งานโซเชียล', ru: 'Соц. задания' },
   'sidebar.admin': { es: 'Panel Admin', en: 'Admin Panel', th: 'แผงผู้ดูแล', ru: 'Панель админа' },
+  'sidebar.rpgdoge': { es: '⚔️ RPGDOGE', en: '⚔️ RPGDOGE', th: '⚔️ RPGDOGE', ru: '⚔️ RPGDOGE' },
   
   // Hero
   'hero.badge': { es: '¡Much WOW! ¡Very Mine! 🚀', en: 'Much WOW! Very Mine! 🚀', th: 'สุดยอด! ขุดกัน! 🚀', ru: 'Ого! Майним! 🚀' },
