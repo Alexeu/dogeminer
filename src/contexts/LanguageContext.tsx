@@ -63,6 +63,7 @@ export const translations: Translations = {
   'sidebar.faucetpay': { es: 'Depósito / Retiro', en: 'Deposit / Withdraw', th: 'ฝาก / ถอน', ru: 'Депозит / Вывод' },
   'sidebar.referral': { es: 'Referidos', en: 'Referrals', th: 'แนะนำเพื่อน', ru: 'Рефералы' },
   'sidebar.staking': { es: 'Staking', en: 'Staking', th: 'สเตกกิ้ง', ru: 'Стейкинг' },
+  'sidebar.socialTasks': { es: 'Tareas Sociales', en: 'Social Tasks', th: 'งานโซเชียล', ru: 'Соц. задания' },
   'sidebar.admin': { es: 'Panel Admin', en: 'Admin Panel', th: 'แผงผู้ดูแล', ru: 'Панель админа' },
   
   // Hero
@@ -367,6 +368,23 @@ export const translations: Translations = {
   'birds.eggsConverted': { es: 'Huevos convertidos', en: 'Eggs converted', th: 'แปลงไข่แล้ว', ru: 'Яиц конвертировано' },
   'birds.convertFailed': { es: 'Error al convertir', en: 'Conversion failed', th: 'แปลงไม่สำเร็จ', ru: 'Ошибка конвертации' },
   
+  // Social Tasks
+  'tasks.badge': { es: '¡Gana DOGE Gratis!', en: 'Earn Free DOGE!', th: 'รับ DOGE ฟรี!', ru: 'Получи DOGE бесплатно!' },
+  'tasks.title': { es: 'Tareas ', en: 'Social ', th: 'งาน', ru: 'Социальные ' },
+  'tasks.titleHighlight': { es: 'Sociales', en: 'Tasks', th: 'โซเชียล', ru: 'задания' },
+  'tasks.subtitle': { es: 'Comparte el proyecto en redes sociales y gana 0.25 DOGE por cada tarea completada. ¡Solo puedes completar cada tarea una vez!', en: 'Share the project on social media and earn 0.25 DOGE per completed task. You can only complete each task once!', th: 'แชร์โปรเจกต์บนโซเชียลมีเดียและรับ 0.25 DOGE ต่องานที่ทำเสร็จ ทำได้ครั้งเดียว!', ru: 'Делись проектом в соцсетях и зарабатывай 0.25 DOGE за каждое задание. Каждое задание можно выполнить только один раз!' },
+  'tasks.rewardPerTask': { es: '0.25 DOGE por tarea', en: '0.25 DOGE per task', th: '0.25 DOGE ต่องาน', ru: '0.25 DOGE за задание' },
+  'tasks.progress': { es: 'Progreso', en: 'Progress', th: 'ความคืบหน้า', ru: 'Прогресс' },
+  'tasks.earned': { es: 'Ganado', en: 'Earned', th: 'ได้รับ', ru: 'Заработано' },
+  'tasks.done': { es: 'Completado ✓', en: 'Completed ✓', th: 'เสร็จแล้ว ✓', ru: 'Выполнено ✓' },
+  'tasks.shareToEarn': { es: 'Comparte y gana 0.25 DOGE', en: 'Share and earn 0.25 DOGE', th: 'แชร์และรับ 0.25 DOGE', ru: 'Поделись и получи 0.25 DOGE' },
+  'tasks.loginFirst': { es: 'Inicia sesión', en: 'Login first', th: 'เข้าสู่ระบบก่อน', ru: 'Сначала войди' },
+  'tasks.loginRequired': { es: 'Inicia sesión para completar tareas', en: 'Login to complete tasks', th: 'เข้าสู่ระบบเพื่อทำงาน', ru: 'Войди для выполнения заданий' },
+  'tasks.loginPrompt': { es: 'Inicia sesión para desbloquear las tareas y ganar recompensas.', en: 'Login to unlock tasks and earn rewards.', th: 'เข้าสู่ระบบเพื่อปลดล็อกงานและรับรางวัล', ru: 'Войди, чтобы разблокировать задания и получить награды.' },
+  'tasks.alreadyCompleted': { es: 'Ya completaste esta tarea', en: 'You already completed this task', th: 'คุณทำงานนี้เสร็จแล้ว', ru: 'Ты уже выполнил это задание' },
+  'tasks.completed': { es: '¡Tarea completada!', en: 'Task completed!', th: 'ทำงานเสร็จแล้ว!', ru: 'Задание выполнено!' },
+  'tasks.error': { es: 'Error al completar la tarea', en: 'Error completing task', th: 'เกิดข้อผิดพลาดในการทำงาน', ru: 'Ошибка при выполнении задания' },
+
   // Common
   'common.loading': { es: 'Cargando...', en: 'Loading...', th: 'กำลังโหลด...', ru: 'Загрузка...' },
   'common.error': { es: 'Error', en: 'Error', th: 'ข้อผิดพลาด', ru: 'Ошибка' },
