@@ -80,6 +80,7 @@ export const translations: Translations = {
   'hero.ctaPrimary': { es: '¡Comenzar Gratis!', en: 'Start Free!', th: 'เริ่มต้นฟรี!', ru: 'Начать бесплатно!' },
   'hero.ctaSecondary': { es: 'Ver Colección', en: 'View Collection', th: 'ดูคอลเลกชัน', ru: 'Смотреть коллекцию' },
   'hero.statMiners': { es: 'Mineros', en: 'Miners', th: 'นักขุด', ru: 'Майнеров' },
+  'hero.statOnline': { es: 'En Línea', en: 'Online Now', th: 'ออนไลน์', ru: 'Онлайн' },
   'hero.statMined': { es: 'DOGE Minados', en: 'DOGE Mined', th: 'DOGE ที่ขุดได้', ru: 'DOGE добыто' },
   'hero.statDoges': { es: 'Personajes', en: 'Characters', th: 'ตัวละคร', ru: 'Персонажей' },
   'hero.featureFree': { es: '100% Gratis', en: '100% Free', th: 'ฟรี 100%', ru: '100% Бесплатно' },

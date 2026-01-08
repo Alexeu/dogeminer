@@ -426,6 +426,30 @@ export type Database = {
           },
         ]
       }
+      online_presence: {
+        Row: {
+          created_at: string
+          fingerprint: string | null
+          id: string
+          last_seen: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          fingerprint?: string | null
+          id?: string
+          last_seen?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          fingerprint?: string | null
+          id?: string
+          last_seen?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           balance: number | null
@@ -957,6 +981,7 @@ export type Database = {
         }
         Returns: Json
       }
+      cleanup_old_presence: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       collect_eggs: { Args: never; Returns: Json }
       complete_deposit: {
