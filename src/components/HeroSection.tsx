@@ -1,14 +1,23 @@
-import { Zap, Sparkles, Rocket, Dog } from "lucide-react";
+import { Zap, Sparkles, Rocket, Dog, Star, TrendingUp, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
 import dogeKing from "@/assets/doge-king.png";
 import dogeBuilder from "@/assets/doge-builder.png";
 import dogePirate from "@/assets/doge-pirate.png";
 
 const HeroSection = () => {
+  const { t } = useLanguage();
+  
   const stats = [
-    { value: "3,847+", label: "Much Miners" },
-    { value: "42,069+", label: "DOGE Mined" },
-    { value: "4,128+", label: "Very Doges" },
+    { value: "3,847+", label: t('hero.statMiners') || "Much Miners", icon: TrendingUp },
+    { value: "42,069+", label: t('hero.statMined') || "DOGE Mined", icon: Sparkles },
+    { value: "4,128+", label: t('hero.statDoges') || "Very Doges", icon: Star },
+  ];
+
+  const features = [
+    { icon: Gift, text: t('hero.featureFree') || "100% Gratis" },
+    { icon: Rocket, text: t('hero.featureMining') || "Minería 24/7" },
+    { icon: Zap, text: t('hero.featureWithdraw') || "Retiros Instantáneos" },
   ];
 
   return (
@@ -26,30 +35,43 @@ const HeroSection = () => {
           <div className="space-y-8 animate-slide-up">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary font-comic border border-primary/30">
               <Dog className="w-5 h-5" />
-              <span className="font-bold">Much WOW! To The Moon! 🚀</span>
+              <span className="font-bold">{t('hero.badge') || "Much WOW! To The Moon! 🚀"}</span>
             </div>
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
-              <span className="text-foreground">Mine </span>
+              <span className="text-foreground">{t('hero.title1') || "Gana "}</span>
               <span className="text-gradient">DOGE</span>
-              <span className="text-foreground"> with Your </span>
-              <span className="text-gradient">Doge</span>
-              <span className="text-foreground"> Collection</span>
+              <span className="text-foreground">{t('hero.title2') || " Gratis"}</span>
+              <br />
+              <span className="text-foreground">{t('hero.title3') || "con tu "}</span>
+              <span className="text-gradient">{t('hero.title4') || "Colección"}</span>
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground max-w-xl font-comic">
-              Such earn! Many coins! Collect cute Doge characters and earn passive Dogecoin. 
-              To the moon! 🌙
+              {t('hero.subtitle') || "Colecciona personajes Doge únicos y gana Dogecoin automáticamente 24/7. ¡Retiros instantáneos a FaucetPay! 🌙"}
             </p>
 
+            {/* Feature badges */}
+            <div className="flex flex-wrap gap-3">
+              {features.map((feature, index) => (
+                <div 
+                  key={index}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/50 text-sm font-medium"
+                >
+                  <feature.icon className="w-4 h-4 text-primary" />
+                  {feature.text}
+                </div>
+              ))}
+            </div>
+
             <div className="flex flex-wrap gap-4">
-              <Button variant="hero" size="lg">
+              <Button variant="hero" size="lg" className="text-lg">
                 <Rocket className="w-5 h-5" />
-                To The Moon!
+                {t('hero.ctaPrimary') || "¡Comenzar Gratis!"}
               </Button>
               <Button variant="heroOutline" size="lg">
                 <Sparkles className="w-5 h-5" />
-                View Collection
+                {t('hero.ctaSecondary') || "Ver Colección"}
               </Button>
             </div>
 
@@ -61,6 +83,7 @@ const HeroSection = () => {
                   className="glass rounded-xl p-4 text-center animate-slide-up"
                   style={{ animationDelay: `${(index + 1) * 200}ms` }}
                 >
+                  <stat.icon className="w-5 h-5 text-primary mx-auto mb-2" />
                   <p className="text-2xl md:text-3xl font-bold text-gradient">
                     {stat.value}
                   </p>

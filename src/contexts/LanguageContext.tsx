@@ -67,15 +67,24 @@ export const translations: Translations = {
   
   // Hero
   'hero.badge': { es: '¡Much WOW! ¡Very Mine! 🚀', en: 'Much WOW! Very Mine! 🚀', th: 'สุดยอด! ขุดกัน! 🚀', ru: 'Ого! Майним! 🚀' },
-  'hero.title1': { es: 'Mina ', en: 'Mine ', th: 'ขุด ', ru: 'Майни ' },
-  'hero.title2': { es: ' con Tu Colección de ', en: ' with Your ', th: ' กับคอลเลกชัน ', ru: ' с твоей коллекцией ' },
-  'hero.title3': { es: '', en: ' Collection', th: ' ของคุณ', ru: '' },
+  'hero.title1': { es: 'Gana ', en: 'Earn ', th: 'รับ ', ru: 'Зарабатывай ' },
+  'hero.title2': { es: ' Gratis', en: ' Free', th: ' ฟรี', ru: ' Бесплатно' },
+  'hero.title3': { es: 'con tu ', en: 'with Your ', th: 'กับ ', ru: 'с твоей ' },
+  'hero.title4': { es: 'Colección', en: 'Collection', th: 'คอลเลกชัน', ru: 'Коллекцией' },
   'hero.subtitle': { 
-    es: '¡Such earn! ¡Many coins! Colecciona personajes Doge y gana Dogecoin pasivamente. ¡To the moon! 🌙', 
-    en: 'Such earn! Many coins! Collect cute Doge characters and earn passive Dogecoin. To the moon! 🌙',
-    th: 'รับรางวัล! หลายเหรียญ! สะสมตัวละคร Doge และรับ Dogecoin แบบพาสซีฟ To the moon! 🌙',
-    ru: 'Зарабатывай! Много монет! Собирай персонажей Doge и получай Dogecoin пассивно. На Луну! 🌙'
+    es: 'Colecciona personajes Doge únicos y gana Dogecoin automáticamente 24/7. ¡Retiros instantáneos a FaucetPay! 🌙', 
+    en: 'Collect unique Doge characters and earn Dogecoin automatically 24/7. Instant withdrawals to FaucetPay! 🌙',
+    th: 'สะสมตัวละคร Doge ที่ไม่ซ้ำกันและรับ Dogecoin โดยอัตโนมัติ 24/7 ถอนทันทีไปยัง FaucetPay! 🌙',
+    ru: 'Собирай уникальных персонажей Doge и зарабатывай Dogecoin автоматически 24/7. Мгновенный вывод на FaucetPay! 🌙'
   },
+  'hero.ctaPrimary': { es: '¡Comenzar Gratis!', en: 'Start Free!', th: 'เริ่มต้นฟรี!', ru: 'Начать бесплатно!' },
+  'hero.ctaSecondary': { es: 'Ver Colección', en: 'View Collection', th: 'ดูคอลเลกชัน', ru: 'Смотреть коллекцию' },
+  'hero.statMiners': { es: 'Mineros', en: 'Miners', th: 'นักขุด', ru: 'Майнеров' },
+  'hero.statMined': { es: 'DOGE Minados', en: 'DOGE Mined', th: 'DOGE ที่ขุดได้', ru: 'DOGE добыто' },
+  'hero.statDoges': { es: 'Personajes', en: 'Characters', th: 'ตัวละคร', ru: 'Персонажей' },
+  'hero.featureFree': { es: '100% Gratis', en: '100% Free', th: 'ฟรี 100%', ru: '100% Бесплатно' },
+  'hero.featureMining': { es: 'Minería 24/7', en: '24/7 Mining', th: 'ขุด 24/7', ru: 'Майнинг 24/7' },
+  'hero.featureWithdraw': { es: 'Retiros Instantáneos', en: 'Instant Withdrawals', th: 'ถอนทันที', ru: 'Мгновенный вывод' },
   'hero.cta1': { es: '¡To The Moon!', en: 'To The Moon!', th: 'ไปดวงจันทร์!', ru: 'На Луну!' },
   'hero.cta2': { es: 'Ver Colección', en: 'View Collection', th: 'ดูคอลเลกชัน', ru: 'Смотреть коллекцию' },
   'hero.stat1': { es: 'Much Miners', en: 'Much Miners', th: 'นักขุด', ru: 'Майнеров' },
@@ -163,6 +172,7 @@ export const translations: Translations = {
   'referral.step4': { es: '¡Las comisiones son permanentes!', en: 'Commissions are permanent!', th: 'ค่าคอมมิชชั่นถาวร!', ru: 'Комиссии постоянные!' },
   'referral.linkCopied': { es: '¡Link copiado al portapapeles!', en: 'Link copied to clipboard!', th: 'คัดลอกลิงก์แล้ว!', ru: 'Ссылка скопирована!' },
   'referral.codeApplied': { es: '¡Código de referido aplicado automáticamente!', en: 'Referral code applied automatically!', th: 'ใช้รหัสแนะนำอัตโนมัติแล้ว!', ru: 'Реферальный код применён автоматически!' },
+  'referral.shareOn': { es: 'Comparte en redes sociales:', en: 'Share on social media:', th: 'แชร์บนโซเชียลมีเดีย:', ru: 'Поделиться в соцсетях:' },
   
   // Mystery Box
   'mysterybox.title': { es: 'Mystery Boxes', en: 'Mystery Boxes', th: 'กล่องปริศนา', ru: 'Загадочные коробки' },

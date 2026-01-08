@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
-import { Copy, Users, Gift, Check, Link } from "lucide-react";
+import { Copy, Users, Gift, Check, Link, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-
+import SocialShareButtons from "./SocialShareButtons";
 const ReferralSection = () => {
   const { referralCode, totalEarned, applyReferralCode } = useDogeBalance();
   const { user } = useAuth();
@@ -146,6 +146,13 @@ const ReferralSection = () => {
                 <div className="text-sm text-muted-foreground">{t('referral.totalDoge')}</div>
               </div>
             </div>
+
+            {/* Social Share Buttons */}
+            {referralLink && (
+              <div className="pt-4 border-t border-border/50">
+                <SocialShareButtons referralLink={referralLink} />
+              </div>
+            )}
           </div>
 
           {/* Referral status */}
