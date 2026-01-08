@@ -17,7 +17,8 @@ import {
   Cpu,
   HelpCircle,
   Lock,
-  Bird
+  Bird,
+  Gift
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { id: "hero", labelKey: "sidebar.home", icon: Home, section: "hero" },
+  { id: "social-tasks", labelKey: "sidebar.socialTasks", icon: Gift, section: "social-tasks" },
   { id: "mystery-boxes", labelKey: "sidebar.mysteryBoxes", icon: Package, section: "mystery-boxes" },
   { id: "inventory", labelKey: "sidebar.inventory", icon: Pickaxe, section: "inventory" },
   { id: "collection", labelKey: "sidebar.collection", icon: Trophy, section: "collection" },

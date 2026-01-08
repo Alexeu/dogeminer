@@ -658,6 +658,30 @@ export type Database = {
           },
         ]
       }
+      social_tasks: {
+        Row: {
+          completed_at: string
+          id: string
+          reward_amount: number
+          task_type: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          id?: string
+          reward_amount?: number
+          task_type: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          id?: string
+          reward_amount?: number
+          task_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       staking: {
         Row: {
           amount: number
@@ -992,6 +1016,7 @@ export type Database = {
         Args: { p_provider: string; p_reward?: number }
         Returns: Json
       }
+      complete_social_task: { Args: { p_task_type: string }; Returns: Json }
       convert_eggs_to_doge: { Args: { eggs_amount: number }; Returns: Json }
       create_deposit_request: {
         Args: { p_amount: number; p_faucetpay_email: string }
