@@ -4,7 +4,8 @@ import {
   ArrowLeft, 
   Coins, 
   Users, 
-  Rocket, 
+  Rocket,
+  Copy,
   Shield, 
   Clock, 
   TrendingUp,
@@ -33,8 +34,10 @@ const PRESALE_CONFIG = {
     { name: "Fase 3 - Caballeros", price: 0.00002, bonus: 15, active: false, sold: false },
     { name: "Fase 4 - Nobles", price: 0.000025, bonus: 5, active: false, sold: false },
   ],
-  minPurchase: 10, // USDT
+  minPurchase: 1, // USDT
   maxPurchase: 10000, // USDT
+  paymentAddress: "0x097b0584a9bd6640371B81028E250AAcda5e06f7",
+  paymentNetwork: "ERC-20",
 };
 
 const benefits = [
@@ -313,14 +316,14 @@ const RPGDogePresale = () => {
                     USDT
                   </span>
                 </div>
-                <div className="flex gap-2">
-                  {[50, 100, 250, 500, 1000].map((preset) => (
+                <div className="flex gap-2 flex-wrap">
+                  {[1, 10, 50, 100, 500].map((preset) => (
                     <Button
                       key={preset}
                       variant="outline"
                       size="sm"
                       onClick={() => setAmount(preset.toString())}
-                      className="flex-1 border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/20 hover:border-yellow-400"
+                      className="flex-1 min-w-[60px] border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/20 hover:border-yellow-400"
                     >
                       ${preset}
                     </Button>
@@ -372,6 +375,40 @@ const RPGDogePresale = () => {
               <p className="text-gray-500 text-xs text-center mt-4">
                 Mínimo: ${PRESALE_CONFIG.minPurchase} • Máximo: ${PRESALE_CONFIG.maxPurchase}
               </p>
+
+              {/* Payment Address Info */}
+              <div className="mt-6 bg-gradient-to-br from-blue-900/30 to-purple-900/30 rounded-xl p-4 border border-blue-500/30">
+                <div className="flex items-center gap-2 mb-3">
+                  <Wallet className="w-5 h-5 text-blue-400" />
+                  <span className="text-blue-300 font-medium">Dirección de Pago USDT</span>
+                  <span className="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded text-xs font-medium">
+                    {PRESALE_CONFIG.paymentNetwork}
+                  </span>
+                </div>
+                <div className="bg-black/50 rounded-lg p-3 flex items-center justify-between gap-2">
+                  <code className="text-yellow-400 text-xs md:text-sm break-all font-mono">
+                    {PRESALE_CONFIG.paymentAddress}
+                  </code>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(PRESALE_CONFIG.paymentAddress);
+                      toast({
+                        title: "✅ Copiado",
+                        description: "Dirección copiada al portapapeles",
+                      });
+                    }}
+                    className="shrink-0 text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
+                <p className="text-gray-400 text-xs mt-2">
+                  ⚠️ Envía únicamente USDT a través de la red <span className="text-blue-400 font-medium">Ethereum (ERC-20)</span>. 
+                  Otras redes no serán procesadas.
+                </p>
+              </div>
             </motion.div>
 
             {/* Phases & Info */}
