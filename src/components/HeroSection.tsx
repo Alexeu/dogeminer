@@ -1,15 +1,17 @@
-import { Zap, Sparkles, Rocket, Dog, Star, TrendingUp, Gift } from "lucide-react";
+import { Zap, Sparkles, Rocket, Dog, Star, TrendingUp, Gift, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useOnlinePresence } from "@/hooks/useOnlinePresence";
 import dogeKing from "@/assets/doge-king.png";
 import dogeBuilder from "@/assets/doge-builder.png";
 import dogePirate from "@/assets/doge-pirate.png";
 
 const HeroSection = () => {
   const { t } = useLanguage();
+  const { onlineCount } = useOnlinePresence();
   
   const stats = [
-    { value: "3,847+", label: t('hero.statMiners') || "Much Miners", icon: TrendingUp },
+    { value: onlineCount > 0 ? onlineCount.toString() : "...", label: t('hero.statOnline') || "Online Now", icon: Users, isLive: true },
     { value: "42,069+", label: t('hero.statMined') || "DOGE Mined", icon: Sparkles },
     { value: "4,128+", label: t('hero.statDoges') || "Very Doges", icon: Star },
   ];
@@ -80,9 +82,15 @@ const HeroSection = () => {
               {stats.map((stat, index) => (
                 <div
                   key={stat.label}
-                  className="glass rounded-xl p-4 text-center animate-slide-up"
+                  className="glass rounded-xl p-4 text-center animate-slide-up relative"
                   style={{ animationDelay: `${(index + 1) * 200}ms` }}
                 >
+                  {'isLive' in stat && stat.isLive && (
+                    <span className="absolute top-2 right-2 flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    </span>
+                  )}
                   <stat.icon className="w-5 h-5 text-primary mx-auto mb-2" />
                   <p className="text-2xl md:text-3xl font-bold text-gradient">
                     {stat.value}
