@@ -1,10 +1,11 @@
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { LogOut, User, Pickaxe, Wallet } from "lucide-react";
+import { LogOut, User, Pickaxe, Wallet, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import dogeLogo from "@/assets/doge-logo.png";
+import rpgDogeToken from "@/assets/rpgdoge-token.png";
 import NotificationBell from "./NotificationBell";
 import PromoBanner from "./PromoBanner";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -83,6 +84,27 @@ const BalanceHeader = () => {
                   <TooltipContent>
                     <p>{t('header.depositBalance')}: {formatDoge(depositBalance)} DOGE</p>
                     <p className="text-xs text-muted-foreground">{t('header.depositBalanceDesc')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              {/* RPGDOGE Tokens Balance */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl glass shadow-doge-sm border border-yellow-500/30 bg-gradient-to-r from-yellow-500/10 to-orange-500/10">
+                      <img src={rpgDogeToken} alt="RDOGE" className="w-4 h-4" />
+                      <span className="text-sm font-bold text-yellow-500 tabular-nums hidden sm:inline">
+                        0 RDOGE
+                      </span>
+                      <span className="text-sm font-bold text-yellow-500 tabular-nums sm:hidden">
+                        0
+                      </span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Tokens RPGDOGE: 0 RDOGE</p>
+                    <p className="text-xs text-muted-foreground">Tokens adquiridos en preventa</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
