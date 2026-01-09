@@ -48,7 +48,7 @@ const benefits = [
 ];
 
 const stats = [
-  { label: "Tokens Vendidos", value: "347.8M" },
+  { label: "Suministro Total", value: "1T" },
   { label: "Holders", value: "12,847" },
   { label: "USDT Recaudados", value: "$521,838" },
   { label: "Bonus Promedio", value: "+35%" },
