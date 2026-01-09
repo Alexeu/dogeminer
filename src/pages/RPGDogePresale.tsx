@@ -530,7 +530,7 @@ const RPGDogePresale = () => {
       {/* Footer */}
       <footer className="relative py-10 border-t border-yellow-500/10 text-center">
         <p className="text-gray-500 text-sm">
-          © 2024 RPGDOGE Kingdom • Todos los derechos reservados
+          © 2026 RPGDOGE Kingdom • Todos los derechos reservados
         </p>
         <p className="text-gray-600 text-xs mt-2">
           Los tokens se distribuirán después del lanzamiento oficial
