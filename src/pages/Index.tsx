@@ -108,7 +108,7 @@ const Index = () => {
       >
         {/* RPGDOGE Banner */}
         <div className="px-4 pt-4">
-          <Link to="/rpgdoge/presale" className="block max-w-5xl mx-auto">
+          <Link to="/rpgdoge" className="block max-w-5xl mx-auto">
             <div className="relative overflow-hidden rounded-2xl border border-yellow-500/30 shadow-lg shadow-yellow-500/10 hover:shadow-yellow-500/20 transition-all duration-300 hover:scale-[1.01] group">
               <img 
                 src={rpgDogeBanner} 
