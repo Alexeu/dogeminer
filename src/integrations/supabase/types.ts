@@ -859,6 +859,41 @@ export type Database = {
         }
         Relationships: []
       }
+      user_rdoge_tokens: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          total_purchased: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          total_purchased?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          total_purchased?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_rdoge_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -978,6 +1013,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_modify_rdoge_tokens: {
+        Args: { p_amount: number; p_operation: string; p_user_id: string }
+        Returns: Json
+      }
       apply_referral_code: { Args: { p_code: string }; Returns: Json }
       buy_bird: { Args: { bird_type_param: string }; Returns: Json }
       buy_lottery_tickets: {
@@ -1058,6 +1097,7 @@ export type Database = {
       }
       get_balance: { Args: never; Returns: Json }
       get_barn_capacity: { Args: { barn_level: number }; Returns: number }
+      get_rdoge_balance: { Args: never; Returns: number }
       get_referral_leaderboard: {
         Args: never
         Returns: {
