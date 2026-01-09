@@ -337,11 +337,12 @@ export default function PTCSection() {
         return;
       }
 
-      // Now update the ad to inactive
+      // Now update the ad to inactive - include user_id filter for RLS
       const { error: updateError } = await supabase
         .from("ads")
         .update({ is_active: false, updated_at: new Date().toISOString() })
-        .eq("id", adId);
+        .eq("id", adId)
+        .eq("user_id", user.id);
 
       if (updateError) {
         console.error("Error deleting ad:", updateError);
