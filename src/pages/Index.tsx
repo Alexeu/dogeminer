@@ -26,6 +26,7 @@ import SupportSection from "@/components/SupportSection";
 import StakingSection from "@/components/StakingSection";
 import DogeBirdsSection from "@/components/DogeBirdsSection";
 import SocialTasksSection from "@/components/SocialTasksSection";
+import PromoBanner from "@/components/PromoBanner";
 import { Loader2 } from "lucide-react";
 
 const Index = () => {
@@ -108,6 +109,7 @@ const Index = () => {
           <HeroSection />
         </div>
         <CharacterCarousel />
+        <PromoBanner />
         <FeaturesSection />
         <div id="social-tasks">
           <SocialTasksSection />
