@@ -30,9 +30,7 @@ import {
   ArrowDown,
   Gift,
   Sparkles,
-  Trophy,
-  Coins,
-  Minus
+  Trophy
 } from "lucide-react";
 import { formatDoge } from "@/data/dogeData";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -106,16 +104,6 @@ interface ReferralStat {
   contest_referrals: number;
 }
 
-interface UserRdogeToken {
-  id: string;
-  user_id: string;
-  balance: number;
-  total_purchased: number;
-  created_at: string;
-  updated_at: string;
-  user_email?: string;
-}
-
 const Admin = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -154,14 +142,6 @@ const Admin = () => {
   // Referral stats state
   const [referralStats, setReferralStats] = useState<ReferralStat[]>([]);
   const [referralSearchQuery, setReferralSearchQuery] = useState("");
-
-  // RDOGE Tokens state
-  const [rdogeTokens, setRdogeTokens] = useState<UserRdogeToken[]>([]);
-  const [rdogeSearchQuery, setRdogeSearchQuery] = useState("");
-  const [selectedUserForTokens, setSelectedUserForTokens] = useState<UserProfile | null>(null);
-  const [tokenAmount, setTokenAmount] = useState("");
-  const [tokenOperation, setTokenOperation] = useState<'add' | 'subtract' | 'set'>('add');
-  const [modifyingTokens, setModifyingTokens] = useState(false);
 
   useEffect(() => {
     checkAdminRole();
@@ -267,8 +247,7 @@ const Admin = () => {
       fetchDepositRequests(),
       fetchWithdrawals(),
       fetchWebMiningSessions(),
-      fetchReferralStats(),
-      fetchRdogeTokens()
+      fetchReferralStats()
     ]);
   };
 
@@ -279,91 +258,6 @@ const Admin = () => {
       setReferralStats(data || []);
     } catch (error) {
       console.error('Fetch referral stats error:', error);
-    }
-  };
-
-  const fetchRdogeTokens = async () => {
-    try {
-      const { data: tokens, error } = await supabase
-        .from('user_rdoge_tokens')
-        .select('*')
-        .order('balance', { ascending: false });
-
-      if (error) throw error;
-
-      const tokensWithEmails = await Promise.all(
-        (tokens || []).map(async (token) => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('email')
-            .eq('id', token.user_id)
-            .maybeSingle();
-          
-          return {
-            ...token,
-            user_email: profile?.email || 'Unknown'
-          };
-        })
-      );
-
-      setRdogeTokens(tokensWithEmails);
-    } catch (error) {
-      console.error('Fetch RDOGE tokens error:', error);
-    }
-  };
-
-  const handleModifyRdogeTokens = async () => {
-    if (!selectedUserForTokens) return;
-    
-    const amount = parseFloat(tokenAmount);
-    if (isNaN(amount) || amount < 0) {
-      toast({
-        title: t('common.error'),
-        description: "Ingresa una cantidad válida",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setModifyingTokens(true);
-    try {
-      const { data, error } = await supabase.rpc('admin_modify_rdoge_tokens', {
-        p_user_id: selectedUserForTokens.id,
-        p_amount: amount,
-        p_operation: tokenOperation
-      });
-
-      if (error) throw error;
-
-      const result = data as { success: boolean; error?: string; new_balance?: number; previous_balance?: number };
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to modify tokens');
-      }
-
-      const opLabels = {
-        'add': 'agregados a',
-        'subtract': 'restados de',
-        'set': 'establecidos para'
-      };
-
-      toast({
-        title: t('common.success'),
-        description: `${amount.toLocaleString()} RDOGE ${opLabels[tokenOperation]} ${selectedUserForTokens.email}. Nuevo balance: ${result.new_balance?.toLocaleString()} RDOGE`,
-      });
-
-      setTokenAmount("");
-      setSelectedUserForTokens(null);
-      setTokenOperation('add');
-      await fetchRdogeTokens();
-    } catch (error: any) {
-      console.error('Modify RDOGE tokens error:', error);
-      toast({
-        title: t('common.error'),
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setModifyingTokens(false);
     }
   };
 
@@ -905,7 +799,7 @@ const Admin = () => {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7 max-w-4xl">
+          <TabsList className="grid w-full grid-cols-6 max-w-3xl">
             <TabsTrigger value="users" className="gap-2">
               <Users className="w-4 h-4" />
               {t('admin.users')}
@@ -939,15 +833,6 @@ const Admin = () => {
             <TabsTrigger value="referrals" className="gap-2">
               <Trophy className="w-4 h-4" />
               Referidos
-            </TabsTrigger>
-            <TabsTrigger value="rdoge-tokens" className="gap-2">
-              <Coins className="w-4 h-4" />
-              RDOGE
-              {rdogeTokens.length > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-yellow-500 text-black">
-                  {rdogeTokens.length}
-                </span>
-              )}
             </TabsTrigger>
           </TabsList>
 
@@ -1807,219 +1692,6 @@ const Admin = () => {
                 <div className="text-center py-8 text-muted-foreground">
                   <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
                   <p>No hay datos de referidos disponibles</p>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          {/* RDOGE Tokens Tab */}
-          <TabsContent value="rdoge-tokens" className="space-y-6">
-            <div className="glass rounded-2xl p-6">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-xl bg-yellow-500/20">
-                    <Coins className="w-6 h-6 text-yellow-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Holders RDOGE</p>
-                    <p className="text-2xl font-bold text-foreground">{rdogeTokens.length.toLocaleString()}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="text-right">
-                    <p className="text-sm text-muted-foreground">Total Tokens</p>
-                    <p className="text-lg font-bold text-yellow-500">
-                      {rdogeTokens.reduce((sum, t) => sum + Number(t.balance), 0).toLocaleString()} RDOGE
-                    </p>
-                  </div>
-                  <div className="relative flex-1 max-w-md ml-4">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Buscar por email..."
-                      value={rdogeSearchQuery}
-                      onChange={(e) => setRdogeSearchQuery(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Add Tokens to User */}
-              <div className="mb-6 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
-                <h3 className="font-bold mb-3 flex items-center gap-2">
-                  <Plus className="w-4 h-4 text-yellow-500" />
-                  Gestionar Tokens RDOGE
-                </h3>
-                
-                {/* User Selection */}
-                <div className="space-y-3">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Buscar usuario por email para asignar tokens..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  
-                  {searchQuery && filteredUsers.length > 0 && !selectedUserForTokens && (
-                    <div className="max-h-40 overflow-y-auto bg-secondary/50 rounded-lg">
-                      {filteredUsers.slice(0, 10).map(user => (
-                        <button
-                          key={user.id}
-                          onClick={() => {
-                            setSelectedUserForTokens(user);
-                            setSearchQuery("");
-                          }}
-                          className="w-full text-left px-4 py-2 hover:bg-secondary/80 flex items-center justify-between"
-                        >
-                          <span className="text-sm">{user.email}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {rdogeTokens.find(t => t.user_id === user.id)?.balance.toLocaleString() || 0} RDOGE
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {selectedUserForTokens && (
-                    <div className="p-3 bg-yellow-500/20 rounded-lg">
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <p className="font-medium">{selectedUserForTokens.email}</p>
-                          <p className="text-sm text-muted-foreground">
-                            Balance actual: {rdogeTokens.find(t => t.user_id === selectedUserForTokens.id)?.balance.toLocaleString() || 0} RDOGE
-                          </p>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => setSelectedUserForTokens(null)}
-                        >
-                          <XCircle className="w-4 h-4" />
-                        </Button>
-                      </div>
-
-                      {/* Operation Type */}
-                      <div className="flex gap-2 mb-3">
-                        <Button
-                          size="sm"
-                          variant={tokenOperation === 'add' ? 'default' : 'outline'}
-                          onClick={() => setTokenOperation('add')}
-                          className={tokenOperation === 'add' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}
-                        >
-                          <Plus className="w-3 h-3 mr-1" />
-                          Añadir
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant={tokenOperation === 'subtract' ? 'default' : 'outline'}
-                          onClick={() => setTokenOperation('subtract')}
-                          className={tokenOperation === 'subtract' ? 'bg-destructive hover:bg-destructive/90' : ''}
-                        >
-                          <Minus className="w-3 h-3 mr-1" />
-                          Quitar
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant={tokenOperation === 'set' ? 'default' : 'outline'}
-                          onClick={() => setTokenOperation('set')}
-                          className={tokenOperation === 'set' ? 'bg-blue-500 hover:bg-blue-600' : ''}
-                        >
-                          <ArrowUpDown className="w-3 h-3 mr-1" />
-                          Establecer
-                        </Button>
-                      </div>
-
-                      {/* Amount Input */}
-                      <div className="flex gap-2">
-                        <Input
-                          type="number"
-                          placeholder="Cantidad de tokens RDOGE"
-                          value={tokenAmount}
-                          onChange={(e) => setTokenAmount(e.target.value)}
-                          className="flex-1"
-                        />
-                        <Button
-                          onClick={handleModifyRdogeTokens}
-                          disabled={modifyingTokens || !tokenAmount}
-                          className="bg-yellow-500 hover:bg-yellow-600 text-black"
-                        >
-                          {modifyingTokens ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <>
-                              <CheckCircle className="w-4 h-4 mr-1" />
-                              Aplicar
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Tokens Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">#</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Email</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Balance RDOGE</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Total Comprado</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Última Actualización</th>
-                      <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rdogeTokens
-                      .filter(t => t.user_email?.toLowerCase().includes(rdogeSearchQuery.toLowerCase()))
-                      .map((token, index) => (
-                        <tr key={token.id} className="border-b border-border/50 hover:bg-secondary/30">
-                          <td className="py-3 px-4 text-sm font-medium">{index + 1}</td>
-                          <td className="py-3 px-4 text-sm">{token.user_email}</td>
-                          <td className="py-3 px-4 text-right">
-                            <span className="font-bold text-yellow-500">{Number(token.balance).toLocaleString()}</span>
-                            <span className="text-xs text-muted-foreground ml-1">RDOGE</span>
-                          </td>
-                          <td className="py-3 px-4 text-right font-mono text-muted-foreground">
-                            {Number(token.total_purchased).toLocaleString()}
-                          </td>
-                          <td className="py-3 px-4 text-sm text-muted-foreground">
-                            {formatDate(token.updated_at)}
-                          </td>
-                          <td className="py-3 px-4 text-center">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                const user = users.find(u => u.id === token.user_id);
-                                if (user) {
-                                  setSelectedUserForTokens(user);
-                                  setTokenAmount(token.balance.toString());
-                                  setTokenOperation('set');
-                                }
-                              }}
-                              className="text-yellow-500 hover:text-yellow-400"
-                            >
-                              <ArrowUpDown className="w-4 h-4" />
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {rdogeTokens.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Coins className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                  <p>No hay holders de RDOGE registrados</p>
-                  <p className="text-sm">Asigna tokens a los usuarios usando el formulario de arriba</p>
                 </div>
               )}
             </div>

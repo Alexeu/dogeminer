@@ -16,7 +16,7 @@ const PromoBanner = () => {
   };
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col lg:pl-64">
       {/* Referral Contest Banner */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-amber-500 via-primary to-yellow-500 opacity-90" />

@@ -26,10 +26,7 @@ import SupportSection from "@/components/SupportSection";
 import StakingSection from "@/components/StakingSection";
 import DogeBirdsSection from "@/components/DogeBirdsSection";
 import SocialTasksSection from "@/components/SocialTasksSection";
-import RPGDogeTokenCounter from "@/components/RPGDogeTokenCounter";
-import rpgDogeBanner from "@/assets/rpgdoge-banner.png";
 import { Loader2 } from "lucide-react";
-import { Link } from "react-router-dom";
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -106,28 +103,10 @@ const Index = () => {
         ref={mainContentRef}
         className="pt-16 lg:pl-64 transition-all duration-300"
       >
-        {/* RPGDOGE Banner */}
-        <div className="px-4 pt-4">
-          <Link to="/rpgdoge/presale" className="block max-w-5xl mx-auto">
-            <div className="relative overflow-hidden rounded-2xl border border-yellow-500/30 shadow-lg shadow-yellow-500/10 hover:shadow-yellow-500/20 transition-all duration-300 hover:scale-[1.01] group">
-              <img 
-                src={rpgDogeBanner} 
-                alt="RPGDOGE Presale" 
-                className="w-full h-auto object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
-                <span className="text-white font-bold text-lg bg-yellow-500/80 px-4 py-2 rounded-full">
-                  ¡Únete a la Preventa!
-                </span>
-              </div>
-            </div>
-          </Link>
-        </div>
         
         <div id="hero">
           <HeroSection />
         </div>
-        <RPGDogeTokenCounter />
         <CharacterCarousel />
         <FeaturesSection />
         <div id="social-tasks">
