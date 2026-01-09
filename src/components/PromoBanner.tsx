@@ -1,6 +1,5 @@
-import { Trophy, Sparkles, ArrowRight, Megaphone, Users, Coins } from "lucide-react";
+import { Trophy, Sparkles, ArrowRight, Megaphone, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import rpgdogeToken from "@/assets/rpgdoge-token.png";
 
 const PromoBanner = () => {
   const scrollToReferral = () => {
@@ -18,43 +17,6 @@ const PromoBanner = () => {
 
   return (
     <div className="flex flex-col lg:pl-64">
-      {/* RPGDOGE Token Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMtNi42MjcgMC0xMiA1LjM3My0xMiAxMnM1LjM3MyAxMiAxMiAxMiAxMi01LjM3MyAxMi0xMi01LjM3My0xMi0xMi0xMnptMCAyMGMtNC40MTggMC04LTMuNTgyLTgtOHMzLjU4Mi04IDgtOCA4IDMuNTgyIDggOC0zLjU4MiA4LTggOHoiIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii4wNSIvPjwvZz48L3N2Zz4=')] opacity-40" />
-        
-        <div className="relative container mx-auto px-4 py-3">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <img 
-                src={rpgdogeToken} 
-                alt="RPGDOGE Token" 
-                className="w-12 h-12 rounded-full border-2 border-yellow-400 shadow-lg animate-pulse"
-              />
-              <div className="text-white">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Coins className="w-4 h-4 text-yellow-300" />
-                  <h3 className="text-base md:text-lg font-bold">
-                    🚀 RPGDOGE TOKEN - ¡PRÓXIMAMENTE!
-                  </h3>
-                </div>
-                <p className="text-white/90 text-xs md:text-sm">
-                  <span className="font-bold text-yellow-300">10B Supply</span> • Staking • Preventa exclusiva
-                </p>
-              </div>
-            </div>
-            
-            <Button 
-              size="sm"
-              className="bg-yellow-400 text-purple-900 hover:bg-yellow-300 font-bold shadow-lg"
-              disabled
-            >
-              Próximamente
-              <Sparkles className="w-4 h-4 ml-1" />
-            </Button>
-          </div>
-        </div>
-      </div>
-
       {/* Referral Contest Banner */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-amber-500 via-primary to-yellow-500 opacity-90" />
