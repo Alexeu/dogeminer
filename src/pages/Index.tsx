@@ -109,29 +109,28 @@ const Index = () => {
       >
         {/* RPGDOGE Banner */}
         <motion.div 
-          className="px-4 pt-4"
+          className="px-4 pt-4 cursor-pointer"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
+          onClick={() => navigate("/rpgdoge")}
         >
-          <Link to="/rpgdoge" className="block max-w-5xl mx-auto">
-            <motion.div 
-              className="relative overflow-hidden rounded-2xl border border-yellow-500/30 shadow-lg shadow-yellow-500/10 group"
-              whileHover={{ scale: 1.02, boxShadow: "0 20px 40px -10px rgba(234, 179, 8, 0.3)" }}
-              transition={{ duration: 0.3 }}
-            >
-              <img 
-                src={rpgDogeBanner} 
-                alt="RPGDOGE Presale" 
-                className="w-full h-auto object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
-                <span className="text-white font-bold text-lg bg-yellow-500/80 px-4 py-2 rounded-full">
-                  ¡Únete a la Preventa!
-                </span>
-              </div>
-            </motion.div>
-          </Link>
+          <motion.div 
+            className="relative overflow-hidden rounded-2xl border border-yellow-500/30 shadow-lg shadow-yellow-500/10 group max-w-5xl mx-auto"
+            whileHover={{ scale: 1.02, boxShadow: "0 20px 40px -10px rgba(234, 179, 8, 0.3)" }}
+            transition={{ duration: 0.3 }}
+          >
+            <img 
+              src={rpgDogeBanner} 
+              alt="RPGDOGE Presale" 
+              className="w-full h-auto object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
+              <span className="text-white font-bold text-lg bg-yellow-500/80 px-4 py-2 rounded-full">
+                ¡Únete a la Preventa!
+              </span>
+            </div>
+          </motion.div>
         </motion.div>
         
         <div id="hero">
