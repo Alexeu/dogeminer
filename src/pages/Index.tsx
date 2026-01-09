@@ -26,6 +26,7 @@ import SupportSection from "@/components/SupportSection";
 import StakingSection from "@/components/StakingSection";
 import DogeBirdsSection from "@/components/DogeBirdsSection";
 import SocialTasksSection from "@/components/SocialTasksSection";
+import RPGDogeTokenCounter from "@/components/RPGDogeTokenCounter";
 import { Loader2 } from "lucide-react";
 
 const Index = () => {
@@ -107,6 +108,7 @@ const Index = () => {
         <div id="hero">
           <HeroSection />
         </div>
+        <RPGDogeTokenCounter />
         <CharacterCarousel />
         <FeaturesSection />
         <div id="social-tasks">
