@@ -28,7 +28,6 @@ import DogeBirdsSection from "@/components/DogeBirdsSection";
 import SocialTasksSection from "@/components/SocialTasksSection";
 import RPGDogeTokenCounter from "@/components/RPGDogeTokenCounter";
 import rpgDogeBanner from "@/assets/rpgdoge-banner.png";
-import PromoBanner from "@/components/PromoBanner";
 import { Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -100,15 +99,12 @@ const Index = () => {
   return (
     <div className="min-h-screen">
       <BalanceHeader />
-      <div className="fixed top-16 left-0 right-0 z-40 lg:pl-64">
-        <PromoBanner />
-      </div>
       <AppSidebar activeSection={activeSection} onNavigate={scrollToSection} />
       
       {/* Main content with sidebar offset */}
       <main 
         ref={mainContentRef}
-        className="pt-40 lg:pl-64 transition-all duration-300"
+        className="pt-16 lg:pl-64 transition-all duration-300"
       >
         {/* RPGDOGE Banner */}
         <div className="px-4 pt-4">
