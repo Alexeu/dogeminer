@@ -319,34 +319,20 @@ export default function PTCSection() {
     setDeleting(adId);
     
     try {
-      // First verify the ad belongs to this user
-      const { data: adData, error: fetchError } = await supabase
-        .from("ads")
-        .select("id, user_id")
-        .eq("id", adId)
-        .single();
+      // Use RPC function to avoid ad blocker interference with "ads" URL
+      const { data, error } = await supabase.rpc('deactivate_ad', {
+        p_ad_id: adId
+      });
 
-      if (fetchError) {
-        console.error("Error fetching ad:", fetchError);
-        toast.error("Error al verificar el anuncio");
+      if (error) {
+        console.error("Error deleting ad:", error);
+        toast.error(`Error al eliminar: ${error.message}`);
         return;
       }
 
-      if (!adData || adData.user_id !== user.id) {
-        toast.error("No tienes permiso para eliminar este anuncio");
-        return;
-      }
-
-      // Now update the ad to inactive - include user_id filter for RLS
-      const { error: updateError } = await supabase
-        .from("ads")
-        .update({ is_active: false, updated_at: new Date().toISOString() })
-        .eq("id", adId)
-        .eq("user_id", user.id);
-
-      if (updateError) {
-        console.error("Error deleting ad:", updateError);
-        toast.error(`Error al eliminar: ${updateError.message}`);
+      const result = data as { success: boolean; error?: string } | null;
+      if (result && !result.success) {
+        toast.error(result.error || "Error al eliminar el anuncio");
         return;
       }
 
