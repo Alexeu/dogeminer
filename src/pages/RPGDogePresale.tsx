@@ -87,39 +87,8 @@ const RPGDogePresale = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const handlePurchase = async () => {
-    const amountNum = parseFloat(amount);
-    
-    if (isNaN(amountNum) || amountNum < PRESALE_CONFIG.minPurchase) {
-      toast({
-        title: "⚠️ Cantidad inválida",
-        description: `El mínimo de compra es ${PRESALE_CONFIG.minPurchase} DOGE`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (amountNum > PRESALE_CONFIG.maxPurchase) {
-      toast({
-        title: "⚠️ Cantidad excedida",
-        description: `El máximo de compra es ${PRESALE_CONFIG.maxPurchase} DOGE`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsPurchasing(true);
-    
-    // Open FaucetPay transfer page
-    const faucetPayUrl = `https://faucetpay.io/page/send-payment?to=rpgdoge30@gmail.com&amount=${Math.floor(amountNum * 100000000)}&currency=DOGE&custom=RDOGE_PRESALE`;
-    window.open(faucetPayUrl, '_blank');
-    
-    toast({
-      title: "🚀 ¡Redirigiendo a FaucetPay!",
-      description: `Completa el pago de ${amountNum} DOGE para reservar ${formatNumber(totalTokens)} RDOGE tokens.`,
-    });
-    
-    setIsPurchasing(false);
+  const handlePurchase = () => {
+    window.open('https://faucetpay.io/transfer', '_blank');
   };
 
   const formatNumber = (num: number) => {
