@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import dogeLogo from "@/assets/doge-logo.png";
 import rpgDogeToken from "@/assets/rpgdoge-token.png";
 import NotificationBell from "./NotificationBell";
-import PromoBanner from "./PromoBanner";
+
 import LanguageSwitcher from "./LanguageSwitcher";
 import { formatDoge } from "@/data/dogeData";
 import {
@@ -159,7 +159,6 @@ const BalanceHeader = () => {
           </div>
         </div>
       </div>
-      <PromoBanner />
     </header>
   );
 };
