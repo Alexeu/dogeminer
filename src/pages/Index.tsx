@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useInactivityLogout } from "@/hooks/useInactivityLogout";
@@ -107,9 +108,18 @@ const Index = () => {
         className="pt-16 lg:pl-64 transition-all duration-300"
       >
         {/* RPGDOGE Banner */}
-        <div className="px-4 pt-4">
+        <motion.div 
+          className="px-4 pt-4"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        >
           <Link to="/rpgdoge" className="block max-w-5xl mx-auto">
-            <div className="relative overflow-hidden rounded-2xl border border-yellow-500/30 shadow-lg shadow-yellow-500/10 hover:shadow-yellow-500/20 transition-all duration-300 hover:scale-[1.01] group">
+            <motion.div 
+              className="relative overflow-hidden rounded-2xl border border-yellow-500/30 shadow-lg shadow-yellow-500/10 group"
+              whileHover={{ scale: 1.02, boxShadow: "0 20px 40px -10px rgba(234, 179, 8, 0.3)" }}
+              transition={{ duration: 0.3 }}
+            >
               <img 
                 src={rpgDogeBanner} 
                 alt="RPGDOGE Presale" 
@@ -120,9 +130,9 @@ const Index = () => {
                   ¡Únete a la Preventa!
                 </span>
               </div>
-            </div>
+            </motion.div>
           </Link>
-        </div>
+        </motion.div>
         
         <div id="hero">
           <HeroSection />
