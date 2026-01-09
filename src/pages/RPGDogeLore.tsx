@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Sword, Shield, Crown, Sparkles, Coins, Users, Flame } from "lucide-react";
+import { ArrowLeft, Sword, Shield, Crown, Sparkles, Coins, Users, Flame, Map, Rocket, Target, Trophy, Star, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import rpgDogeToken from "@/assets/rpgdoge-token.png";
@@ -344,6 +344,211 @@ const RPGDogeLore = () => {
                 <p className="text-yellow-200/70 text-sm">{item.label}</p>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Roadmap Section */}
+      <section className="relative py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          <motion.h2
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-4xl md:text-5xl font-bold text-center mb-6"
+          >
+            <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+              🗺️ Roadmap del Reino
+            </span>
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-gray-400 text-center mb-16 max-w-2xl mx-auto"
+          >
+            El camino hacia la conquista del Reino Crypto está marcado por hitos épicos
+          </motion.p>
+
+          <div className="relative">
+            {/* Timeline Line */}
+            <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-yellow-500 via-purple-500 to-blue-500 hidden md:block transform -translate-x-1/2" />
+
+            {/* Phase 1 */}
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="relative grid md:grid-cols-2 gap-8 mb-12"
+            >
+              <div className="md:text-right md:pr-12">
+                <div className="inline-flex items-center gap-2 bg-green-500/20 text-green-400 px-4 py-1 rounded-full text-sm font-medium mb-4">
+                  <Trophy className="w-4 h-4" />
+                  Completado
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">Fase 1: Génesis</h3>
+                <p className="text-gray-400 mb-4">Q4 2024</p>
+                <ul className="space-y-2 text-gray-300">
+                  <li className="flex items-center gap-2 md:justify-end">
+                    <span>Creación del token RDOGE</span>
+                    <Star className="w-4 h-4 text-green-400" />
+                  </li>
+                  <li className="flex items-center gap-2 md:justify-end">
+                    <span>Lanzamiento de la comunidad</span>
+                    <Star className="w-4 h-4 text-green-400" />
+                  </li>
+                  <li className="flex items-center gap-2 md:justify-end">
+                    <span>Desarrollo del lore RPGDOGE</span>
+                    <Star className="w-4 h-4 text-green-400" />
+                  </li>
+                  <li className="flex items-center gap-2 md:justify-end">
+                    <span>Website y branding oficial</span>
+                    <Star className="w-4 h-4 text-green-400" />
+                  </li>
+                </ul>
+              </div>
+              <div className="hidden md:flex items-center justify-start">
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/30"
+                >
+                  <Trophy className="w-8 h-8 text-white" />
+                </motion.div>
+              </div>
+            </motion.div>
+
+            {/* Phase 2 */}
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="relative grid md:grid-cols-2 gap-8 mb-12"
+            >
+              <div className="hidden md:flex items-center justify-end">
+                <motion.div
+                  animate={{ rotate: [0, 360] }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                  className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg shadow-yellow-500/30"
+                >
+                  <Zap className="w-8 h-8 text-white" />
+                </motion.div>
+              </div>
+              <div className="md:pl-12">
+                <div className="inline-flex items-center gap-2 bg-yellow-500/20 text-yellow-400 px-4 py-1 rounded-full text-sm font-medium mb-4 animate-pulse">
+                  <Zap className="w-4 h-4" />
+                  En Progreso
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">Fase 2: La Preventa</h3>
+                <p className="text-gray-400 mb-4">Q1 2025</p>
+                <ul className="space-y-2 text-gray-300">
+                  <li className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-yellow-400" />
+                    <span>Preventa pública de tokens RDOGE</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-yellow-400" />
+                    <span>Sistema de bonus por fase</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-gray-500" />
+                    <span>Auditoría de smart contracts</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-gray-500" />
+                    <span>Partnerships estratégicos</span>
+                  </li>
+                </ul>
+              </div>
+            </motion.div>
+
+            {/* Phase 3 */}
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="relative grid md:grid-cols-2 gap-8 mb-12"
+            >
+              <div className="md:text-right md:pr-12">
+                <div className="inline-flex items-center gap-2 bg-purple-500/20 text-purple-400 px-4 py-1 rounded-full text-sm font-medium mb-4">
+                  <Target className="w-4 h-4" />
+                  Próximamente
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">Fase 3: El Lanzamiento</h3>
+                <p className="text-gray-400 mb-4">Q2 2025</p>
+                <ul className="space-y-2 text-gray-300">
+                  <li className="flex items-center gap-2 md:justify-end">
+                    <span>Listado en DEXs principales</span>
+                    <Star className="w-4 h-4 text-gray-500" />
+                  </li>
+                  <li className="flex items-center gap-2 md:justify-end">
+                    <span>Lanzamiento del staking RDOGE</span>
+                    <Star className="w-4 h-4 text-gray-500" />
+                  </li>
+                  <li className="flex items-center gap-2 md:justify-end">
+                    <span>Sistema de gobernanza DAO</span>
+                    <Star className="w-4 h-4 text-gray-500" />
+                  </li>
+                  <li className="flex items-center gap-2 md:justify-end">
+                    <span>Marketing global agresivo</span>
+                    <Star className="w-4 h-4 text-gray-500" />
+                  </li>
+                </ul>
+              </div>
+              <div className="hidden md:flex items-center justify-start">
+                <motion.div
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/30"
+                >
+                  <Target className="w-8 h-8 text-white" />
+                </motion.div>
+              </div>
+            </motion.div>
+
+            {/* Phase 4 */}
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="relative grid md:grid-cols-2 gap-8"
+            >
+              <div className="hidden md:flex items-center justify-end">
+                <motion.div
+                  animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                  className="w-16 h-16 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30"
+                >
+                  <Rocket className="w-8 h-8 text-white" />
+                </motion.div>
+              </div>
+              <div className="md:pl-12">
+                <div className="inline-flex items-center gap-2 bg-blue-500/20 text-blue-400 px-4 py-1 rounded-full text-sm font-medium mb-4">
+                  <Rocket className="w-4 h-4" />
+                  Futuro
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">Fase 4: El Reino Expandido</h3>
+                <p className="text-gray-400 mb-4">Q3-Q4 2025</p>
+                <ul className="space-y-2 text-gray-300">
+                  <li className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-gray-500" />
+                    <span>Listado en CEXs tier 1</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-gray-500" />
+                    <span>RPGDOGE Play-to-Earn Game</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-gray-500" />
+                    <span>NFT Collection exclusiva</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-gray-500" />
+                    <span>Metaverso del Reino Crypto</span>
+                  </li>
+                </ul>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
