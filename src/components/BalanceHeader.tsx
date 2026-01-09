@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { supabase } from "@/integrations/supabase/client";
 import { LogOut, User, Pickaxe, Wallet, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -21,10 +23,34 @@ const BalanceHeader = () => {
   const { miningBalance, depositBalance } = useDogeBalance();
   const { user, signOut } = useAuth();
   const { t } = useLanguage();
+  const [rdogeBalance, setRdogeBalance] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+      fetchRdogeBalance();
+    }
+  }, [user]);
+
+  const fetchRdogeBalance = async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_rdoge_balance');
+      if (error) throw error;
+      setRdogeBalance(Number(data) || 0);
+    } catch (error) {
+      console.error('Error fetching RDOGE balance:', error);
+    }
+  };
 
   const handleLogout = async () => {
     await signOut();
     toast.success(t('header.logout'));
+  };
+
+  const formatRdoge = (amount: number) => {
+    if (amount >= 1_000_000_000) return (amount / 1_000_000_000).toFixed(2) + "B";
+    if (amount >= 1_000_000) return (amount / 1_000_000).toFixed(2) + "M";
+    if (amount >= 1_000) return (amount / 1_000).toFixed(1) + "K";
+    return amount.toLocaleString();
   };
 
   return (
@@ -95,15 +121,15 @@ const BalanceHeader = () => {
                     <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl glass shadow-doge-sm border border-yellow-500/30 bg-gradient-to-r from-yellow-500/10 to-orange-500/10">
                       <img src={rpgDogeToken} alt="RDOGE" className="w-4 h-4" />
                       <span className="text-sm font-bold text-yellow-500 tabular-nums hidden sm:inline">
-                        0 RDOGE
+                        {formatRdoge(rdogeBalance)} RDOGE
                       </span>
                       <span className="text-sm font-bold text-yellow-500 tabular-nums sm:hidden">
-                        0
+                        {formatRdoge(rdogeBalance)}
                       </span>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Tokens RPGDOGE: 0 RDOGE</p>
+                    <p>Tokens RPGDOGE: {rdogeBalance.toLocaleString()} RDOGE</p>
                     <p className="text-xs text-muted-foreground">Tokens adquiridos en preventa</p>
                   </TooltipContent>
                 </Tooltip>
