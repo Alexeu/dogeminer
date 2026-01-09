@@ -22,22 +22,20 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import rpgDogeToken from "@/assets/rpgdoge-token.png";
 
-// Presale configuration
+// Presale configuration - Now in DOGE
 const PRESALE_CONFIG = {
   totalTokens: 1_000_000_000_000, // 1T tokens for presale
   soldTokens: 347_892_156, // Simulated sold amount
   startDate: new Date("2024-12-01"),
   endDate: new Date("2025-02-28T23:59:59"),
   phases: [
-    { name: "Fase 1 - Early Bird", price: 0.00001, bonus: 50, active: false, sold: true },
-    { name: "Fase 2 - Guerreros", price: 0.000015, bonus: 30, active: true, sold: false },
-    { name: "Fase 3 - Caballeros", price: 0.00002, bonus: 15, active: false, sold: false },
-    { name: "Fase 4 - Nobles", price: 0.000025, bonus: 5, active: false, sold: false },
+    { name: "Fase 1 - Early Bird", price: 0.001, bonus: 50, active: false, sold: true }, // RDOGE per DOGE
+    { name: "Fase 2 - Guerreros", price: 0.0015, bonus: 30, active: true, sold: false },
+    { name: "Fase 3 - Caballeros", price: 0.002, bonus: 15, active: false, sold: false },
+    { name: "Fase 4 - Nobles", price: 0.0025, bonus: 5, active: false, sold: false },
   ],
-  minPurchase: 1, // USDT
-  maxPurchase: 10000, // USDT
-  paymentAddress: "0x097b0584a9bd6640371B81028E250AAcda5e06f7",
-  paymentNetwork: "ERC-20",
+  minPurchase: 1, // DOGE
+  maxPurchase: 1000, // DOGE
 };
 
 const benefits = [
@@ -50,7 +48,7 @@ const benefits = [
 const stats = [
   { label: "Suministro Total", value: "1T" },
   { label: "Holders", value: "12,847" },
-  { label: "USDT Recaudados", value: "$521,838" },
+  { label: "DOGE Recaudados", value: "1,521,838" },
   { label: "Bonus Promedio", value: "+35%" },
 ];
 
@@ -95,7 +93,7 @@ const RPGDogePresale = () => {
     if (isNaN(amountNum) || amountNum < PRESALE_CONFIG.minPurchase) {
       toast({
         title: "⚠️ Cantidad inválida",
-        description: `El mínimo de compra es ${PRESALE_CONFIG.minPurchase} USDT`,
+        description: `El mínimo de compra es ${PRESALE_CONFIG.minPurchase} DOGE`,
         variant: "destructive",
       });
       return;
@@ -104,7 +102,7 @@ const RPGDogePresale = () => {
     if (amountNum > PRESALE_CONFIG.maxPurchase) {
       toast({
         title: "⚠️ Cantidad excedida",
-        description: `El máximo de compra es ${PRESALE_CONFIG.maxPurchase} USDT`,
+        description: `El máximo de compra es ${PRESALE_CONFIG.maxPurchase} DOGE`,
         variant: "destructive",
       });
       return;
@@ -112,12 +110,13 @@ const RPGDogePresale = () => {
 
     setIsPurchasing(true);
     
-    // Simulate purchase process
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Open FaucetPay transfer page
+    const faucetPayUrl = `https://faucetpay.io/page/send-payment?to=rpgdoge30@gmail.com&amount=${Math.floor(amountNum * 100000000)}&currency=DOGE&custom=RDOGE_PRESALE`;
+    window.open(faucetPayUrl, '_blank');
     
     toast({
-      title: "🎉 ¡Reserva Confirmada!",
-      description: `Has reservado ${totalTokens.toLocaleString()} RDOGE tokens. Te contactaremos para completar el pago.`,
+      title: "🚀 ¡Redirigiendo a FaucetPay!",
+      description: `Completa el pago de ${amountNum} DOGE para reservar ${formatNumber(totalTokens)} RDOGE tokens.`,
     });
     
     setIsPurchasing(false);
@@ -286,7 +285,7 @@ const RPGDogePresale = () => {
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-white">Comprar RDOGE</h2>
-                  <p className="text-gray-400 text-sm">Precio actual: ${currentPhase.price.toFixed(6)} USDT</p>
+                  <p className="text-gray-400 text-sm">Precio actual: {currentPhase.price} DOGE por RDOGE</p>
                 </div>
               </div>
 
@@ -302,7 +301,7 @@ const RPGDogePresale = () => {
 
               {/* Amount Input */}
               <div className="space-y-4 mb-6">
-                <label className="block text-gray-300 text-sm font-medium">Cantidad a invertir (USDT)</label>
+                <label className="block text-gray-300 text-sm font-medium">Cantidad a invertir (DOGE)</label>
                 <div className="relative">
                   <Input
                     type="number"
@@ -314,11 +313,11 @@ const RPGDogePresale = () => {
                     className="bg-black/50 border-yellow-500/30 text-white text-xl h-14 pr-16 focus:border-yellow-400"
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-yellow-400 font-medium">
-                    USDT
+                    DOGE
                   </span>
                 </div>
                 <div className="flex gap-2 flex-wrap">
-                  {[1, 10, 50, 100, 500].map((preset) => (
+                  {[1, 5, 10, 50, 100].map((preset) => (
                     <Button
                       key={preset}
                       variant="outline"
@@ -326,7 +325,7 @@ const RPGDogePresale = () => {
                       onClick={() => setAmount(preset.toString())}
                       className="flex-1 min-w-[60px] border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/20 hover:border-yellow-400"
                     >
-                      ${preset}
+                      {preset} DOGE
                     </Button>
                   ))}
                 </div>
@@ -367,37 +366,37 @@ const RPGDogePresale = () => {
                   ) : (
                     <>
                       <Coins className="w-5 h-5 mr-2" />
-                      Reservar Tokens
+                      Comprar con DOGE
                     </>
                   )}
                 </Button>
               </motion.div>
 
               <p className="text-gray-500 text-xs text-center mt-4">
-                Mínimo: ${PRESALE_CONFIG.minPurchase} • Máximo: ${PRESALE_CONFIG.maxPurchase}
+                Mínimo: {PRESALE_CONFIG.minPurchase} DOGE • Máximo: {PRESALE_CONFIG.maxPurchase} DOGE
               </p>
 
-              {/* Payment Address Info */}
-              <div className="mt-6 bg-gradient-to-br from-blue-900/30 to-purple-900/30 rounded-xl p-4 border border-blue-500/30">
+              {/* FaucetPay Payment Info */}
+              <div className="mt-6 bg-gradient-to-br from-amber-900/30 to-yellow-900/30 rounded-xl p-4 border border-yellow-500/30">
                 <div className="flex items-center gap-2 mb-3">
-                  <Wallet className="w-5 h-5 text-blue-400" />
-                  <span className="text-blue-300 font-medium">Dirección de Pago USDT</span>
-                  <span className="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded text-xs font-medium">
-                    {PRESALE_CONFIG.paymentNetwork}
+                  <Wallet className="w-5 h-5 text-yellow-400" />
+                  <span className="text-yellow-300 font-medium">Pago via FaucetPay</span>
+                  <span className="bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded text-xs font-medium">
+                    DOGE
                   </span>
                 </div>
                 <div className="bg-black/50 rounded-lg p-3 flex items-center justify-between gap-2">
                   <code className="text-yellow-400 text-xs md:text-sm break-all font-mono">
-                    {PRESALE_CONFIG.paymentAddress}
+                    rpgdoge30@gmail.com
                   </code>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      navigator.clipboard.writeText(PRESALE_CONFIG.paymentAddress);
+                      navigator.clipboard.writeText("rpgdoge30@gmail.com");
                       toast({
                         title: "✅ Copiado",
-                        description: "Dirección copiada al portapapeles",
+                        description: "Email copiado al portapapeles",
                       });
                     }}
                     className="shrink-0 text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10"
@@ -406,8 +405,7 @@ const RPGDogePresale = () => {
                   </Button>
                 </div>
                 <p className="text-gray-400 text-xs mt-2">
-                  ⚠️ Envía únicamente USDT a través de la red <span className="text-blue-400 font-medium">Ethereum (ERC-20)</span>. 
-                  Otras redes no serán procesadas.
+                  💡 Al hacer clic en "Comprar con DOGE" serás redirigido a FaucetPay para completar el pago.
                 </p>
               </div>
             </motion.div>
