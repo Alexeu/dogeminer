@@ -108,17 +108,19 @@ const Index = () => {
         className="pt-16 lg:pl-64 transition-all duration-300"
       >
         {/* RPGDOGE Banner */}
-        <motion.div 
+        <div 
           className="px-4 pt-4 cursor-pointer"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
           onClick={() => navigate("/rpgdoge")}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === 'Enter' && navigate("/rpgdoge")}
         >
           <motion.div 
-            className="relative overflow-hidden rounded-2xl border border-yellow-500/30 shadow-lg shadow-yellow-500/10 group max-w-5xl mx-auto"
+            className="relative overflow-hidden rounded-2xl border border-yellow-500/30 shadow-lg shadow-yellow-500/10 group max-w-5xl mx-auto pointer-events-none"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
             whileHover={{ scale: 1.02, boxShadow: "0 20px 40px -10px rgba(234, 179, 8, 0.3)" }}
-            transition={{ duration: 0.3 }}
           >
             <img 
               src={rpgDogeBanner} 
@@ -131,7 +133,7 @@ const Index = () => {
               </span>
             </div>
           </motion.div>
-        </motion.div>
+        </div>
         
         <div id="hero">
           <HeroSection />
