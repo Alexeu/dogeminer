@@ -69,6 +69,7 @@ interface Transaction {
   created_at: string;
   tx_hash: string | null;
   faucetpay_address: string | null;
+  notes: string | null;
   user_email?: string;
 }
 
@@ -1388,6 +1389,7 @@ const Admin = () => {
                     <tr className="border-b border-border">
                       <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.user')}</th>
                       <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">FaucetPay Email</th>
+                      <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">Tipo</th>
                       <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.amount')}</th>
                       <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">{t('admin.status')}</th>
                       <th 
@@ -1426,6 +1428,19 @@ const Admin = () => {
                           </div>
                         </td>
                         <td className="py-3 px-4 text-sm text-muted-foreground">{tx.faucetpay_address || '-'}</td>
+                        <td className="py-3 px-4 text-center">
+                          {tx.notes?.includes('RDOGE') || tx.notes?.includes('RPGDOGE') || tx.notes?.includes('token') ? (
+                            <span className="text-xs px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-500 flex items-center gap-1 justify-center">
+                              <Coins className="w-3 h-3" />
+                              RDOGE
+                            </span>
+                          ) : (
+                            <span className="text-xs px-2 py-1 rounded-full bg-primary/20 text-primary flex items-center gap-1 justify-center">
+                              <Dog className="w-3 h-3" />
+                              DOGE
+                            </span>
+                          )}
+                        </td>
                         <td className="py-3 px-4 text-right font-mono text-primary">{formatDoge(tx.amount)}</td>
                         <td className="py-3 px-4 text-center">
                           <span className={`text-xs px-2 py-1 rounded-full ${getStatusBadge(tx.status)}`}>
