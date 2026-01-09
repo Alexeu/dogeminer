@@ -589,7 +589,7 @@ const RPGDogeLore = () => {
 
       {/* Footer */}
       <footer className="py-10 text-center text-gray-500 text-sm">
-        <p>© 2024 RPGDOGE Kingdom • Todos los derechos reservados</p>
+        <p>© 2026 RPGDOGE Kingdom • Todos los derechos reservados</p>
         <p className="mt-2">La leyenda continúa...</p>
       </footer>
     </div>
