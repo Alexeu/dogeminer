@@ -65,7 +65,7 @@ const RPGDogeTokenCounter = () => {
                   <p className="text-yellow-400/80 text-sm">Fase 2 Activa - ¡Únete ahora!</p>
                 </div>
               </div>
-              <Link to="/rpgdoge">
+              <Link to="/rpgdoge/presale">
                 <Button className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black font-bold shadow-lg shadow-yellow-500/20">
                   <Coins className="w-4 h-4 mr-2" />
                   Comprar Tokens
