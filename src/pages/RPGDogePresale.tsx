@@ -24,7 +24,7 @@ import rpgDogeToken from "@/assets/rpgdoge-token.png";
 
 // Presale configuration
 const PRESALE_CONFIG = {
-  totalTokens: 1_000_000_000, // 1B tokens for presale
+  totalTokens: 1_000_000_000_000, // 1T tokens for presale
   soldTokens: 347_892_156, // Simulated sold amount
   startDate: new Date("2024-12-01"),
   endDate: new Date("2025-02-28T23:59:59"),
@@ -124,6 +124,7 @@ const RPGDogePresale = () => {
   };
 
   const formatNumber = (num: number) => {
+    if (num >= 1_000_000_000_000) return (num / 1_000_000_000_000).toFixed(1) + "T";
     if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(1) + "B";
     if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + "M";
     if (num >= 1_000) return (num / 1_000).toFixed(1) + "K";

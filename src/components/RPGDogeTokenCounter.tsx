@@ -7,12 +7,13 @@ import rpgDogeToken from "@/assets/rpgdoge-token.png";
 // Simulated presale data (should match RPGDogePresale.tsx)
 const PRESALE_STATS = {
   soldTokens: 347_892_156,
-  totalTokens: 1_000_000_000,
+  totalTokens: 1_000_000_000_000,
   holders: 12847,
   usdtRaised: 521838,
 };
 
 const formatNumber = (num: number) => {
+  if (num >= 1_000_000_000_000) return (num / 1_000_000_000_000).toFixed(2) + "T";
   if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(2) + "B";
   if (num >= 1_000_000) return (num / 1_000_000).toFixed(2) + "M";
   if (num >= 1_000) return (num / 1_000).toFixed(1) + "K";
