@@ -42,12 +42,12 @@ Juntos, formaron la Orden del RDOGE, jurando proteger el tesoro de la comunidad 
 
 Los que hacen staking de sus tokens contribuyen al "Tesoro del Reino", recibiendo recompensas por su lealtad. Los holders más antiguos son conocidos como "Caballeros Diamante", respetados por toda la comunidad.
 
-Y la leyenda dice que cuando el suministro total de 10,000,000,000 RDOGE sea distribuido entre verdaderos creyentes, el reino alcanzará su máximo esplendor...`,
+Y la leyenda dice que cuando el suministro total de 1,000,000,000,000 RDOGE sea distribuido entre verdaderos creyentes, el reino alcanzará su máximo esplendor...`,
   },
 ];
 
 const tokenomics = [
-  { label: "Suministro Total", value: "10,000,000,000 RDOGE", icon: Coins },
+  { label: "Suministro Total", value: "1,000,000,000,000 RDOGE", icon: Coins },
   { label: "Comunidad", value: "40%", icon: Users },
   { label: "Staking Rewards", value: "25%", icon: Sparkles },
   { label: "Quema Épica", value: "Deflacionario", icon: Flame },
