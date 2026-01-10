@@ -50,16 +50,16 @@ const RPGDogeTokenCounter = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
               <div className="flex items-center gap-3">
-                <motion.img
+              <motion.img
                   src={rpgDogeToken}
-                  alt="RPGDOGE Token"
+                  alt="DOGE KINGDOM PROTECTOR Token"
                   className="w-12 h-12"
                   animate={{ rotate: [0, 10, -10, 0] }}
                   transition={{ duration: 4, repeat: Infinity }}
                 />
                 <div>
-                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    RPGDOGE Preventa
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                    DOGE KINGDOM PROTECTOR
                     <Sparkles className="w-4 h-4 text-yellow-400" />
                   </h3>
                   <p className="text-yellow-400/80 text-sm">Fase 2 Activa - ¡Únete ahora!</p>

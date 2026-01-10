@@ -137,7 +137,7 @@ const RPGDogeLore = () => {
             />
             <motion.img
               src={rpgDogeToken}
-              alt="RPGDOGE Token"
+              alt="DOGE KINGDOM PROTECTOR Token"
               className="w-48 h-48 md:w-64 md:h-64 relative z-10 drop-shadow-2xl"
               animate={{
                 y: [0, -10, 0],
@@ -158,7 +158,7 @@ const RPGDogeLore = () => {
             className="text-5xl md:text-7xl font-bold mb-4"
           >
             <span className="bg-gradient-to-r from-yellow-300 via-orange-400 to-yellow-500 bg-clip-text text-transparent drop-shadow-lg">
-              RPGDOGE
+              DOGE KINGDOM PROTECTOR
             </span>
           </motion.h1>
 
@@ -208,7 +208,7 @@ const RPGDogeLore = () => {
             className="text-4xl md:text-5xl font-bold text-center mb-16"
           >
             <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              📜 La Leyenda de RPGDOGE
+              📜 La Leyenda de DOGE KINGDOM PROTECTOR
             </span>
           </motion.h2>
 

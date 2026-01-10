@@ -125,8 +125,8 @@ const RPGDogePresale = () => {
             </Button>
           </Link>
           <div className="flex items-center gap-2">
-            <img src={rpgDogeToken} alt="RPGDOGE" className="w-8 h-8" />
-            <span className="font-bold text-yellow-400">RPGDOGE</span>
+            <img src={rpgDogeToken} alt="DOGE KINGDOM PROTECTOR" className="w-8 h-8" />
+            <span className="font-bold text-yellow-400">DOGE KINGDOM PROTECTOR</span>
           </div>
         </div>
       </header>
@@ -151,7 +151,7 @@ const RPGDogePresale = () => {
               className="text-4xl md:text-6xl font-bold mb-4"
             >
               <span className="bg-gradient-to-r from-yellow-300 via-orange-400 to-yellow-500 bg-clip-text text-transparent">
-                Preventa RPGDOGE
+                DOGE KINGDOM PROTECTOR
               </span>
             </motion.h1>
             <motion.p
