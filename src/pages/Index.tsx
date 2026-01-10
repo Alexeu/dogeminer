@@ -28,7 +28,7 @@ import StakingSection from "@/components/StakingSection";
 import DogeBirdsSection from "@/components/DogeBirdsSection";
 import SocialTasksSection from "@/components/SocialTasksSection";
 import RPGDogeTokenCounter from "@/components/RPGDogeTokenCounter";
-import rpgDogeBanner from "@/assets/rpgdoge-banner.png";
+import rpgDogeBanner from "@/assets/rpgdoge-banner-2.png";
 import { Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
