@@ -160,10 +160,32 @@ const RPGDogePresale = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="text-gray-400 text-lg max-w-2xl mx-auto"
+              className="text-gray-400 text-lg max-w-2xl mx-auto mb-6"
             >
               {t('presale.subtitle')}
             </motion.p>
+
+            {/* Pump.fun & Solana Badges */}
+            <motion.div 
+              className="flex flex-wrap justify-center gap-3"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <div className="flex items-center gap-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 px-4 py-2 rounded-full border border-green-500/40">
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <Rocket className="w-4 h-4 text-green-400" />
+                </motion.div>
+                <span className="text-green-300 text-sm font-medium">{t('token.launchingOn')} pump.fun</span>
+              </div>
+              <div className="flex items-center gap-2 bg-gradient-to-r from-purple-500/20 to-violet-500/20 px-4 py-2 rounded-full border border-purple-500/40">
+                <div className="w-4 h-4 rounded-full bg-gradient-to-r from-purple-400 to-green-400" />
+                <span className="text-purple-300 text-sm font-medium">{t('token.poweredBy')} Solana</span>
+              </div>
+            </motion.div>
           </div>
 
           {/* Countdown Timer */}

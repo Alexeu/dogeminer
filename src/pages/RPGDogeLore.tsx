@@ -241,14 +241,38 @@ const RPGDogeLore = () => {
             {t('rpgdoge.guardian')}
           </motion.p>
 
-          <motion.p
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.9 }}
-            className="text-lg text-gray-400 font-mono"
+            className="flex flex-col items-center gap-3"
           >
-            $RDOGE • ERC-20
-          </motion.p>
+            <p className="text-lg text-gray-400 font-mono">
+              $RDOGE • Solana
+            </p>
+            
+            {/* Pump.fun & Solana Badge */}
+            <motion.div 
+              className="flex flex-wrap justify-center gap-3"
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 1.1 }}
+            >
+              <div className="flex items-center gap-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 px-4 py-2 rounded-full border border-green-500/40">
+                <motion.div
+                  animate={{ rotate: [0, 360] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                >
+                  <Rocket className="w-4 h-4 text-green-400" />
+                </motion.div>
+                <span className="text-green-300 text-sm font-medium">{t('token.launchingOn')} pump.fun</span>
+              </div>
+              <div className="flex items-center gap-2 bg-gradient-to-r from-purple-500/20 to-violet-500/20 px-4 py-2 rounded-full border border-purple-500/40">
+                <div className="w-4 h-4 rounded-full bg-gradient-to-r from-purple-400 to-green-400" />
+                <span className="text-purple-300 text-sm font-medium">{t('token.poweredBy')} Solana</span>
+              </div>
+            </motion.div>
+          </motion.div>
 
           {/* Scroll Indicator */}
           <motion.div
@@ -375,6 +399,116 @@ const RPGDogeLore = () => {
               </div>
             </motion.div>
           </AnimatePresence>
+        </div>
+      </section>
+
+      {/* Solana & Pump.fun Section */}
+      <section className="relative py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="bg-gradient-to-br from-green-900/30 via-purple-900/30 to-green-900/30 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-green-500/30 relative overflow-hidden"
+          >
+            {/* Animated background elements */}
+            <motion.div
+              className="absolute top-0 right-0 w-64 h-64 bg-green-500/10 rounded-full blur-3xl"
+              animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+              transition={{ duration: 4, repeat: Infinity }}
+            />
+            <motion.div
+              className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl"
+              animate={{ scale: [1.2, 1, 1.2], opacity: [0.3, 0.5, 0.3] }}
+              transition={{ duration: 4, repeat: Infinity }}
+            />
+
+            <div className="relative z-10">
+              <div className="text-center mb-8">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  whileInView={{ scale: 1 }}
+                  viewport={{ once: true }}
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 px-6 py-3 rounded-full border border-green-500/40 mb-6"
+                >
+                  <motion.div
+                    animate={{ rotate: [0, 360] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  >
+                    <Rocket className="w-5 h-5 text-green-400" />
+                  </motion.div>
+                  <span className="text-green-300 font-bold">{t('token.comingSoon')}</span>
+                </motion.div>
+
+                <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                  <span className="bg-gradient-to-r from-green-400 via-purple-400 to-green-400 bg-clip-text text-transparent">
+                    {t('token.launchingOn')} pump.fun
+                  </span>
+                </h2>
+                <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+                  {t('token.fairLaunch')}
+                </p>
+              </div>
+
+              {/* Solana Features */}
+              <div className="grid md:grid-cols-3 gap-6 mt-8">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1 }}
+                  className="bg-black/40 rounded-2xl p-6 border border-purple-500/20 text-center"
+                >
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-purple-500/20 to-green-500/20 flex items-center justify-center">
+                    <Zap className="w-8 h-8 text-purple-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-2">{t('token.solanaSpeed')}</h3>
+                  <p className="text-gray-400 text-sm">{t('token.fastTransactions')}</p>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-black/40 rounded-2xl p-6 border border-green-500/20 text-center"
+                >
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-green-500/20 to-emerald-500/20 flex items-center justify-center">
+                    <Coins className="w-8 h-8 text-green-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-2">{t('token.lowFees')}</h3>
+                  <p className="text-gray-400 text-sm">{t('token.pumpFunListing')}</p>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.3 }}
+                  className="bg-black/40 rounded-2xl p-6 border border-yellow-500/20 text-center"
+                >
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-500/20 flex items-center justify-center">
+                    <Users className="w-8 h-8 text-yellow-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-2">{t('token.ecosystem')}</h3>
+                  <p className="text-gray-400 text-sm">{t('token.solanaNetwork')}</p>
+                </motion.div>
+              </div>
+
+              {/* Solana Logo */}
+              <div className="flex justify-center mt-8">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  className="flex items-center gap-3 bg-black/50 px-6 py-3 rounded-full border border-purple-500/30"
+                >
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-400 via-blue-400 to-green-400" />
+                  <span className="text-purple-300 font-medium">{t('token.poweredBy')} Solana Blockchain</span>
+                </motion.div>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
