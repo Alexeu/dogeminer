@@ -258,7 +258,12 @@ const RPGDogeLore = () => {
               animate={{ scale: 1 }}
               transition={{ delay: 1.1 }}
             >
-              <div className="flex items-center gap-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 px-4 py-2 rounded-full border border-green-500/40">
+              <a 
+                href="https://pump.fun/coin/2cbcV3PsabFRttudnJNY5GFVYSLxZiYjPN5Dh5aXpump" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 px-4 py-2 rounded-full border border-green-500/40 hover:border-green-400 hover:bg-green-500/30 transition-all cursor-pointer"
+              >
                 <motion.div
                   animate={{ rotate: [0, 360] }}
                   transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
@@ -266,7 +271,7 @@ const RPGDogeLore = () => {
                   <Rocket className="w-4 h-4 text-green-400" />
                 </motion.div>
                 <span className="text-green-300 text-sm font-medium">{t('token.launchingOn')} pump.fun</span>
-              </div>
+              </a>
               <div className="flex items-center gap-2 bg-gradient-to-r from-purple-500/20 to-violet-500/20 px-4 py-2 rounded-full border border-purple-500/40">
                 <div className="w-4 h-4 rounded-full bg-gradient-to-r from-purple-400 to-green-400" />
                 <span className="text-purple-300 text-sm font-medium">{t('token.poweredBy')} Solana</span>
