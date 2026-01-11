@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import rpgDogeToken from "@/assets/rpgdoge-token.png";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // Presale configuration - Now in DOGE
 const PRESALE_CONFIG = {
@@ -29,34 +30,35 @@ const PRESALE_CONFIG = {
   startDate: new Date("2024-12-01"),
   endDate: new Date("2025-02-28T23:59:59"),
   phases: [
-    { name: "Fase 1 - Early Bird", price: 0.001, bonus: 50, active: false, sold: true }, // RDOGE per DOGE
-    { name: "Fase 2 - Guerreros", price: 0.0015, bonus: 30, active: true, sold: false },
-    { name: "Fase 3 - Caballeros", price: 0.002, bonus: 15, active: false, sold: false },
-    { name: "Fase 4 - Nobles", price: 0.0025, bonus: 5, active: false, sold: false },
+    { nameKey: "presale.phase1", price: 0.001, bonus: 50, active: false, sold: true },
+    { nameKey: "presale.phase2", price: 0.0015, bonus: 30, active: true, sold: false },
+    { nameKey: "presale.phase3", price: 0.002, bonus: 15, active: false, sold: false },
+    { nameKey: "presale.phase4", price: 0.0025, bonus: 5, active: false, sold: false },
   ],
   minPurchase: 1, // DOGE
   maxPurchase: 1000, // DOGE
 };
-
-const benefits = [
-  { icon: Rocket, title: "Acceso Temprano", desc: "Sé de los primeros en obtener RDOGE" },
-  { icon: Shield, title: "Precio Exclusivo", desc: "Precio más bajo que en lanzamiento" },
-  { icon: TrendingUp, title: "Bonus Extra", desc: "Hasta 50% de tokens adicionales" },
-  { icon: Crown, title: "VIP Access", desc: "Beneficios exclusivos para holders" },
-];
-
-const stats = [
-  { label: "Suministro Total", value: "1T" },
-  { label: "Holders", value: "12,847" },
-  { label: "DOGE Recaudados", value: "1,521,838" },
-  { label: "Bonus Promedio", value: "+35%" },
-];
 
 const RPGDogePresale = () => {
   const [amount, setAmount] = useState<string>("100");
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [isPurchasing, setIsPurchasing] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
+
+  const benefits = [
+    { icon: Rocket, title: t('presale.earlyAccess'), desc: t('presale.earlyAccessDesc') },
+    { icon: Shield, title: t('presale.exclusivePrice'), desc: t('presale.exclusivePriceDesc') },
+    { icon: TrendingUp, title: t('presale.extraBonus'), desc: t('presale.extraBonusDesc') },
+    { icon: Crown, title: t('presale.vipAccess'), desc: t('presale.vipAccessDesc') },
+  ];
+
+  const stats = [
+    { label: t('presale.totalSupply'), value: "1T" },
+    { label: t('presale.holders'), value: "12,847" },
+    { label: t('presale.raised'), value: "1,521,838" },
+    { label: t('presale.avgBonus'), value: "+35%" },
+  ];
 
   // Calculate tokens based on amount and current phase
   const currentPhase = PRESALE_CONFIG.phases.find(p => p.active) || PRESALE_CONFIG.phases[1];
@@ -121,7 +123,7 @@ const RPGDogePresale = () => {
           <Link to="/rpgdoge">
             <Button variant="ghost" className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-400/10">
               <ArrowLeft className="w-5 h-5 mr-2" />
-              Volver al Lore
+              {t('rpgdoge.backToLore')}
             </Button>
           </Link>
           <div className="flex items-center gap-2">
@@ -142,7 +144,7 @@ const RPGDogePresale = () => {
               className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 px-4 py-2 rounded-full border border-yellow-500/30 mb-6"
             >
               <Sparkles className="w-4 h-4 text-yellow-400 animate-pulse" />
-              <span className="text-yellow-300 text-sm font-medium">Preventa Activa - Fase 2</span>
+              <span className="text-yellow-300 text-sm font-medium">{t('presale.badge')}</span>
             </motion.div>
 
             <motion.h1
@@ -151,7 +153,7 @@ const RPGDogePresale = () => {
               className="text-4xl md:text-6xl font-bold mb-4"
             >
               <span className="bg-gradient-to-r from-yellow-300 via-orange-400 to-yellow-500 bg-clip-text text-transparent">
-                Preventa RPGDOGE
+                {t('presale.title')}
               </span>
             </motion.h1>
             <motion.p
@@ -160,7 +162,7 @@ const RPGDogePresale = () => {
               transition={{ delay: 0.2 }}
               className="text-gray-400 text-lg max-w-2xl mx-auto"
             >
-              Únete a la revolución del Reino Crypto. Obtén tokens RDOGE al mejor precio antes del lanzamiento oficial.
+              {t('presale.subtitle')}
             </motion.p>
           </div>
 
@@ -174,14 +176,14 @@ const RPGDogePresale = () => {
             <div className="bg-gradient-to-br from-purple-900/40 to-blue-900/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/20">
               <div className="flex items-center justify-center gap-2 mb-4">
                 <Clock className="w-5 h-5 text-yellow-400" />
-                <span className="text-yellow-200 font-medium">La preventa termina en:</span>
+                <span className="text-yellow-200 font-medium">{t('presale.endsIn')}</span>
               </div>
               <div className="grid grid-cols-4 gap-4">
                 {[
-                  { value: timeLeft.days, label: "Días" },
-                  { value: timeLeft.hours, label: "Horas" },
-                  { value: timeLeft.minutes, label: "Min" },
-                  { value: timeLeft.seconds, label: "Seg" },
+                  { value: timeLeft.days, label: t('presale.days') },
+                  { value: timeLeft.hours, label: t('presale.hours') },
+                  { value: timeLeft.minutes, label: t('presale.minutes') },
+                  { value: timeLeft.seconds, label: t('presale.seconds') },
                 ].map((item, i) => (
                   <motion.div
                     key={item.label}
@@ -211,7 +213,7 @@ const RPGDogePresale = () => {
           >
             <div className="bg-black/40 backdrop-blur-sm rounded-2xl p-6 border border-yellow-500/20">
               <div className="flex justify-between items-center mb-3">
-                <span className="text-gray-400">Progreso de Venta</span>
+                <span className="text-gray-400">{t('presale.saleProgress')}</span>
                 <span className="text-yellow-400 font-bold">{progressPercent.toFixed(1)}%</span>
               </div>
               <div className="relative h-6 bg-gray-800 rounded-full overflow-hidden">
@@ -230,10 +232,10 @@ const RPGDogePresale = () => {
               </div>
               <div className="flex justify-between mt-3 text-sm">
                 <span className="text-gray-400">
-                  Vendidos: <span className="text-white font-medium">{formatNumber(PRESALE_CONFIG.soldTokens)}</span>
+                  {t('presale.sold')}: <span className="text-white font-medium">{formatNumber(PRESALE_CONFIG.soldTokens)}</span>
                 </span>
                 <span className="text-gray-400">
-                  Total: <span className="text-white font-medium">{formatNumber(PRESALE_CONFIG.totalTokens)}</span>
+                  {t('presale.total')}: <span className="text-white font-medium">{formatNumber(PRESALE_CONFIG.totalTokens)}</span>
                 </span>
               </div>
             </div>
@@ -253,24 +255,24 @@ const RPGDogePresale = () => {
                   <Wallet className="w-6 h-6 text-yellow-400" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-white">Comprar RDOGE</h2>
-                  <p className="text-gray-400 text-sm">Precio actual: {currentPhase.price} DOGE por RDOGE</p>
+                  <h2 className="text-2xl font-bold text-white">{t('presale.buyRdoge')}</h2>
+                  <p className="text-gray-400 text-sm">{t('presale.currentPrice')}: {currentPhase.price} {t('presale.perRdoge')}</p>
                 </div>
               </div>
 
               {/* Phase Info */}
               <div className="bg-black/30 rounded-xl p-4 mb-6 border border-yellow-500/10">
                 <div className="flex items-center justify-between">
-                  <span className="text-yellow-300 font-medium">{currentPhase.name}</span>
+                  <span className="text-yellow-300 font-medium">{t(currentPhase.nameKey)}</span>
                   <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm">
-                    +{currentPhase.bonus}% Bonus
+                    +{currentPhase.bonus}% {t('presale.bonus')}
                   </span>
                 </div>
               </div>
 
               {/* Amount Input */}
               <div className="space-y-4 mb-6">
-                <label className="block text-gray-300 text-sm font-medium">Cantidad a invertir (DOGE)</label>
+                <label className="block text-gray-300 text-sm font-medium">{t('presale.amountToInvest')}</label>
                 <div className="relative">
                   <Input
                     type="number"
@@ -303,16 +305,16 @@ const RPGDogePresale = () => {
               {/* Token Calculation */}
               <div className="bg-black/40 rounded-xl p-4 mb-6 space-y-2">
                 <div className="flex justify-between text-gray-400">
-                  <span>Tokens base:</span>
+                  <span>{t('presale.baseTokens')}</span>
                   <span className="text-white">{formatNumber(baseTokens)} RDOGE</span>
                 </div>
                 <div className="flex justify-between text-green-400">
-                  <span>Bonus (+{currentPhase.bonus}%):</span>
+                  <span>{t('presale.bonus')} (+{currentPhase.bonus}%):</span>
                   <span>+{formatNumber(bonusTokens)} RDOGE</span>
                 </div>
                 <div className="border-t border-yellow-500/20 pt-2 mt-2">
                   <div className="flex justify-between text-lg font-bold">
-                    <span className="text-yellow-300">Total a recibir:</span>
+                    <span className="text-yellow-300">{t('presale.totalReceive')}</span>
                     <span className="text-yellow-400">{formatNumber(totalTokens)} RDOGE</span>
                   </div>
                 </div>
@@ -335,21 +337,21 @@ const RPGDogePresale = () => {
                   ) : (
                     <>
                       <Coins className="w-5 h-5 mr-2" />
-                      Comprar con DOGE
+                      {t('presale.buyWithDoge')}
                     </>
                   )}
                 </Button>
               </motion.div>
 
               <p className="text-gray-500 text-xs text-center mt-4">
-                Mínimo: {PRESALE_CONFIG.minPurchase} DOGE • Máximo: {PRESALE_CONFIG.maxPurchase} DOGE
+                {t('presale.minimum')}: {PRESALE_CONFIG.minPurchase} DOGE • {t('presale.maximum')}: {PRESALE_CONFIG.maxPurchase} DOGE
               </p>
 
               {/* FaucetPay Payment Info */}
               <div className="mt-6 bg-gradient-to-br from-amber-900/30 to-yellow-900/30 rounded-xl p-4 border border-yellow-500/30">
                 <div className="flex items-center gap-2 mb-3">
                   <Wallet className="w-5 h-5 text-yellow-400" />
-                  <span className="text-yellow-300 font-medium">Pago via FaucetPay</span>
+                  <span className="text-yellow-300 font-medium">{t('presale.paymentVia')}</span>
                   <span className="bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded text-xs font-medium">
                     DOGE
                   </span>
@@ -364,8 +366,8 @@ const RPGDogePresale = () => {
                     onClick={() => {
                       navigator.clipboard.writeText("rpgdoge30@gmail.com");
                       toast({
-                        title: "✅ Copiado",
-                        description: "Email copiado al portapapeles",
+                        title: "✅ " + t('common.copied'),
+                        description: "Email " + t('common.copied').toLowerCase(),
                       });
                     }}
                     className="shrink-0 text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10"
@@ -374,7 +376,7 @@ const RPGDogePresale = () => {
                   </Button>
                 </div>
                 <p className="text-gray-400 text-xs mt-2">
-                  💡 Al hacer clic en "Comprar con DOGE" serás redirigido a FaucetPay para completar el pago.
+                  💡 {t('presale.clickToBuy')}
                 </p>
               </div>
             </motion.div>
@@ -390,12 +392,12 @@ const RPGDogePresale = () => {
               <div className="bg-black/40 backdrop-blur-sm rounded-3xl p-6 border border-purple-500/20">
                 <h3 className="text-xl font-bold mb-4 text-white flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-purple-400" />
-                  Fases de Preventa
+                  {t('presale.phases')}
                 </h3>
                 <div className="space-y-3">
                   {PRESALE_CONFIG.phases.map((phase, i) => (
                     <motion.div
-                      key={phase.name}
+                      key={phase.nameKey}
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.8 + i * 0.1 }}
@@ -423,7 +425,7 @@ const RPGDogePresale = () => {
                           )}
                           <div>
                             <p className={`font-medium ${phase.active ? "text-yellow-300" : phase.sold ? "text-gray-400" : "text-gray-300"}`}>
-                              {phase.name}
+                              {t(phase.nameKey)}
                             </p>
                             <p className="text-sm text-gray-500">${phase.price.toFixed(6)} / token</p>
                           </div>
@@ -435,7 +437,7 @@ const RPGDogePresale = () => {
                             ? "bg-green-500/10 text-green-400"
                             : "bg-gray-700/50 text-gray-400"
                         }`}>
-                          {phase.sold ? "Vendido" : phase.active ? `+${phase.bonus}%` : `+${phase.bonus}%`}
+                          {phase.sold ? t('presale.soldOut') : `+${phase.bonus}%`}
                         </span>
                       </div>
                     </motion.div>
@@ -469,7 +471,7 @@ const RPGDogePresale = () => {
             className="max-w-6xl mx-auto mt-16"
           >
             <h3 className="text-2xl font-bold text-center mb-8 text-white">
-              ¿Por qué comprar en preventa?
+              {t('presale.whyBuy')}
             </h3>
             <div className="grid md:grid-cols-4 gap-6">
               {benefits.map((benefit, i) => (
@@ -497,10 +499,10 @@ const RPGDogePresale = () => {
       {/* Footer */}
       <footer className="relative py-10 border-t border-yellow-500/10 text-center">
         <p className="text-gray-500 text-sm">
-          © 2026 RPGDOGE Kingdom • Todos los derechos reservados
+          {t('rpgdoge.footer')}
         </p>
         <p className="text-gray-600 text-xs mt-2">
-          Los tokens se distribuirán después del lanzamiento oficial
+          {t('presale.tokensDistributed')}
         </p>
       </footer>
     </div>

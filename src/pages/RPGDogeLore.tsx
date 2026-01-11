@@ -4,58 +4,128 @@ import { ArrowLeft, Sword, Shield, Crown, Sparkles, Coins, Users, Flame, Map, Ro
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import rpgDogeToken from "@/assets/rpgdoge-token.png";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-const loreChapters = [
+const loreChaptersData = [
   {
     id: 1,
-    title: "El Origen",
+    titleKey: 'lore.chapter1.title',
     icon: Sparkles,
-    content: `En las tierras digitales de Memeville, donde los memes fluyen como ríos de oro y los holders son los verdaderos guerreros, existía un humilde Shiba Inu llamado Doge.
+    content: {
+      es: `En las tierras digitales de Memeville, donde los memes fluyen como ríos de oro y los holders son los verdaderos guerreros, existía un humilde Shiba Inu llamado Doge.
 
 Doge no era un perro cualquiera. Desde cachorro, mostró una inteligencia excepcional y un instinto único para detectar oportunidades en el volátil mercado de las criptomonedas. Mientras otros corrían tras pumps efímeros, Doge estudiaba los antiguos pergaminos del análisis técnico y meditaba sobre el arte del HODL.`,
+      en: `In the digital lands of Memeville, where memes flow like rivers of gold and holders are the true warriors, there lived a humble Shiba Inu named Doge.
+
+Doge was no ordinary dog. From a puppy, he showed exceptional intelligence and a unique instinct for detecting opportunities in the volatile cryptocurrency market. While others chased ephemeral pumps, Doge studied the ancient scrolls of technical analysis and meditated on the art of HODL.`,
+      th: `ในดินแดนดิจิทัลของ Memeville ที่ซึ่งมีมไหลเหมือนแม่น้ำทองคำ และผู้ถือคือนักรบที่แท้จริง มี Shiba Inu ตัวน้อยชื่อ Doge อาศัยอยู่
+
+Doge ไม่ใช่สุนัขธรรมดา ตั้งแต่เป็นลูกหมา เขาแสดงความฉลาดพิเศษและสัญชาตญาณที่ไม่เหมือนใครในการตรวจจับโอกาสในตลาดคริปโตที่ผันผวน ในขณะที่คนอื่นวิ่งไล่ pump ที่ไม่ยั่งยืน Doge ศึกษาม้วนกระดาษโบราณของการวิเคราะห์ทางเทคนิคและทำสมาธิเกี่ยวกับศิลปะของ HODL`,
+      ru: `В цифровых землях Memeville, где мемы текут как реки золота, а держатели — настоящие воины, жил скромный Шиба-ину по имени Doge.
+
+Doge не был обычной собакой. С щенячьего возраста он проявлял исключительный интеллект и уникальный инстинкт для обнаружения возможностей на волатильном криптовалютном рынке. Пока другие гнались за мимолётными пампами, Doge изучал древние свитки технического анализа и медитировал над искусством HODL.`
+    },
   },
   {
     id: 2,
-    title: "La Espada del HODL",
+    titleKey: 'lore.chapter2.title',
     icon: Sword,
-    content: `Un día, mientras exploraba las ruinas del Protocolo Olvidado, Doge encontró algo extraordinario: la legendaria "Espada del HODL", forjada por los antiguos desarrolladores en los tiempos del Génesis Block.
+    content: {
+      es: `Un día, mientras exploraba las ruinas del Protocolo Olvidado, Doge encontró algo extraordinario: la legendaria "Espada del HODL", forjada por los antiguos desarrolladores en los tiempos del Génesis Block.
 
 La espada brillaba con un resplandor dorado y llevaba inscrita una profecía: "Quien empuñe esta espada y mantenga su fe, protegerá a los holders de la volatilidad eterna."
 
 Al tocar la empuñadura, Doge sintió el poder fluir a través de él. Sus ojos brillaron con determinación y supo que su destino era proteger a la comunidad.`,
+      en: `One day, while exploring the ruins of the Forgotten Protocol, Doge found something extraordinary: the legendary "Sword of HODL", forged by the ancient developers in the times of the Genesis Block.
+
+The sword shone with a golden glow and bore an inscribed prophecy: "Whoever wields this sword and maintains their faith shall protect the holders from eternal volatility."
+
+Upon touching the hilt, Doge felt power flow through him. His eyes shone with determination and he knew his destiny was to protect the community.`,
+      th: `วันหนึ่ง ขณะที่สำรวจซากปรักหักพังของ Forgotten Protocol Doge พบสิ่งพิเศษ: "ดาบแห่ง HODL" ในตำนาน ที่ถูกตีขึ้นโดยนักพัฒนาโบราณในยุคของ Genesis Block
+
+ดาบส่องประกายสีทองและมีคำทำนายจารึกไว้: "ผู้ใดถือดาบนี้และรักษาศรัทธา จะปกป้องผู้ถือจากความผันผวนชั่วนิรันดร์"
+
+เมื่อสัมผัสด้ามดาบ Doge รู้สึกถึงพลังไหลผ่านร่างกาย ดวงตาของเขาส่องประกายด้วยความมุ่งมั่น และเขารู้ว่าชะตากรรมของเขาคือการปกป้องชุมชน`,
+      ru: `Однажды, исследуя руины Забытого Протокола, Doge нашёл нечто необычное: легендарный «Меч HODL», выкованный древними разработчиками во времена Genesis Block.
+
+Меч сиял золотым светом и нёс на себе пророчество: «Тот, кто владеет этим мечом и хранит веру, защитит держателей от вечной волатильности.»
+
+Прикоснувшись к рукояти, Doge почувствовал, как сила течёт сквозь него. Его глаза засияли решимостью, и он понял, что его судьба — защищать сообщество.`
+    },
   },
   {
     id: 3,
-    title: "El Guardián Renace",
+    titleKey: 'lore.chapter3.title',
     icon: Shield,
-    content: `Con la Espada del HODL en su pata, Doge se transformó. Ya no era solo un meme simpático, sino RPGDOGE, el Guardián del Reino Crypto.
+    content: {
+      es: `Con la Espada del HODL en su pata, Doge se transformó. Ya no era solo un meme simpático, sino RPGDOGE, el Guardián del Reino Crypto.
 
 Reunió a los mejores guerreros del blockchain: holders diamante que nunca vendieron en rojo, developers que codificaban día y noche, y community managers que mantenían la fe en los tiempos oscuros.
 
 Juntos, formaron la Orden del RDOGE, jurando proteger el tesoro de la comunidad y llevar prosperidad a todos los que creyeran en la misión.`,
+      en: `With the Sword of HODL in his paw, Doge transformed. He was no longer just a cute meme, but RPGDOGE, the Guardian of the Crypto Kingdom.
+
+He gathered the best warriors of the blockchain: diamond holders who never sold in the red, developers who coded day and night, and community managers who kept the faith in dark times.
+
+Together, they formed the Order of RDOGE, swearing to protect the community's treasure and bring prosperity to all who believed in the mission.`,
+      th: `ด้วยดาบแห่ง HODL ในอุ้งเท้า Doge เปลี่ยนแปลงไป เขาไม่ใช่แค่มีมน่ารักอีกต่อไป แต่เป็น RPGDOGE ผู้พิทักษ์อาณาจักรคริปโต
+
+เขารวบรวมนักรบที่ดีที่สุดของบล็อกเชน: ผู้ถือเพชรที่ไม่เคยขายในขาลง นักพัฒนาที่เขียนโค้ดทั้งวันทั้งคืน และผู้จัดการชุมชนที่รักษาศรัทธาในยามมืดมน
+
+ด้วยกัน พวกเขาก่อตั้ง Order of RDOGE สาบานที่จะปกป้องสมบัติของชุมชนและนำความเจริญรุ่งเรืองมาสู่ทุกคนที่เชื่อในภารกิจ`,
+      ru: `С Мечом HODL в лапе Doge преобразился. Он больше не был просто милым мемом, а стал RPGDOGE, Стражем Крипто-Королевства.
+
+Он собрал лучших воинов блокчейна: бриллиантовых держателей, которые никогда не продавали в минус, разработчиков, кодящих день и ночь, и комьюнити-менеджеров, хранящих веру в тёмные времена.
+
+Вместе они сформировали Орден RDOGE, поклявшись защищать сокровища сообщества и приносить процветание всем, кто верит в миссию.`
+    },
   },
   {
     id: 4,
-    title: "El Reino Actual",
+    titleKey: 'lore.chapter4.title',
     icon: Crown,
-    content: `Hoy, RPGDOGE lidera desde su fortaleza digital, donde cada token RDOGE representa una parte del poder del reino.
+    content: {
+      es: `Hoy, RPGDOGE lidera desde su fortaleza digital, donde cada token RDOGE representa una parte del poder del reino.
 
 Los que hacen staking de sus tokens contribuyen al "Tesoro del Reino", recibiendo recompensas por su lealtad. Los holders más antiguos son conocidos como "Caballeros Diamante", respetados por toda la comunidad.
 
 Y la leyenda dice que cuando el suministro total de 1,000,000,000,000 RDOGE sea distribuido entre verdaderos creyentes, el reino alcanzará su máximo esplendor...`,
-  },
-];
+      en: `Today, RPGDOGE leads from his digital fortress, where each RDOGE token represents a piece of the kingdom's power.
 
-const tokenomics = [
-  { label: "Suministro Total", value: "1,000,000,000,000 RDOGE", icon: Coins },
-  { label: "Comunidad", value: "40%", icon: Users },
-  { label: "Staking Rewards", value: "25%", icon: Sparkles },
-  { label: "Quema Épica", value: "Deflacionario", icon: Flame },
+Those who stake their tokens contribute to the "Kingdom Treasury", receiving rewards for their loyalty. The oldest holders are known as "Diamond Knights", respected by the entire community.
+
+And legend says that when the total supply of 1,000,000,000,000 RDOGE is distributed among true believers, the kingdom will reach its maximum splendor...`,
+      th: `วันนี้ RPGDOGE เป็นผู้นำจากป้อมปราการดิจิทัลของเขา ที่ซึ่งโทเค็น RDOGE แต่ละอันแทนส่วนหนึ่งของพลังอาณาจักร
+
+ผู้ที่ stake โทเค็นมีส่วนร่วมใน "คลังอาณาจักร" และได้รับรางวัลสำหรับความภักดี ผู้ถือที่เก่าแก่ที่สุดเป็นที่รู้จักในชื่อ "อัศวินเพชร" ได้รับความเคารพจากทั้งชุมชน
+
+และตำนานกล่าวว่าเมื่ออุปทานทั้งหมด 1,000,000,000,000 RDOGE ถูกแจกจ่ายให้กับผู้เชื่อที่แท้จริง อาณาจักรจะบรรลุความรุ่งโรจน์สูงสุด...`,
+      ru: `Сегодня RPGDOGE управляет из своей цифровой крепости, где каждый токен RDOGE представляет часть силы королевства.
+
+Те, кто стейкает свои токены, пополняют «Казну Королевства», получая награды за лояльность. Старейшие держатели известны как «Бриллиантовые Рыцари», уважаемые всем сообществом.
+
+И легенда гласит, что когда общий запас в 1,000,000,000,000 RDOGE будет распределён среди истинных верующих, королевство достигнет своего величайшего расцвета...`
+    },
+  },
 ];
 
 const RPGDogeLore = () => {
   const [activeChapter, setActiveChapter] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
+  const { t, language } = useLanguage();
+
+  const loreChapters = loreChaptersData.map(chapter => ({
+    ...chapter,
+    title: t(chapter.titleKey),
+    contentText: chapter.content[language as keyof typeof chapter.content] || chapter.content.es,
+  }));
+
+  const tokenomics = [
+    { label: t('lore.totalSupply'), value: "1,000,000,000,000 RDOGE", icon: Coins },
+    { label: t('lore.community'), value: "40%", icon: Users },
+    { label: t('lore.stakingRewards'), value: "25%", icon: Sparkles },
+    { label: t('lore.epicBurn'), value: t('lore.deflationary'), icon: Flame },
+  ];
 
   useEffect(() => {
     setIsLoaded(true);
@@ -112,7 +182,7 @@ const RPGDogeLore = () => {
             <Link to="/">
               <Button variant="ghost" className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-400/10">
                 <ArrowLeft className="w-5 h-5 mr-2" />
-                Volver al Reino
+                {t('rpgdoge.backToKingdom')}
               </Button>
             </Link>
           </motion.div>
@@ -168,7 +238,7 @@ const RPGDogeLore = () => {
             transition={{ delay: 0.7 }}
             className="text-xl md:text-2xl text-yellow-200/80 mb-2"
           >
-            El Guardián del Reino Crypto
+            {t('rpgdoge.guardian')}
           </motion.p>
 
           <motion.p
@@ -208,7 +278,7 @@ const RPGDogeLore = () => {
             className="text-4xl md:text-5xl font-bold text-center mb-16"
           >
             <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              📜 La Leyenda de RPGDOGE
+              {t('rpgdoge.legend')}
             </span>
           </motion.h2>
 
@@ -232,7 +302,7 @@ const RPGDogeLore = () => {
               >
                 <chapter.icon className="w-5 h-5" />
                 <span className="hidden md:inline">{chapter.title}</span>
-                <span className="md:hidden">Cap. {chapter.id}</span>
+                <span className="md:hidden">{t('rpgdoge.chapter')} {chapter.id}</span>
               </motion.button>
             ))}
           </div>
@@ -261,7 +331,7 @@ const RPGDogeLore = () => {
                     })()}
                   </motion.div>
                   <div>
-                    <p className="text-yellow-400 text-sm font-mono">Capítulo {loreChapters[activeChapter].id}</p>
+                    <p className="text-yellow-400 text-sm font-mono">{t('rpgdoge.chapter')} {loreChapters[activeChapter].id}</p>
                     <h3 className="text-2xl md:text-3xl font-bold text-white">
                       {loreChapters[activeChapter].title}
                     </h3>
@@ -270,7 +340,7 @@ const RPGDogeLore = () => {
 
                 {/* Chapter Text */}
                 <div className="prose prose-lg prose-invert max-w-none">
-                  {loreChapters[activeChapter].content.split("\n\n").map((paragraph, i) => (
+                  {loreChapters[activeChapter].contentText.split("\n\n").map((paragraph, i) => (
                     <motion.p
                       key={i}
                       initial={{ opacity: 0, y: 20 }}
@@ -291,7 +361,7 @@ const RPGDogeLore = () => {
                     disabled={activeChapter === 0}
                     className="text-yellow-400 hover:text-yellow-300 disabled:opacity-30"
                   >
-                    ← Anterior
+                    {t('rpgdoge.previous')}
                   </Button>
                   <Button
                     variant="ghost"
@@ -299,7 +369,7 @@ const RPGDogeLore = () => {
                     disabled={activeChapter === loreChapters.length - 1}
                     className="text-yellow-400 hover:text-yellow-300 disabled:opacity-30"
                   >
-                    Siguiente →
+                    {t('rpgdoge.next')}
                   </Button>
                 </div>
               </div>
@@ -318,7 +388,7 @@ const RPGDogeLore = () => {
             className="text-4xl md:text-5xl font-bold text-center mb-16"
           >
             <span className="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
-              ⚔️ Tokenomics del Reino
+              {t('rpgdoge.tokenomics')}
             </span>
           </motion.h2>
 
@@ -358,7 +428,7 @@ const RPGDogeLore = () => {
             className="text-4xl md:text-5xl font-bold text-center mb-6"
           >
             <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-              🗺️ Roadmap del Reino
+              {t('rpgdoge.roadmap')}
             </span>
           </motion.h2>
           <motion.p
@@ -367,7 +437,7 @@ const RPGDogeLore = () => {
             viewport={{ once: true }}
             className="text-gray-400 text-center mb-16 max-w-2xl mx-auto"
           >
-            El camino hacia la conquista del Reino Crypto está marcado por hitos épicos
+            {t('rpgdoge.roadmapSubtitle')}
           </motion.p>
 
           <div className="relative">
@@ -384,25 +454,25 @@ const RPGDogeLore = () => {
               <div className="md:text-right md:pr-12">
                 <div className="inline-flex items-center gap-2 bg-green-500/20 text-green-400 px-4 py-1 rounded-full text-sm font-medium mb-4">
                   <Trophy className="w-4 h-4" />
-                  Completado
+                  {t('rpgdoge.completed')}
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3">Fase 1: Génesis</h3>
+                <h3 className="text-2xl font-bold text-white mb-3">{t('rpgdoge.phase1')}</h3>
                 <p className="text-gray-400 mb-4">Q4 2024</p>
                 <ul className="space-y-2 text-gray-300">
                   <li className="flex items-center gap-2 md:justify-end">
-                    <span>Creación del token RDOGE</span>
+                    <span>{t('roadmap.tokenCreation')}</span>
                     <Star className="w-4 h-4 text-green-400" />
                   </li>
                   <li className="flex items-center gap-2 md:justify-end">
-                    <span>Lanzamiento de la comunidad</span>
+                    <span>{t('roadmap.communityLaunch')}</span>
                     <Star className="w-4 h-4 text-green-400" />
                   </li>
                   <li className="flex items-center gap-2 md:justify-end">
-                    <span>Desarrollo del lore RPGDOGE</span>
+                    <span>{t('roadmap.loreDev')}</span>
                     <Star className="w-4 h-4 text-green-400" />
                   </li>
                   <li className="flex items-center gap-2 md:justify-end">
-                    <span>Website y branding oficial</span>
+                    <span>{t('roadmap.website')}</span>
                     <Star className="w-4 h-4 text-green-400" />
                   </li>
                 </ul>
@@ -437,26 +507,26 @@ const RPGDogeLore = () => {
               <div className="md:pl-12">
                 <div className="inline-flex items-center gap-2 bg-yellow-500/20 text-yellow-400 px-4 py-1 rounded-full text-sm font-medium mb-4 animate-pulse">
                   <Zap className="w-4 h-4" />
-                  En Progreso
+                  {t('rpgdoge.inProgress')}
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3">Fase 2: La Preventa</h3>
+                <h3 className="text-2xl font-bold text-white mb-3">{t('rpgdoge.phase2')}</h3>
                 <p className="text-gray-400 mb-4">Q1 2025</p>
                 <ul className="space-y-2 text-gray-300">
                   <li className="flex items-center gap-2">
                     <Star className="w-4 h-4 text-yellow-400" />
-                    <span>Preventa pública de tokens RDOGE</span>
+                    <span>{t('roadmap.publicPresale')}</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Star className="w-4 h-4 text-yellow-400" />
-                    <span>Sistema de bonus por fase</span>
+                    <span>{t('roadmap.bonusSystem')}</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Star className="w-4 h-4 text-gray-500" />
-                    <span>Auditoría de smart contracts</span>
+                    <span>{t('roadmap.audit')}</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Star className="w-4 h-4 text-gray-500" />
-                    <span>Partnerships estratégicos</span>
+                    <span>{t('roadmap.partnerships')}</span>
                   </li>
                 </ul>
               </div>
@@ -472,25 +542,25 @@ const RPGDogeLore = () => {
               <div className="md:text-right md:pr-12">
                 <div className="inline-flex items-center gap-2 bg-purple-500/20 text-purple-400 px-4 py-1 rounded-full text-sm font-medium mb-4">
                   <Target className="w-4 h-4" />
-                  Próximamente
+                  {t('rpgdoge.comingSoon')}
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3">Fase 3: El Lanzamiento</h3>
+                <h3 className="text-2xl font-bold text-white mb-3">{t('rpgdoge.phase3')}</h3>
                 <p className="text-gray-400 mb-4">Q2 2025</p>
                 <ul className="space-y-2 text-gray-300">
                   <li className="flex items-center gap-2 md:justify-end">
-                    <span>Listado en DEXs principales</span>
+                    <span>{t('roadmap.dexListing')}</span>
                     <Star className="w-4 h-4 text-gray-500" />
                   </li>
                   <li className="flex items-center gap-2 md:justify-end">
-                    <span>Lanzamiento del staking RDOGE</span>
+                    <span>{t('roadmap.stakingLaunch')}</span>
                     <Star className="w-4 h-4 text-gray-500" />
                   </li>
                   <li className="flex items-center gap-2 md:justify-end">
-                    <span>Sistema de gobernanza DAO</span>
+                    <span>{t('roadmap.daoGovernance')}</span>
                     <Star className="w-4 h-4 text-gray-500" />
                   </li>
                   <li className="flex items-center gap-2 md:justify-end">
-                    <span>Marketing global agresivo</span>
+                    <span>{t('roadmap.marketing')}</span>
                     <Star className="w-4 h-4 text-gray-500" />
                   </li>
                 </ul>
@@ -525,26 +595,26 @@ const RPGDogeLore = () => {
               <div className="md:pl-12">
                 <div className="inline-flex items-center gap-2 bg-blue-500/20 text-blue-400 px-4 py-1 rounded-full text-sm font-medium mb-4">
                   <Rocket className="w-4 h-4" />
-                  Futuro
+                  {t('rpgdoge.future')}
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3">Fase 4: El Reino Expandido</h3>
+                <h3 className="text-2xl font-bold text-white mb-3">{t('rpgdoge.phase4')}</h3>
                 <p className="text-gray-400 mb-4">Q3-Q4 2025</p>
                 <ul className="space-y-2 text-gray-300">
                   <li className="flex items-center gap-2">
                     <Star className="w-4 h-4 text-gray-500" />
-                    <span>Listado en CEXs tier 1</span>
+                    <span>{t('roadmap.cexListing')}</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Star className="w-4 h-4 text-gray-500" />
-                    <span>RPGDOGE Play-to-Earn Game</span>
+                    <span>{t('roadmap.p2eGame')}</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Star className="w-4 h-4 text-gray-500" />
-                    <span>NFT Collection exclusiva</span>
+                    <span>{t('roadmap.nftCollection')}</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Star className="w-4 h-4 text-gray-500" />
-                    <span>Metaverso del Reino Crypto</span>
+                    <span>{t('roadmap.metaverse')}</span>
                   </li>
                 </ul>
               </div>
@@ -570,16 +640,16 @@ const RPGDogeLore = () => {
               🏰
             </motion.div>
             <h3 className="text-3xl md:text-4xl font-bold mb-4 text-white">
-              ¿Listo para unirte al Reino?
+              {t('rpgdoge.readyToJoin')}
             </h3>
             <p className="text-gray-400 mb-8 text-lg">
-              Conviértete en un Caballero Diamante y protege el tesoro de la comunidad
+              {t('rpgdoge.becomeKnight')}
             </p>
             <Link to="/rpgdoge/presale">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black font-bold text-lg px-10 py-6 rounded-full shadow-lg shadow-yellow-500/30">
                   <Coins className="w-5 h-5 mr-2" />
-                  Comenzar Preventa
+                  {t('rpgdoge.startPresale')}
                 </Button>
               </motion.div>
             </Link>
@@ -589,8 +659,8 @@ const RPGDogeLore = () => {
 
       {/* Footer */}
       <footer className="py-10 text-center text-gray-500 text-sm">
-        <p>© 2026 RPGDOGE Kingdom • Todos los derechos reservados</p>
-        <p className="mt-2">La leyenda continúa...</p>
+        <p>{t('rpgdoge.footer')}</p>
+        <p className="mt-2">{t('rpgdoge.legendContinues')}</p>
       </footer>
     </div>
   );
