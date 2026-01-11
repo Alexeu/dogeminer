@@ -467,6 +467,18 @@ export const translations: Translations = {
   'lore.epicBurn': { es: 'Quema Épica', en: 'Epic Burn', th: 'การเผาครั้งยิ่งใหญ่', ru: 'Эпическое сжигание' },
   'lore.deflationary': { es: 'Deflacionario', en: 'Deflationary', th: 'ดีเฟลชัน', ru: 'Дефляционный' },
 
+  // Pump.fun & Solana
+  'token.comingSoon': { es: '¡Próximamente!', en: 'Coming Soon!', th: 'เร็วๆ นี้!', ru: 'Скоро!' },
+  'token.launchingOn': { es: 'Lanzamiento en', en: 'Launching on', th: 'เปิดตัวบน', ru: 'Запуск на' },
+  'token.poweredBy': { es: 'Impulsado por', en: 'Powered by', th: 'ขับเคลื่อนโดย', ru: 'Работает на' },
+  'token.solanaNetwork': { es: 'Red de Solana', en: 'Solana Network', th: 'เครือข่าย Solana', ru: 'Сеть Solana' },
+  'token.fastTransactions': { es: 'Transacciones rápidas y económicas', en: 'Fast and low-cost transactions', th: 'ธุรกรรมรวดเร็วและราคาถูก', ru: 'Быстрые и дешёвые транзакции' },
+  'token.pumpFunListing': { es: 'Listado oficial en pump.fun', en: 'Official listing on pump.fun', th: 'ลิสต์อย่างเป็นทางการบน pump.fun', ru: 'Официальный листинг на pump.fun' },
+  'token.fairLaunch': { es: 'Lanzamiento justo para toda la comunidad', en: 'Fair launch for the entire community', th: 'เปิดตัวอย่างยุติธรรมสำหรับทุกคน', ru: 'Справедливый запуск для всего сообщества' },
+  'token.solanaSpeed': { es: '65,000+ TPS', en: '65,000+ TPS', th: '65,000+ TPS', ru: '65,000+ TPS' },
+  'token.lowFees': { es: 'Fees <$0.01', en: 'Fees <$0.01', th: 'ค่าธรรมเนียม <$0.01', ru: 'Комиссии <$0.01' },
+  'token.ecosystem': { es: 'Ecosistema DeFi', en: 'DeFi Ecosystem', th: 'ระบบนิเวศ DeFi', ru: 'DeFi Экосистема' },
+
   // Roadmap Items
   'roadmap.tokenCreation': { es: 'Creación del token RDOGE', en: 'RDOGE token creation', th: 'สร้างโทเค็น RDOGE', ru: 'Создание токена RDOGE' },
   'roadmap.communityLaunch': { es: 'Lanzamiento de la comunidad', en: 'Community launch', th: 'เปิดตัวชุมชน', ru: 'Запуск сообщества' },
