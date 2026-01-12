@@ -1079,6 +1079,84 @@ const Admin = () => {
                 </div>
               )}
 
+              {/* Modify RDOGE Tokens Modal (in Users tab) */}
+              {selectedUserForTokens && activeTab === 'users' && (
+                <div className="mb-6 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
+                  <h3 className="font-bold mb-3 flex items-center gap-2 text-yellow-500">
+                    <Coins className="w-4 h-4" />
+                    Modificar RDOGE de: {selectedUserForTokens.email}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Balance actual: <span className="text-yellow-500 font-mono font-bold">
+                      {(rdogeTokens.find(t => t.user_id === selectedUserForTokens.id)?.balance || 0).toLocaleString()}
+                    </span> RDOGE
+                  </p>
+                  
+                  {/* Operation Type */}
+                  <div className="flex gap-2 mb-3">
+                    <Button
+                      size="sm"
+                      variant={tokenOperation === 'add' ? 'default' : 'outline'}
+                      onClick={() => setTokenOperation('add')}
+                      className={tokenOperation === 'add' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}
+                    >
+                      <Plus className="w-3 h-3 mr-1" />
+                      Añadir
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={tokenOperation === 'subtract' ? 'default' : 'outline'}
+                      onClick={() => setTokenOperation('subtract')}
+                      className={tokenOperation === 'subtract' ? 'bg-destructive hover:bg-destructive/90' : ''}
+                    >
+                      <Minus className="w-3 h-3 mr-1" />
+                      Quitar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={tokenOperation === 'set' ? 'default' : 'outline'}
+                      onClick={() => setTokenOperation('set')}
+                      className={tokenOperation === 'set' ? 'bg-blue-500 hover:bg-blue-600' : ''}
+                    >
+                      <ArrowUpDown className="w-3 h-3 mr-1" />
+                      Establecer
+                    </Button>
+                  </div>
+
+                  {/* Amount Input */}
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      placeholder="Cantidad de tokens RDOGE"
+                      value={tokenAmount}
+                      onChange={(e) => setTokenAmount(e.target.value)}
+                      className="max-w-xs"
+                    />
+                    <Button
+                      onClick={handleModifyRdogeTokens}
+                      disabled={modifyingTokens || !tokenAmount}
+                      className="bg-yellow-500 hover:bg-yellow-600 text-black"
+                    >
+                      {modifyingTokens ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <>
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          Aplicar
+                        </>
+                      )}
+                    </Button>
+                    <Button variant="ghost" onClick={() => {
+                      setSelectedUserForTokens(null);
+                      setTokenAmount('');
+                      setTokenOperation('add');
+                    }}>
+                      {t('common.cancel')}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
@@ -1135,14 +1213,32 @@ const Admin = () => {
                           </span>
                         </td>
                         <td className="py-3 px-4 text-center">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setSelectedUser(u)}
-                          >
-                            <ArrowUpDown className="w-3 h-3 mr-1" />
-                            Modificar
-                          </Button>
+                          <div className="flex items-center justify-center gap-1">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setSelectedUser(u)}
+                              title="Modificar DOGE"
+                            >
+                              <Dog className="w-3 h-3 mr-1" />
+                              DOGE
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedUserForTokens(u);
+                                const existingBalance = rdogeTokens.find(t => t.user_id === u.id)?.balance || 0;
+                                setTokenAmount(existingBalance.toString());
+                                setTokenOperation('set');
+                              }}
+                              className="text-yellow-500 border-yellow-500/50 hover:bg-yellow-500/10"
+                              title="Modificar RDOGE"
+                            >
+                              <Coins className="w-3 h-3 mr-1" />
+                              RDOGE
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
