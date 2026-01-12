@@ -546,6 +546,48 @@ export type Database = {
         }
         Relationships: []
       }
+      rdoge_purchase_requests: {
+        Row: {
+          admin_notes: string | null
+          bonus_percent: number
+          created_at: string
+          doge_amount: number
+          faucetpay_email: string | null
+          id: string
+          processed_at: string | null
+          rdoge_amount: number
+          status: string
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          bonus_percent?: number
+          created_at?: string
+          doge_amount: number
+          faucetpay_email?: string | null
+          id?: string
+          processed_at?: string | null
+          rdoge_amount: number
+          status?: string
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          bonus_percent?: number
+          created_at?: string
+          doge_amount?: number
+          faucetpay_email?: string | null
+          id?: string
+          processed_at?: string | null
+          rdoge_amount?: number
+          status?: string
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       referral_contests: {
         Row: {
           completed_at: string | null
@@ -1004,6 +1046,10 @@ export type Database = {
         Args: { p_amount: number; p_user_id: string }
         Returns: Json
       }
+      admin_approve_rdoge_purchase: {
+        Args: { p_request_id: string }
+        Returns: Json
+      }
       admin_modify_balance: {
         Args: {
           p_amount: number
@@ -1015,6 +1061,10 @@ export type Database = {
       }
       admin_modify_rdoge_tokens: {
         Args: { p_amount: number; p_operation: string; p_user_id: string }
+        Returns: Json
+      }
+      admin_reject_rdoge_purchase: {
+        Args: { p_reason?: string; p_request_id: string }
         Returns: Json
       }
       apply_referral_code: { Args: { p_code: string }; Returns: Json }

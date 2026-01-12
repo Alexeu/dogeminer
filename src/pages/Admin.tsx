@@ -117,6 +117,21 @@ interface UserRdogeToken {
   user_email?: string;
 }
 
+interface RdogePurchaseRequest {
+  id: string;
+  user_id: string;
+  doge_amount: number;
+  rdoge_amount: number;
+  bonus_percent: number;
+  tx_hash: string | null;
+  faucetpay_email: string | null;
+  status: string;
+  admin_notes: string | null;
+  created_at: string;
+  processed_at: string | null;
+  user_email?: string;
+}
+
 const Admin = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -163,6 +178,10 @@ const Admin = () => {
   const [tokenAmount, setTokenAmount] = useState("");
   const [tokenOperation, setTokenOperation] = useState<'add' | 'subtract' | 'set'>('add');
   const [modifyingTokens, setModifyingTokens] = useState(false);
+
+  // RDOGE Purchase Requests state
+  const [rdogePurchaseRequests, setRdogePurchaseRequests] = useState<RdogePurchaseRequest[]>([]);
+  const [rdogePurchaseSearchQuery, setRdogePurchaseSearchQuery] = useState("");
 
   useEffect(() => {
     checkAdminRole();
@@ -269,8 +288,102 @@ const Admin = () => {
       fetchWithdrawals(),
       fetchWebMiningSessions(),
       fetchReferralStats(),
-      fetchRdogeTokens()
+      fetchRdogeTokens(),
+      fetchRdogePurchaseRequests()
     ]);
+  };
+
+  const fetchRdogePurchaseRequests = async () => {
+    try {
+      const { data: requests, error } = await supabase
+        .from('rdoge_purchase_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const requestsWithEmails = await Promise.all(
+        (requests || []).map(async (req) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email')
+            .eq('id', req.user_id)
+            .maybeSingle();
+          
+          return {
+            ...req,
+            user_email: profile?.email || 'Unknown'
+          };
+        })
+      );
+
+      setRdogePurchaseRequests(requestsWithEmails);
+    } catch (error) {
+      console.error('Fetch RDOGE purchase requests error:', error);
+    }
+  };
+
+  const handleApproveRdogePurchase = async (requestId: string) => {
+    setProcessingId(requestId);
+    try {
+      const { data, error } = await supabase.rpc('admin_approve_rdoge_purchase', {
+        p_request_id: requestId
+      });
+
+      if (error) throw error;
+
+      const result = data as { success: boolean; error?: string; rdoge_credited?: number };
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to approve');
+      }
+
+      toast({
+        title: t('common.success'),
+        description: `${result.rdoge_credited?.toLocaleString()} RDOGE acreditados`,
+      });
+
+      await Promise.all([fetchRdogePurchaseRequests(), fetchRdogeTokens()]);
+    } catch (error: any) {
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleRejectRdogePurchase = async (requestId: string) => {
+    setProcessingId(requestId);
+    try {
+      const { data, error } = await supabase.rpc('admin_reject_rdoge_purchase', {
+        p_request_id: requestId,
+        p_reason: 'Rechazado por admin'
+      });
+
+      if (error) throw error;
+
+      const result = data as { success: boolean; error?: string };
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to reject');
+      }
+
+      toast({
+        title: t('common.success'),
+        description: 'Solicitud rechazada',
+      });
+
+      await fetchRdogePurchaseRequests();
+    } catch (error: any) {
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setProcessingId(null);
+    }
   };
 
   const fetchReferralStats = async () => {
@@ -906,7 +1019,7 @@ const Admin = () => {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7 max-w-4xl">
+          <TabsList className="grid w-full grid-cols-8 max-w-5xl">
             <TabsTrigger value="users" className="gap-2">
               <Users className="w-4 h-4" />
               {t('admin.users')}
@@ -940,6 +1053,15 @@ const Admin = () => {
             <TabsTrigger value="referrals" className="gap-2">
               <Trophy className="w-4 h-4" />
               Referidos
+            </TabsTrigger>
+            <TabsTrigger value="rdoge-purchases" className="gap-2">
+              <Coins className="w-4 h-4" />
+              Compras
+              {rdogePurchaseRequests.filter(r => r.status === 'pending').length > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-yellow-500 text-black">
+                  {rdogePurchaseRequests.filter(r => r.status === 'pending').length}
+                </span>
+              )}
             </TabsTrigger>
             <TabsTrigger value="rdoge-tokens" className="gap-2">
               <Coins className="w-4 h-4" />
@@ -1926,6 +2048,116 @@ const Admin = () => {
                   <p>No hay datos de referidos disponibles</p>
                 </div>
               )}
+            </div>
+          </TabsContent>
+
+          {/* RDOGE Purchase Requests Tab */}
+          <TabsContent value="rdoge-purchases" className="space-y-6">
+            <div className="glass rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-xl bg-yellow-500/20">
+                    <Coins className="w-6 h-6 text-yellow-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Solicitudes de Compra RDOGE</p>
+                    <p className="text-2xl font-bold text-foreground">{rdogePurchaseRequests.length}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-amber-500 font-medium">
+                    {rdogePurchaseRequests.filter(r => r.status === 'pending').length} pendientes
+                  </span>
+                  <Input
+                    placeholder="Buscar..."
+                    value={rdogePurchaseSearchQuery}
+                    onChange={(e) => setRdogePurchaseSearchQuery(e.target.value)}
+                    className="max-w-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Usuario</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">DOGE</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">RDOGE</th>
+                      <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">Bonus</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Email FP</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Fecha</th>
+                      <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">Estado</th>
+                      <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rdogePurchaseRequests
+                      .filter(r => r.user_email?.toLowerCase().includes(rdogePurchaseSearchQuery.toLowerCase()))
+                      .map((req) => (
+                        <tr key={req.id} className="border-b border-border/50 hover:bg-secondary/30">
+                          <td className="py-3 px-4 text-sm">{req.user_email}</td>
+                          <td className="py-3 px-4 text-right font-mono text-primary">
+                            {Number(req.doge_amount).toFixed(2)}
+                          </td>
+                          <td className="py-3 px-4 text-right font-mono text-yellow-500 font-bold">
+                            {Number(req.rdoge_amount).toLocaleString()}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className="text-emerald-400">+{req.bonus_percent}%</span>
+                          </td>
+                          <td className="py-3 px-4 text-sm text-muted-foreground">
+                            {req.faucetpay_email || '-'}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-muted-foreground">
+                            {formatDate(req.created_at)}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${
+                              req.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' :
+                              req.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
+                              'bg-amber-500/20 text-amber-400'
+                            }`}>
+                              {req.status === 'approved' ? 'Aprobado' :
+                               req.status === 'rejected' ? 'Rechazado' : 'Pendiente'}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            {req.status === 'pending' && (
+                              <div className="flex items-center justify-center gap-1">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleApproveRdogePurchase(req.id)}
+                                  disabled={processingId === req.id}
+                                  className="bg-emerald-500 hover:bg-emerald-600"
+                                >
+                                  {processingId === req.id ? (
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                  ) : (
+                                    <CheckCircle className="w-3 h-3" />
+                                  )}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleRejectRdogePurchase(req.id)}
+                                  disabled={processingId === req.id}
+                                >
+                                  <XCircle className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+                {rdogePurchaseRequests.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No hay solicitudes de compra de RDOGE
+                  </div>
+                )}
+              </div>
             </div>
           </TabsContent>
 
