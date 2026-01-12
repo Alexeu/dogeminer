@@ -13,7 +13,10 @@ import {
   CheckCircle,
   Sparkles,
   Zap,
-  Crown
+  Crown,
+  Loader2,
+  Send,
+  History
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -22,6 +25,8 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import rpgDogeToken from "@/assets/rpgdoge-token.png";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 // Presale configuration - Now in DOGE
 const PRESALE_CONFIG = {
@@ -39,12 +44,27 @@ const PRESALE_CONFIG = {
   maxPurchase: 1000, // DOGE
 };
 
+interface PurchaseRequest {
+  id: string;
+  doge_amount: number;
+  rdoge_amount: number;
+  bonus_percent: number;
+  status: string;
+  created_at: string;
+  tx_hash?: string;
+}
+
 const RPGDogePresale = () => {
   const [amount, setAmount] = useState<string>("100");
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const [txHash, setTxHash] = useState("");
+  const [faucetpayEmail, setFaucetpayEmail] = useState("");
+  const [myRequests, setMyRequests] = useState<PurchaseRequest[]>([]);
+  const [showRequestForm, setShowRequestForm] = useState(false);
   const { toast } = useToast();
   const { t } = useLanguage();
+  const { user } = useAuth();
 
   const benefits = [
     { icon: Rocket, title: t('presale.earlyAccess'), desc: t('presale.earlyAccessDesc') },
@@ -69,6 +89,26 @@ const RPGDogePresale = () => {
   // Progress percentage
   const progressPercent = (PRESALE_CONFIG.soldTokens / PRESALE_CONFIG.totalTokens) * 100;
 
+  // Fetch user's purchase requests
+  useEffect(() => {
+    if (user) {
+      fetchMyRequests();
+    }
+  }, [user]);
+
+  const fetchMyRequests = async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from('rdoge_purchase_requests')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    
+    if (!error && data) {
+      setMyRequests(data);
+    }
+  };
+
   // Countdown timer
   useEffect(() => {
     const timer = setInterval(() => {
@@ -89,8 +129,59 @@ const RPGDogePresale = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const handlePurchase = () => {
-    window.open('https://faucetpay.io/transfer', '_blank');
+  const handleSubmitPurchaseRequest = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "Debes iniciar sesión para registrar tu compra",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const dogeAmount = parseFloat(amount);
+    if (isNaN(dogeAmount) || dogeAmount < PRESALE_CONFIG.minPurchase) {
+      toast({
+        title: "Error",
+        description: `Mínimo ${PRESALE_CONFIG.minPurchase} DOGE`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsPurchasing(true);
+    try {
+      const { error } = await supabase
+        .from('rdoge_purchase_requests')
+        .insert({
+          user_id: user.id,
+          doge_amount: dogeAmount,
+          rdoge_amount: totalTokens,
+          bonus_percent: currentPhase.bonus,
+          tx_hash: txHash || null,
+          faucetpay_email: faucetpayEmail || null,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "✅ Solicitud enviada",
+        description: `Tu compra de ${totalTokens.toLocaleString()} RDOGE está pendiente de aprobación`,
+      });
+
+      setTxHash("");
+      setFaucetpayEmail("");
+      setShowRequestForm(false);
+      fetchMyRequests();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsPurchasing(false);
+    }
   };
 
   const formatNumber = (num: number) => {
@@ -347,35 +438,143 @@ const RPGDogePresale = () => {
                 </div>
               </div>
 
-              {/* Purchase Button */}
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button
-                  onClick={handlePurchase}
-                  disabled={isPurchasing}
-                  className="w-full h-14 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black font-bold text-lg rounded-xl shadow-lg shadow-yellow-500/30"
+              {/* Purchase Buttons */}
+              <div className="space-y-3">
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button
+                    onClick={() => window.open('https://faucetpay.io/transfer', '_blank')}
+                    className="w-full h-14 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black font-bold text-lg rounded-xl shadow-lg shadow-yellow-500/30"
+                  >
+                    <Wallet className="w-5 h-5 mr-2" />
+                    1. Enviar DOGE por FaucetPay
+                  </Button>
+                </motion.div>
+
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button
+                    onClick={() => setShowRequestForm(!showRequestForm)}
+                    variant="outline"
+                    className="w-full h-12 border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10"
+                  >
+                    <Send className="w-5 h-5 mr-2" />
+                    2. Registrar mi compra
+                  </Button>
+                </motion.div>
+              </div>
+
+              {/* Purchase Request Form */}
+              {showRequestForm && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="mt-4 bg-black/40 rounded-xl p-4 border border-yellow-500/20 space-y-4"
                 >
-                  {isPurchasing ? (
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    >
-                      <Zap className="w-5 h-5" />
-                    </motion.div>
+                  <h4 className="text-yellow-300 font-medium flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4" />
+                    Registrar compra de RDOGE
+                  </h4>
+                  
+                  {!user ? (
+                    <div className="text-center py-4">
+                      <p className="text-gray-400 mb-3">Inicia sesión para registrar tu compra</p>
+                      <Link to="/auth">
+                        <Button className="bg-yellow-500 hover:bg-yellow-600 text-black">
+                          Iniciar Sesión
+                        </Button>
+                      </Link>
+                    </div>
                   ) : (
                     <>
-                      <Coins className="w-5 h-5 mr-2" />
-                      {t('presale.buyWithDoge')}
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-gray-400 text-sm">Tu email de FaucetPay (opcional)</label>
+                          <Input
+                            value={faucetpayEmail}
+                            onChange={(e) => setFaucetpayEmail(e.target.value)}
+                            placeholder="tu@email.com"
+                            className="bg-black/50 border-yellow-500/30 text-white mt-1"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-gray-400 text-sm">ID de transacción (opcional)</label>
+                          <Input
+                            value={txHash}
+                            onChange={(e) => setTxHash(e.target.value)}
+                            placeholder="Transaction hash..."
+                            className="bg-black/50 border-yellow-500/30 text-white mt-1"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="bg-yellow-500/10 rounded-lg p-3 border border-yellow-500/20">
+                        <p className="text-sm text-gray-300">
+                          Recibirás: <span className="text-yellow-400 font-bold">{formatNumber(totalTokens)} RDOGE</span>
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          ({formatNumber(baseTokens)} base + {formatNumber(bonusTokens)} bonus)
+                        </p>
+                      </div>
+
+                      <Button
+                        onClick={handleSubmitPurchaseRequest}
+                        disabled={isPurchasing}
+                        className="w-full bg-emerald-500 hover:bg-emerald-600 text-white"
+                      >
+                        {isPurchasing ? (
+                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        ) : (
+                          <Send className="w-4 h-4 mr-2" />
+                        )}
+                        Enviar solicitud
+                      </Button>
                     </>
                   )}
-                </Button>
-              </motion.div>
+                </motion.div>
+              )}
+
+              {/* My Purchase Requests */}
+              {user && myRequests.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="mt-4 bg-black/40 rounded-xl p-4 border border-purple-500/20"
+                >
+                  <h4 className="text-purple-300 font-medium flex items-center gap-2 mb-3">
+                    <History className="w-4 h-4" />
+                    Mis solicitudes ({myRequests.length})
+                  </h4>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {myRequests.map((req) => (
+                      <div key={req.id} className="bg-black/30 rounded-lg p-3 flex items-center justify-between">
+                        <div>
+                          <p className="text-white text-sm font-medium">
+                            {Number(req.rdoge_amount).toLocaleString()} RDOGE
+                          </p>
+                          <p className="text-gray-500 text-xs">
+                            {new Date(req.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          req.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' :
+                          req.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
+                          'bg-amber-500/20 text-amber-400'
+                        }`}>
+                          {req.status === 'approved' ? '✓ Aprobado' :
+                           req.status === 'rejected' ? '✗ Rechazado' :
+                           '⏳ Pendiente'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
 
               <p className="text-gray-500 text-xs text-center mt-4">
                 {t('presale.minimum')}: {PRESALE_CONFIG.minPurchase} DOGE • {t('presale.maximum')}: {PRESALE_CONFIG.maxPurchase} DOGE
               </p>
 
               {/* FaucetPay Payment Info */}
-              <div className="mt-6 bg-gradient-to-br from-amber-900/30 to-yellow-900/30 rounded-xl p-4 border border-yellow-500/30">
+              <div className="mt-4 bg-gradient-to-br from-amber-900/30 to-yellow-900/30 rounded-xl p-4 border border-yellow-500/30">
                 <div className="flex items-center gap-2 mb-3">
                   <Wallet className="w-5 h-5 text-yellow-400" />
                   <span className="text-yellow-300 font-medium">{t('presale.paymentVia')}</span>
