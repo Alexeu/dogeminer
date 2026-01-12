@@ -1086,6 +1086,7 @@ const Admin = () => {
                       <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Email</th>
                       <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Minado</th>
                       <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Depósito</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">RDOGE</th>
                       <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Total Ganado</th>
                       <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Total Depositado</th>
                       <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Total Retirado</th>
@@ -1111,6 +1112,11 @@ const Admin = () => {
                         <td className="py-3 px-4 text-right">
                           <span className="font-mono text-primary font-medium">
                             {formatDoge(u.deposit_balance || 0)}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <span className="font-mono text-yellow-500 font-medium">
+                            {(rdogeTokens.find(t => t.user_id === u.id)?.balance || 0).toLocaleString()}
                           </span>
                         </td>
                         <td className="py-3 px-4 text-right">
