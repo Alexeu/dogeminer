@@ -187,17 +187,23 @@ serve(async (req) => {
 });
 
 function generateFaucetPayUrl(amount: number, reference: string): string {
-  const amountSatoshi = Math.floor(amount * 100000000);
-  const depositEmail = 'rpgdoge30@gmail.com';
+  const merchantUsername = 'rpgdoge30';
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://gigjjgxntulqxmbqxcpe.supabase.co';
+  const siteUrl = 'https://dogeminers.lovable.app';
   
-  // FaucetPay send-payment URL with custom field for IPN
+  // FaucetPay merchant webscr URL
   const params = new URLSearchParams({
-    to: depositEmail,
-    amount: amountSatoshi.toString(),
-    currency: 'DOGE',
-    custom: reference,  // Used for IPN callback
-    ref: reference      // Also set ref as backup
+    amount1: amount.toString(),
+    currency1: 'DOGE',
+    currency2: 'DOGE',
+    merchant_username: merchantUsername,
+    item_description: `Deposit ${amount} DOGE to DogeMiner`,
+    custom: reference,
+    callback_url: `${supabaseUrl}/functions/v1/faucetpay-ipn`,
+    success_url: `${siteUrl}/?deposit=success`,
+    cancel_url: `${siteUrl}/?deposit=cancelled`,
+    completed: '0'
   });
   
-  return `https://faucetpay.io/page/send-payment?${params.toString()}`;
+  return `https://faucetpay.io/merchant/webscr?${params.toString()}`;
 }
