@@ -147,7 +147,7 @@ const Admin = () => {
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [addBalanceAmount, setAddBalanceAmount] = useState("");
   const [addingBalance, setAddingBalance] = useState(false);
-  const [balanceType, setBalanceType] = useState<'mining_balance' | 'deposit_balance'>('deposit_balance');
+  const [balanceType, setBalanceType] = useState<'mining_balance' | 'deposit_balance' | 'total_deposited'>('deposit_balance');
   const [balanceOperation, setBalanceOperation] = useState<'add' | 'subtract'>('add');
   
   // Deposits state
@@ -749,7 +749,7 @@ const Admin = () => {
         throw new Error(result.error || 'Failed to modify balance');
       }
 
-      const balanceLabel = balanceType === 'mining_balance' ? 'Minado' : 'Depósito';
+      const balanceLabel = balanceType === 'mining_balance' ? 'Minado' : balanceType === 'deposit_balance' ? 'Depósito' : 'Total Depositado';
       const opLabel = balanceOperation === 'add' ? 'agregados a' : 'restados de';
 
       toast({
@@ -1134,6 +1134,15 @@ const Admin = () => {
                         <ArrowDownToLine className="w-3 h-3 mr-1" />
                         Depósito
                       </Button>
+                      <Button
+                        size="sm"
+                        variant={balanceType === 'total_deposited' ? 'default' : 'outline'}
+                        onClick={() => setBalanceType('total_deposited')}
+                        className={balanceType === 'total_deposited' ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
+                      >
+                        <ArrowDownToLine className="w-3 h-3 mr-1" />
+                        Total Depositado
+                      </Button>
                     </div>
                     {/* Operation Type */}
                     <div className="flex gap-2">
@@ -1196,7 +1205,8 @@ const Admin = () => {
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
                     Saldo actual: Minado <span className="text-blue-400 font-mono">{formatDoge(selectedUser.mining_balance || 0)}</span> | 
-                    Depósito <span className="text-primary font-mono">{formatDoge(selectedUser.deposit_balance || 0)}</span>
+                    Depósito <span className="text-primary font-mono">{formatDoge(selectedUser.deposit_balance || 0)}</span> | 
+                    Total Depositado <span className="text-emerald-400 font-mono">{formatDoge(selectedUser.total_deposited || 0)}</span>
                   </p>
                 </div>
               )}
