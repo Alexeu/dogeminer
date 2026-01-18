@@ -89,6 +89,7 @@ interface Investment {
   last_claim_at: string;
   created_at: string;
   is_active: boolean;
+  expires_at: string;
 }
 
 const MIN_CLAIM_AMOUNT = 0.1;
@@ -395,11 +396,21 @@ const OnlineMiningSection = () => {
                         </p>
                       </div>
                       
-                      <div className="bg-muted/50 rounded-lg p-3">
+                      <div className="bg-muted/50 rounded-lg p-3 space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-sm">{getText('dailyReturn')}</span>
                           <span className="font-bold text-green-500">
                             +{(investAmount * plan.dailyRate / 100).toFixed(4)} DOGE{getText('perDay')}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{language === 'es' ? 'Duración del plan' : 'Plan duration'}</span>
+                          <span className="font-medium text-foreground">30 {language === 'es' ? 'días' : 'days'}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{language === 'es' ? 'Ganancia estimada (30d)' : 'Est. earnings (30d)'}</span>
+                          <span className="font-bold text-primary">
+                            +{(investAmount * plan.dailyRate / 100 * 30).toFixed(4)} DOGE
                           </span>
                         </div>
                       </div>
@@ -461,19 +472,37 @@ const OnlineMiningSection = () => {
                     <div className={cn("absolute inset-0 bg-gradient-to-br opacity-30", planInfo.bgGradient)} />
                     
                     <CardContent className="relative p-4 space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div className={cn(
-                          "w-10 h-10 rounded-lg flex items-center justify-center",
-                          "bg-gradient-to-br", planInfo.gradient
-                        )}>
-                          <Icon className="w-5 h-5 text-white" />
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "w-10 h-10 rounded-lg flex items-center justify-center",
+                            "bg-gradient-to-br", planInfo.gradient
+                          )}>
+                            <Icon className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <p className="font-semibold">{language === 'es' ? planInfo.name : planInfo.nameEn}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {planInfo.dailyRate}% {getText('perDay')}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold">{language === 'es' ? planInfo.name : planInfo.nameEn}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {planInfo.dailyRate}% {getText('perDay')}
-                          </p>
-                        </div>
+                        {/* Expiration badge */}
+                        {(() => {
+                          const daysLeft = Math.max(0, Math.ceil((new Date(investment.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+                          const isExpiringSoon = daysLeft <= 5;
+                          return (
+                            <Badge 
+                              variant={isExpiringSoon ? "destructive" : "secondary"}
+                              className={cn(
+                                "text-xs",
+                                isExpiringSoon ? "bg-destructive/20 text-destructive animate-pulse" : ""
+                              )}
+                            >
+                              {daysLeft > 0 ? `${daysLeft}d` : language === 'es' ? 'Expirado' : 'Expired'}
+                            </Badge>
+                          );
+                        })()}
                       </div>
 
                       <div className="grid grid-cols-3 gap-2 text-center">
