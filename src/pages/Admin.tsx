@@ -263,6 +263,17 @@ const Admin = () => {
     };
   }, [isAdmin]);
 
+  // Auto-refresh Web Mining every 30 seconds when on that tab
+  useEffect(() => {
+    if (!isAdmin || activeTab !== 'webmining') return;
+
+    const interval = setInterval(() => {
+      fetchWebMiningSessions();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [isAdmin, activeTab]);
+
   const checkAdminRole = async () => {
     if (!user) {
       navigate('/auth');
