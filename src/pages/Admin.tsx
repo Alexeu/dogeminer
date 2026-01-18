@@ -166,6 +166,7 @@ const Admin = () => {
   
   // Web Mining state
   const [webMiningSessions, setWebMiningSessions] = useState<WebMiningSession[]>([]);
+  const [allMiningStats, setAllMiningStats] = useState<{email: string; total_hashes: number; hashes_pending: number; total_rewards: number; last_activity: string}[]>([]);
 
   // Referral stats state
   const [referralStats, setReferralStats] = useState<ReferralStat[]>([]);
@@ -316,6 +317,7 @@ const Admin = () => {
       fetchDepositRequests(),
       fetchWithdrawals(),
       fetchWebMiningSessions(),
+      fetchAllMiningStats(),
       fetchReferralStats(),
       fetchRdogeTokens(),
       fetchRdogePurchaseRequests()
@@ -810,6 +812,62 @@ const Admin = () => {
       setWebMiningSessions(sessionsWithEmails);
     } catch (error) {
       console.error('Fetch web mining sessions error:', error);
+    }
+  };
+
+  const fetchAllMiningStats = async () => {
+    try {
+      // Get aggregated mining stats for all users
+      const { data: sessions, error } = await supabase
+        .from('web_mining_sessions')
+        .select('user_id, total_hashes, hashes_pending, total_rewards, last_hash_at');
+
+      if (error) throw error;
+
+      // Group by user_id and aggregate
+      const userStats = new Map<string, {total_hashes: number; hashes_pending: number; total_rewards: number; last_activity: string}>();
+      
+      (sessions || []).forEach(session => {
+        const existing = userStats.get(session.user_id);
+        if (existing) {
+          existing.total_hashes += session.total_hashes;
+          existing.hashes_pending += session.hashes_pending;
+          existing.total_rewards += Number(session.total_rewards);
+          if (session.last_hash_at && (!existing.last_activity || new Date(session.last_hash_at) > new Date(existing.last_activity))) {
+            existing.last_activity = session.last_hash_at;
+          }
+        } else {
+          userStats.set(session.user_id, {
+            total_hashes: session.total_hashes,
+            hashes_pending: session.hashes_pending,
+            total_rewards: Number(session.total_rewards),
+            last_activity: session.last_hash_at || ''
+          });
+        }
+      });
+
+      // Get emails for all users
+      const statsWithEmails = await Promise.all(
+        Array.from(userStats.entries()).map(async ([userId, stats]) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email')
+            .eq('id', userId)
+            .maybeSingle();
+          
+          return {
+            email: profile?.email || 'Unknown',
+            ...stats
+          };
+        })
+      );
+
+      // Sort by total_hashes descending
+      statsWithEmails.sort((a, b) => b.total_hashes - a.total_hashes);
+      
+      setAllMiningStats(statsWithEmails);
+    } catch (error) {
+      console.error('Fetch all mining stats error:', error);
     }
   };
 
@@ -2034,6 +2092,86 @@ const Admin = () => {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              )}
+            </div>
+
+            {/* All Mining Stats - Historical Ranking */}
+            <div className="glass rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-xl bg-amber-500/20">
+                    <Trophy className="w-6 h-6 text-amber-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Ranking Histórico de Minería</p>
+                    <p className="text-2xl font-bold text-foreground">{allMiningStats.length} mineros</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Total Hashes Minados</p>
+                  <p className="text-lg font-bold text-amber-500 font-mono">
+                    {allMiningStats.reduce((sum, s) => sum + s.total_hashes, 0).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              {allMiningStats.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Trophy className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <p>No hay estadísticas de minería disponibles</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-center py-3 px-2 text-sm font-medium text-muted-foreground w-12">#</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Email</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Total Hashes</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Hashes Pendientes</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Recompensas</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Última Actividad</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {allMiningStats.slice(0, 50).map((stat, index) => (
+                        <tr key={stat.email} className="border-b border-border/50 hover:bg-secondary/30">
+                          <td className="py-3 px-2 text-center">
+                            {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : (
+                              <span className="text-muted-foreground text-sm">{index + 1}</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-sm">{stat.email}</td>
+                          <td className="py-3 px-4 text-right font-mono text-amber-500 font-medium">
+                            {stat.total_hashes >= 1e9 
+                              ? `${(stat.total_hashes / 1e9).toFixed(2)}B`
+                              : stat.total_hashes >= 1e6
+                                ? `${(stat.total_hashes / 1e6).toFixed(2)}M`
+                                : stat.total_hashes.toLocaleString()
+                            }
+                          </td>
+                          <td className="py-3 px-4 text-right font-mono text-muted-foreground">
+                            {stat.hashes_pending >= 1e6 
+                              ? `${(stat.hashes_pending / 1e6).toFixed(2)}M`
+                              : stat.hashes_pending.toLocaleString()
+                            }
+                          </td>
+                          <td className="py-3 px-4 text-right font-mono text-primary">
+                            {formatDoge(stat.total_rewards)} DOGE
+                          </td>
+                          <td className="py-3 px-4 text-right text-sm text-muted-foreground">
+                            {stat.last_activity ? formatDate(stat.last_activity) : 'N/A'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {allMiningStats.length > 50 && (
+                    <p className="text-center text-sm text-muted-foreground mt-4">
+                      Mostrando top 50 de {allMiningStats.length} mineros
+                    </p>
+                  )}
                 </div>
               )}
             </div>
