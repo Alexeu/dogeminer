@@ -301,6 +301,7 @@ export type Database = {
         Row: {
           created_at: string
           daily_rate: number
+          expires_at: string
           id: string
           invested_amount: number
           is_active: boolean
@@ -313,6 +314,7 @@ export type Database = {
         Insert: {
           created_at?: string
           daily_rate: number
+          expires_at?: string
           id?: string
           invested_amount: number
           is_active?: boolean
@@ -325,6 +327,7 @@ export type Database = {
         Update: {
           created_at?: string
           daily_rate?: number
+          expires_at?: string
           id?: string
           invested_amount?: number
           is_active?: boolean
@@ -1085,10 +1088,9 @@ export type Database = {
         Args: { p_investment_id: string }
         Returns: Json
       }
-      claim_mining_reward: {
-        Args: { p_amount: number; p_character_id: string }
-        Returns: Json
-      }
+      claim_mining_reward:
+        | { Args: { p_amount: number; p_character_id: string }; Returns: Json }
+        | { Args: { p_investment_id: string }; Returns: Json }
       claim_stake: { Args: { p_stake_id: string }; Returns: Json }
       claim_starter_gift: {
         Args: {
@@ -1125,6 +1127,7 @@ export type Database = {
       }
       deactivate_ad: { Args: { p_ad_id: string }; Returns: Json }
       draw_lottery_winner: { Args: { p_pool_id: string }; Returns: Json }
+      expire_mining_investments: { Args: never; Returns: undefined }
       get_active_contest: {
         Args: never
         Returns: {
