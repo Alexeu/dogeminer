@@ -771,16 +771,29 @@ const Admin = () => {
 
   const fetchWebMiningSessions = async () => {
     try {
+      // Only show sessions with activity in the last 2 minutes (truly active miners)
+      const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+      
       const { data: sessions, error } = await supabase
         .from('web_mining_sessions')
         .select('*')
         .eq('is_active', true)
+        .gte('last_hash_at', twoMinutesAgo)
         .order('last_hash_at', { ascending: false });
 
       if (error) throw error;
 
+      // Group by user_id to avoid showing duplicate sessions per user
+      const uniqueUserSessions = new Map<string, typeof sessions[0]>();
+      (sessions || []).forEach(session => {
+        const existing = uniqueUserSessions.get(session.user_id);
+        if (!existing || new Date(session.last_hash_at) > new Date(existing.last_hash_at)) {
+          uniqueUserSessions.set(session.user_id, session);
+        }
+      });
+
       const sessionsWithEmails = await Promise.all(
-        (sessions || []).map(async (session) => {
+        Array.from(uniqueUserSessions.values()).map(async (session) => {
           const { data: profile } = await supabase
             .from('profiles')
             .select('email')
