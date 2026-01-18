@@ -170,6 +170,10 @@ const Admin = () => {
   // Referral stats state
   const [referralStats, setReferralStats] = useState<ReferralStat[]>([]);
   const [referralSearchQuery, setReferralSearchQuery] = useState("");
+  const [selectedReferralUser, setSelectedReferralUser] = useState<ReferralStat | null>(null);
+  const [referralAmount, setReferralAmount] = useState("");
+  const [referralOperation, setReferralOperation] = useState<'add' | 'subtract'>('add');
+  const [modifyingReferrals, setModifyingReferrals] = useState(false);
 
   // RDOGE Tokens state
   const [rdogeTokens, setRdogeTokens] = useState<UserRdogeToken[]>([]);
@@ -478,6 +482,57 @@ const Admin = () => {
       });
     } finally {
       setModifyingTokens(false);
+    }
+  };
+
+  const handleModifyReferrals = async () => {
+    if (!selectedReferralUser) return;
+    
+    const amount = parseInt(referralAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast({
+        title: t('common.error'),
+        description: "Ingresa una cantidad válida",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setModifyingReferrals(true);
+    try {
+      const { data, error } = await supabase.rpc('admin_modify_referrals', {
+        p_user_id: selectedReferralUser.user_id,
+        p_amount: amount,
+        p_operation: referralOperation
+      });
+
+      if (error) throw error;
+
+      const result = data as { success: boolean; error?: string; new_count?: number; previous_count?: number };
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to modify referrals');
+      }
+
+      const opLabel = referralOperation === 'add' ? 'agregados a' : 'restados de';
+
+      toast({
+        title: t('common.success'),
+        description: `${amount} referidos ${opLabel} ${selectedReferralUser.email}. Nuevo total: ${result.new_count}`,
+      });
+
+      setReferralAmount("");
+      setSelectedReferralUser(null);
+      setReferralOperation('add');
+      await fetchReferralStats();
+    } catch (error: any) {
+      console.error('Modify referrals error:', error);
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setModifyingReferrals(false);
     }
   };
 
@@ -2000,6 +2055,76 @@ const Admin = () => {
                 ))}
               </div>
 
+              {/* Modify Referrals Modal */}
+              {selectedReferralUser && (
+                <div className="mb-6 p-4 bg-secondary/50 rounded-xl border border-border">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-semibold">Modificar Referidos: {selectedReferralUser.email}</h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedReferralUser(null)}
+                    >
+                      <XCircle className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Ref. Total:</span>
+                      <span className="ml-2 font-mono">{selectedReferralUser.total_referrals}</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Ref. Concurso:</span>
+                      <span className="ml-2 font-mono">{selectedReferralUser.contest_referrals}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-2 mb-4">
+                    <Button
+                      size="sm"
+                      variant={referralOperation === 'add' ? 'default' : 'outline'}
+                      onClick={() => setReferralOperation('add')}
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Agregar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={referralOperation === 'subtract' ? 'destructive' : 'outline'}
+                      onClick={() => setReferralOperation('subtract')}
+                    >
+                      <Minus className="w-4 h-4 mr-1" />
+                      Restar
+                    </Button>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      placeholder="Cantidad"
+                      value={referralAmount}
+                      onChange={(e) => setReferralAmount(e.target.value)}
+                      className="flex-1"
+                      min="1"
+                    />
+                    <Button
+                      onClick={handleModifyReferrals}
+                      disabled={modifyingReferrals || !referralAmount}
+                    >
+                      {modifyingReferrals ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : referralOperation === 'add' ? (
+                        <Plus className="w-4 h-4 mr-2" />
+                      ) : (
+                        <Minus className="w-4 h-4 mr-2" />
+                      )}
+                      {referralOperation === 'add' ? 'Agregar' : 'Restar'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {/* Full Table */}
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -2011,6 +2136,7 @@ const Admin = () => {
                       <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Código Referido</th>
                       <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Ref. Concurso</th>
                       <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Ref. Total</th>
+                      <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2045,6 +2171,16 @@ const Admin = () => {
                           </td>
                           <td className="py-3 px-4 text-right font-mono text-muted-foreground">
                             {stat.total_referrals}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setSelectedReferralUser(stat)}
+                              className="h-8"
+                            >
+                              <ArrowUpDown className="w-4 h-4" />
+                            </Button>
                           </td>
                         </tr>
                       ))}

@@ -1063,6 +1063,10 @@ export type Database = {
         Args: { p_amount: number; p_operation: string; p_user_id: string }
         Returns: Json
       }
+      admin_modify_referrals: {
+        Args: { p_amount: number; p_operation: string; p_user_id: string }
+        Returns: Json
+      }
       admin_reject_rdoge_purchase: {
         Args: { p_reason?: string; p_request_id: string }
         Returns: Json
