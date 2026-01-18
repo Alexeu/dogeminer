@@ -207,10 +207,24 @@ const Admin = () => {
       .subscribe();
 
     const webMiningChannel = supabase
-      .channel('admin-webmining-changes')
+      .channel('admin-webmining-realtime')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'web_mining_sessions' },
+        { event: 'INSERT', schema: 'public', table: 'web_mining_sessions' },
+        () => {
+          fetchWebMiningSessions();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'web_mining_sessions' },
+        () => {
+          fetchWebMiningSessions();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'web_mining_sessions' },
         () => {
           fetchWebMiningSessions();
         }
@@ -1099,8 +1113,8 @@ const Admin = () => {
             <TabsTrigger value="webmining" className="gap-2">
               <Cpu className="w-4 h-4" />
               Web Mining
-              {webMiningSessions.length > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-emerald-500 text-white">
+              {webMiningSessions.length > 0 && activeTab !== 'webmining' && (
+                <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-emerald-500 text-white animate-pulse">
                   {webMiningSessions.length}
                 </span>
               )}
@@ -1925,12 +1939,25 @@ const Admin = () => {
             <div className="glass rounded-2xl p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-xl bg-emerald-500/20">
+                  <div className="p-3 rounded-xl bg-emerald-500/20 relative">
                     <Cpu className="w-6 h-6 text-emerald-500" />
+                    {webMiningSessions.length > 0 && (
+                      <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                      </span>
+                    )}
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Usuarios Minando Ahora</p>
-                    <p className="text-2xl font-bold text-foreground">{webMiningSessions.length}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-2xl font-bold text-foreground">{webMiningSessions.length}</p>
+                      {webMiningSessions.length > 0 && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 animate-pulse">
+                          EN VIVO
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <Button onClick={fetchWebMiningSessions} variant="outline" size="sm">
