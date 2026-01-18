@@ -1030,7 +1030,7 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+      <div className="max-w-[1600px] mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
@@ -1074,7 +1074,7 @@ const Admin = () => {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8 max-w-5xl">
+          <TabsList className="flex w-full overflow-x-auto">
             <TabsTrigger value="users" className="gap-2">
               <Users className="w-4 h-4" />
               {t('admin.users')}
