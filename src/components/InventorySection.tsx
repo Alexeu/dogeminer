@@ -1,12 +1,13 @@
 import { useInventory } from "@/contexts/InventoryContext";
 import { rarityConfig } from "@/data/dogeData";
 import { Button } from "@/components/ui/button";
-import { Play, Gift, Clock, Coins, ArrowUp, Star, RefreshCw, AlertTriangle } from "lucide-react";
+import { Play, Gift, Clock, Coins, ArrowUp, Star, RefreshCw, AlertTriangle, Timer } from "lucide-react";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 
 const MINING_DURATION = 60 * 60 * 1000; // 1 hour
+const CLAIM_COOLDOWN = 5000; // 5 seconds cooldown
 
 const InventorySection = () => {
   const { 
@@ -27,6 +28,28 @@ const InventorySection = () => {
   const [startingId, setStartingId] = useState<string | null>(null);
   const [levelingId, setLevelingId] = useState<string | null>(null);
   const [renewingId, setRenewingId] = useState<string | null>(null);
+  const [cooldownEndTime, setCooldownEndTime] = useState<number | null>(null);
+  const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
+
+  // Update cooldown countdown every 100ms
+  useEffect(() => {
+    if (!cooldownEndTime) return;
+
+    const updateCooldown = () => {
+      const remaining = Math.max(0, cooldownEndTime - Date.now());
+      setCooldownRemaining(remaining);
+      
+      if (remaining <= 0) {
+        setCooldownEndTime(null);
+      }
+    };
+
+    updateCooldown();
+    const interval = setInterval(updateCooldown, 100);
+    return () => clearInterval(interval);
+  }, [cooldownEndTime]);
+
+  const isOnCooldown = cooldownRemaining > 0;
 
   const handleStartMining = async (characterId: string) => {
     setStartingId(characterId);
@@ -41,15 +64,23 @@ const InventorySection = () => {
   };
 
   const handleClaim = async (characterId: string) => {
+    if (isOnCooldown) {
+      toast.info(`Espera ${(cooldownRemaining / 1000).toFixed(1)}s antes de reclamar`);
+      return;
+    }
+    
     setClaimingId(characterId);
     try {
       const amount = await claimRewards(characterId);
       
       if (amount > 0) {
-        await refreshBalance(); // Refresh balance after successful claim
+        // Start cooldown after successful claim
+        setCooldownEndTime(Date.now() + CLAIM_COOLDOWN);
+        await refreshBalance();
         toast.success(`¡Has reclamado ${amount.toFixed(4)} DOGE!`);
       } else if (amount === 0) {
-        // Could be rate limited or no rewards yet - don't show error for edge cases
+        // Rate limited by server - start cooldown anyway
+        setCooldownEndTime(Date.now() + CLAIM_COOLDOWN);
         toast.info("Espera un momento antes de reclamar de nuevo");
       }
     } catch (error) {
@@ -274,14 +305,39 @@ const InventorySection = () => {
                           </div>
                         </div>
                       ) : canClaim ? (
-                        <Button
-                          onClick={() => handleClaim(item.character.id)}
-                          disabled={isClaiming}
-                          className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
-                        >
-                          <Gift className="w-4 h-4 mr-2" />
-                          {isClaiming ? "Reclamando..." : `Reclamar ${item.accumulatedDoge.toFixed(4)} DOGE`}
-                        </Button>
+                        <div className="space-y-2">
+                          <Button
+                            onClick={() => handleClaim(item.character.id)}
+                            disabled={isClaiming || isOnCooldown}
+                            className={`w-full ${
+                              isOnCooldown 
+                                ? "bg-muted text-muted-foreground cursor-not-allowed" 
+                                : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+                            }`}
+                          >
+                            {isOnCooldown ? (
+                              <>
+                                <Timer className="w-4 h-4 mr-2 animate-pulse" />
+                                Espera {(cooldownRemaining / 1000).toFixed(1)}s
+                              </>
+                            ) : isClaiming ? (
+                              "Reclamando..."
+                            ) : (
+                              <>
+                                <Gift className="w-4 h-4 mr-2" />
+                                Reclamar {item.accumulatedDoge.toFixed(4)} DOGE
+                              </>
+                            )}
+                          </Button>
+                          {isOnCooldown && (
+                            <div className="w-full bg-background rounded-full h-1.5 overflow-hidden">
+                              <div
+                                className="h-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-100"
+                                style={{ width: `${(cooldownRemaining / CLAIM_COOLDOWN) * 100}%` }}
+                              />
+                            </div>
+                          )}
+                        </div>
                       ) : (
                         <Button
                           onClick={() => handleStartMining(item.character.id)}
