@@ -26,6 +26,7 @@ import AppSidebar from "@/components/AppSidebar";
 import SupportSection from "@/components/SupportSection";
 import StakingSection from "@/components/StakingSection";
 import DogeBirdsSection from "@/components/DogeBirdsSection";
+import ManualReviewAlert from "@/components/ManualReviewAlert";
 
 import RPGDogeTokenCounter from "@/components/RPGDogeTokenCounter";
 import rpgDogeBanner from "@/assets/rpgdoge-banner-2.png";
@@ -107,6 +108,9 @@ const Index = () => {
         ref={mainContentRef}
         className="pt-16 lg:pl-64 transition-all duration-300"
       >
+        {/* Manual Review Alert */}
+        <ManualReviewAlert />
+        
         {/* RPGDOGE Banner */}
         <div 
           className="px-4 pt-4 cursor-pointer"
