@@ -49,6 +49,12 @@ export const translations: Translations = {
     th: 'เนื่องจากปัญหา FaucetPay API การฝากเงินไม่ได้ดำเนินการโดยอัตโนมัติ ส่ง ID ธุรกรรมและอีเมลไปที่:',
     ru: 'Из-за проблем с API FaucetPay депозиты не обрабатываются автоматически. Отправьте ID транзакции и email на:'
   },
+  'header.manualReviewAlert': { 
+    es: '⚠️ Los depósitos están siendo revisados manualmente debido a abusos fraudulentos. Esto puede causar retrasos de 24-48h. Gracias por tu paciencia.', 
+    en: '⚠️ Deposits are being manually reviewed due to fraudulent abuse. This may cause delays of 24-48h. Thank you for your patience.',
+    th: '⚠️ การฝากเงินกำลังถูกตรวจสอบด้วยตนเองเนื่องจากการใช้งานที่เป็นการฉ้อโกง อาจทำให้เกิดความล่าช้า 24-48 ชม. ขอบคุณสำหรับความอดทน',
+    ru: '⚠️ Депозиты проверяются вручную из-за мошеннических злоупотреблений. Это может вызвать задержки 24-48ч. Спасибо за терпение.'
+  },
   
   // Sidebar
   'sidebar.home': { es: 'Inicio', en: 'Home', th: 'หน้าแรก', ru: 'Главная' },
