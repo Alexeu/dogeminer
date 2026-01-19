@@ -5,6 +5,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// This function is now disabled as deposits no longer expire automatically
+// Deposits are manually approved or rejected by admins
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -12,59 +14,13 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    console.log('Starting deposit expiration check...');
-
-    // Find all pending deposits that have expired
-    const { data: expiredDeposits, error: fetchError } = await supabase
-      .from('deposits')
-      .select('id, user_id, amount, verification_code')
-      .eq('status', 'pending')
-      .lt('expires_at', new Date().toISOString());
-
-    if (fetchError) {
-      console.error('Error fetching expired deposits:', fetchError);
-      throw fetchError;
-    }
-
-    console.log(`Found ${expiredDeposits?.length || 0} expired deposits`);
-
-    if (!expiredDeposits || expiredDeposits.length === 0) {
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: 'No expired deposits found',
-          expired_count: 0 
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Mark all expired deposits
-    const expiredIds = expiredDeposits.map(d => d.id);
-    
-    const { error: updateError } = await supabase
-      .from('deposits')
-      .update({ status: 'expired' })
-      .in('id', expiredIds);
-
-    if (updateError) {
-      console.error('Error updating expired deposits:', updateError);
-      throw updateError;
-    }
-
-    console.log(`Successfully marked ${expiredIds.length} deposits as expired`);
+    console.log('Deposit expiration is disabled - deposits are manually reviewed');
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `Marked ${expiredIds.length} deposits as expired`,
-        expired_count: expiredIds.length,
-        expired_ids: expiredIds
+        message: 'Deposit expiration is disabled. Deposits are manually approved or rejected.',
+        expired_count: 0 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
