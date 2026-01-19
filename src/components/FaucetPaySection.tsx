@@ -44,7 +44,6 @@ const FaucetPaySection = () => {
     verification_code: string;
     amount: number;
     payment_url: string;
-    expires_at: string;
     recipient: string;
   } | null>(null);
   const [isCreatingFPDeposit, setIsCreatingFPDeposit] = useState(false);
@@ -65,7 +64,6 @@ const FaucetPaySection = () => {
       .select('*')
       .eq('user_id', user.id)
       .eq('status', 'pending')
-      .gt('expires_at', new Date().toISOString())
       .maybeSingle();
     
     if (pendingDeposit) {
@@ -75,7 +73,6 @@ const FaucetPaySection = () => {
         verification_code: pendingDeposit.verification_code,
         amount: pendingDeposit.amount,
         payment_url: paymentUrl,
-        expires_at: pendingDeposit.expires_at,
         recipient: FAUCETPAY_DEPOSIT_EMAIL
       });
     }
@@ -109,11 +106,11 @@ const FaucetPaySection = () => {
         setFaucetPayDeposit(null);
         await refreshBalance();
         await fetchTransactions();
-      } else if (deposit?.status === 'expired') {
+      } else if (deposit?.status === 'rejected') {
         setFaucetPayDeposit(null);
         toast({
-          title: "Depósito expirado",
-          description: "El tiempo de depósito expiró. Crea uno nuevo.",
+          title: "Depósito rechazado",
+          description: "Tu depósito fue rechazado. Contacta soporte si crees que es un error.",
           variant: "destructive",
         });
       }

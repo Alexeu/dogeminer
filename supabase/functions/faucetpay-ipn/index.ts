@@ -163,12 +163,11 @@ serve(async (req) => {
 // Function to check pending deposits using FaucetPay API
 async function checkPendingDeposits(supabaseAdmin: any) {
   try {
-    // Get all pending deposits not expired
+    // Get all pending deposits (no expiration check - manual review)
     const { data: pendingDeposits, error } = await supabaseAdmin
       .from('deposits')
       .select('*')
-      .eq('status', 'pending')
-      .gt('expires_at', new Date().toISOString());
+      .eq('status', 'pending');
 
     if (error) {
       console.error('Error fetching pending deposits:', error);
@@ -190,19 +189,6 @@ async function checkPendingDeposits(supabaseAdmin: any) {
     console.log(`Checking ${pendingDeposits.length} pending deposits...`);
 
     let completed = 0;
-    let expired = 0;
-
-    // Check for expired deposits first
-    for (const deposit of pendingDeposits) {
-      if (new Date(deposit.expires_at) < new Date()) {
-        await supabaseAdmin
-          .from('deposits')
-          .update({ status: 'expired' })
-          .eq('id', deposit.id);
-        expired++;
-        console.log(`Expired deposit ${deposit.id}`);
-      }
-    }
 
     // Try to check FaucetPay transaction history
     try {
@@ -220,8 +206,6 @@ async function checkPendingDeposits(supabaseAdmin: any) {
 
       if (apiResult.status === 200 && apiResult.payouts) {
         for (const deposit of pendingDeposits) {
-          if (new Date(deposit.expires_at) < new Date()) continue; // Skip expired
-
           // Look for matching transaction
           const matchingTx = apiResult.payouts.find((tx: any) => {
             const customMatch = tx.custom === deposit.verification_code || 
@@ -262,8 +246,7 @@ async function checkPendingDeposits(supabaseAdmin: any) {
     return new Response(JSON.stringify({ 
       success: true, 
       checked: pendingDeposits.length,
-      completed,
-      expired
+      completed
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error) {

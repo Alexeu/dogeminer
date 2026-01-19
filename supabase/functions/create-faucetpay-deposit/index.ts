@@ -83,7 +83,6 @@ serve(async (req) => {
       .select('*')
       .eq('user_id', user.id)
       .eq('status', 'pending')
-      .gt('expires_at', new Date().toISOString())
       .single();
 
     if (existingDeposit) {
@@ -95,7 +94,6 @@ serve(async (req) => {
         verification_code: existingDeposit.verification_code,
         amount: existingDeposit.amount,
         payment_url: paymentUrl,
-        expires_at: existingDeposit.expires_at,
         recipient: FAUCETPAY_DEPOSIT_EMAIL
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -105,9 +103,7 @@ serve(async (req) => {
     // Generate unique verification code
     const verificationCode = 'DM' + user.id.substring(0, 4).toUpperCase() + Date.now().toString(36).toUpperCase().slice(-4);
     
-    // Create deposit record
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour expiry
-    
+    // Create deposit record (no expiration - manual review)
     const { data: deposit, error: insertError } = await supabaseAdmin
       .from('deposits')
       .insert({
@@ -115,8 +111,7 @@ serve(async (req) => {
         amount: numAmount,
         verification_code: verificationCode,
         faucetpay_email: user.email || 'user',
-        status: 'pending',
-        expires_at: expiresAt.toISOString()
+        status: 'pending'
       })
       .select()
       .single();
@@ -168,7 +163,6 @@ serve(async (req) => {
       total_credited: numAmount + bonus,
       promo_active: promoActive,
       payment_url: paymentUrl,
-      expires_at: expiresAt.toISOString(),
       recipient: FAUCETPAY_DEPOSIT_EMAIL
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
