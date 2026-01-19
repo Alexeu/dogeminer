@@ -266,10 +266,12 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const result = data as unknown as RpcResponse;
-      if (result?.success && result.claimed_amount) {
-        const claimedAmount = result.claimed_amount;
+      
+      // Check for success - claimed_amount can be a very small number, so check for >= 0
+      if (result?.success) {
+        const claimedAmount = result.claimed_amount || 0;
         
-        // Update local state
+        // Update local state immediately
         setInventory((prev) =>
           prev.map((item) =>
             item.character.id === characterId
@@ -278,9 +280,14 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
           )
         );
         
+        // Refresh inventory from database to ensure sync
+        await refreshInventory();
+        
         return claimedAmount;
       }
-      console.error('Claim failed:', result?.error);
+      
+      // Log specific error for debugging
+      console.error('Claim failed:', result?.error || 'Unknown error');
       return 0;
     } catch (error) {
       console.error('Error claiming rewards:', error);

@@ -42,13 +42,21 @@ const InventorySection = () => {
 
   const handleClaim = async (characterId: string) => {
     setClaimingId(characterId);
-    const amount = await claimRewards(characterId);
-    setClaimingId(null);
-    
-    if (amount > 0) {
-      toast.success(`¡Has reclamado ${amount.toFixed(4)} DOGE!`);
-    } else {
-      toast.error("Error al reclamar recompensas");
+    try {
+      const amount = await claimRewards(characterId);
+      
+      if (amount > 0) {
+        await refreshBalance(); // Refresh balance after successful claim
+        toast.success(`¡Has reclamado ${amount.toFixed(4)} DOGE!`);
+      } else if (amount === 0) {
+        // Could be rate limited or no rewards yet - don't show error for edge cases
+        toast.info("Espera un momento antes de reclamar de nuevo");
+      }
+    } catch (error) {
+      console.error('Claim error:', error);
+      toast.error("Error al reclamar recompensas. Intenta de nuevo.");
+    } finally {
+      setClaimingId(null);
     }
   };
 
