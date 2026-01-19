@@ -1128,6 +1128,7 @@ export type Database = {
       deactivate_ad: { Args: { p_ad_id: string }; Returns: Json }
       draw_lottery_winner: { Args: { p_pool_id: string }; Returns: Json }
       expire_mining_investments: { Args: never; Returns: undefined }
+      extract_username_from_email: { Args: { email: string }; Returns: string }
       get_active_contest: {
         Args: never
         Returns: {
