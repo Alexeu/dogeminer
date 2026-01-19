@@ -25,15 +25,15 @@ const ManualReviewAlert = () => {
   if (!isVisible) return null;
 
   return (
-    <Alert className="relative mx-4 mt-4 border-amber-500/50 bg-amber-500/10 text-amber-200">
-      <AlertTriangle className="h-5 w-5 text-amber-400" />
-      <AlertDescription className="pr-8 text-amber-200">
+    <Alert className="relative mx-4 mt-4 border-amber-500 bg-amber-900/90 text-white">
+      <AlertTriangle className="h-5 w-5 text-amber-300" />
+      <AlertDescription className="pr-8 text-white font-medium">
         {t('header.manualReviewAlert')}
       </AlertDescription>
       <Button
         variant="ghost"
         size="icon"
-        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-amber-400 hover:text-amber-200 hover:bg-amber-500/20"
+        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-white hover:text-amber-200 hover:bg-amber-700"
         onClick={handleDismiss}
       >
         <X className="h-4 w-4" />
