@@ -631,6 +631,30 @@ const FaucetPaySection = () => {
               </div>
             )}
 
+            {/* Deposit delay warning */}
+            <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-blue-600">¿Demora en la acreditación?</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Si tu depósito tarda en acreditarse, envía un correo a{" "}
+                    <a 
+                      href="mailto:rpgdoge30@gmail.com?subject=Demora%20en%20depósito" 
+                      className="text-primary hover:underline font-medium"
+                    >
+                      rpgdoge30@gmail.com
+                    </a>{" "}
+                    indicando tu <span className="font-semibold">email de usuario</span> y el{" "}
+                    <span className="font-semibold">monto depositado</span>.
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Disculpa las molestias, ¡lo resolveremos lo antes posible! 🙏
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Promo info in deposit card */}
             {isPromoActive && (
               <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-500/20 via-primary/20 to-amber-500/20 border border-emerald-500/40">
