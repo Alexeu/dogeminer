@@ -3,21 +3,21 @@ import { Dog, Pickaxe, Gift, Rocket } from "lucide-react";
 const features = [
   {
     icon: Dog,
-    title: "Collect Rare Doges",
+    title: "Colecciona Doges Raros",
     description:
-      "Much collect! Build your pack with Common to Legendary Doges. Each character has unique mining power and rarity. Very wow!",
+      "¡Construye tu manada con Doges de Común a Legendario! Cada personaje tiene poder de minado y rareza únicos. 🐕",
   },
   {
     icon: Pickaxe,
-    title: "Passive Mining",
+    title: "Minado Pasivo",
     description:
       "Reclama tus ganancias en DOGE cada hora",
   },
   {
     icon: Gift,
-    title: "Mystery Boxes",
+    title: "Cajas Misteriosas",
     description:
-      "Open boxes to get new Doges and boost your mining power. Different rarities with varying drop rates. Many surprise!",
+      "Abre cajas para obtener nuevos Doges y aumentar tu poder de minado. ¡Diferentes rarezas con distintas probabilidades!",
   },
 ];
 
@@ -26,10 +26,10 @@ const FeaturesSection = () => {
     <section className="py-20 bg-background">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-          Why Choose <span className="text-gradient">DOGEMiner</span>?
+          ¿Por qué elegir <span className="text-gradient">DOGEMiner</span>?
         </h2>
         <p className="text-center text-muted-foreground mb-12 font-comic">
-          Such features! Very benefits! 🐕
+          ¡Muchas características! ¡Grandes beneficios! 🐕
         </p>
 
         <div className="grid md:grid-cols-3 gap-8">
