@@ -1,15 +1,14 @@
 import { motion } from "framer-motion";
-import { Coins, TrendingUp, Users, Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Coins, TrendingUp, Users, Sparkles, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import rpgDogeToken from "@/assets/rpgdoge-token.png";
 
-// Simulated presale data (should match RPGDogePresale.tsx)
-const PRESALE_STATS = {
-  soldTokens: 347_892_156,
-  totalTokens: 1_000_000_000_000,
+const PUMP_FUN_URL = "https://pump.fun/coin/2cbcV3PsabFRttudnJNY5GFVYSLxZiYjPN5Dh5aXpump";
+
+// Token stats
+const TOKEN_STATS = {
   holders: 12847,
-  usdtRaised: 521838,
+  marketCap: 521838,
 };
 
 const formatNumber = (num: number) => {
@@ -21,8 +20,6 @@ const formatNumber = (num: number) => {
 };
 
 const RPGDogeTokenCounter = () => {
-  const progressPercent = (PRESALE_STATS.soldTokens / PRESALE_STATS.totalTokens) * 100;
-
   return (
     <section className="py-8 px-4">
       <motion.div
@@ -59,76 +56,56 @@ const RPGDogeTokenCounter = () => {
                 />
                 <div>
                   <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    RPGDOGE Preventa
+                    RPGDOGE Token
                     <Sparkles className="w-4 h-4 text-yellow-400" />
                   </h3>
-                  <p className="text-yellow-400/80 text-sm">Fase 2 Activa - ¡Únete ahora!</p>
+                  <p className="text-yellow-400/80 text-sm">¡Disponible en pump.fun!</p>
                 </div>
               </div>
-              <Link to="/rpgdoge/presale">
+              <a href={PUMP_FUN_URL} target="_blank" rel="noopener noreferrer">
                 <Button className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black font-bold shadow-lg shadow-yellow-500/20">
                   <Coins className="w-4 h-4 mr-2" />
-                  Comprar Tokens
+                  Comprar en pump.fun
+                  <ExternalLink className="w-3 h-3 ml-1" />
                 </Button>
-              </Link>
+              </a>
             </div>
 
-            {/* Main Counter */}
+            {/* Main Message */}
             <div className="text-center mb-6">
-              <p className="text-gray-400 text-sm mb-1">Tokens Vendidos</p>
               <motion.div
-                className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-yellow-300 via-orange-400 to-yellow-500 bg-clip-text text-transparent"
+                className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-yellow-300 via-orange-400 to-yellow-500 bg-clip-text text-transparent"
                 initial={{ scale: 0.8 }}
                 whileInView={{ scale: 1 }}
                 viewport={{ once: true }}
               >
-                {formatNumber(PRESALE_STATS.soldTokens)}
+                ¡Token RDOGE en Solana!
               </motion.div>
-              <p className="text-gray-500 text-sm mt-1">
-                de {formatNumber(PRESALE_STATS.totalTokens)} RDOGE
+              <p className="text-gray-400 text-sm mt-2">
+                Compra directamente en pump.fun con SOL
               </p>
             </div>
 
-            {/* Progress Bar */}
-            <div className="mb-6">
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-400">Progreso</span>
-                <span className="text-yellow-400 font-medium">{progressPercent.toFixed(1)}%</span>
-              </div>
-              <div className="h-3 bg-gray-800 rounded-full overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  whileInView={{ width: `${progressPercent}%` }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 1.5, ease: "easeOut" }}
-                  className="h-full bg-gradient-to-r from-yellow-500 via-orange-500 to-yellow-400 rounded-full relative"
-                >
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0"
-                    animate={{ x: ["-100%", "200%"] }}
-                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
-                  />
-                </motion.div>
-              </div>
-            </div>
-
             {/* Stats Grid */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="text-center bg-black/30 rounded-xl p-3">
                 <Users className="w-5 h-5 text-purple-400 mx-auto mb-1" />
-                <p className="text-white font-bold">{formatNumber(PRESALE_STATS.holders)}</p>
+                <p className="text-white font-bold">{formatNumber(TOKEN_STATS.holders)}</p>
                 <p className="text-gray-500 text-xs">Holders</p>
               </div>
               <div className="text-center bg-black/30 rounded-xl p-3">
                 <TrendingUp className="w-5 h-5 text-green-400 mx-auto mb-1" />
-                <p className="text-white font-bold">${formatNumber(PRESALE_STATS.usdtRaised)}</p>
-                <p className="text-gray-500 text-xs">Recaudado</p>
+                <p className="text-white font-bold">${formatNumber(TOKEN_STATS.marketCap)}</p>
+                <p className="text-gray-500 text-xs">Market Cap</p>
               </div>
-              <div className="text-center bg-black/30 rounded-xl p-3">
-                <Sparkles className="w-5 h-5 text-yellow-400 mx-auto mb-1" />
-                <p className="text-white font-bold">+30%</p>
-                <p className="text-gray-500 text-xs">Bonus Activo</p>
-              </div>
+            </div>
+
+            {/* Contract Address */}
+            <div className="mt-4 p-3 bg-black/40 rounded-xl border border-yellow-500/20">
+              <p className="text-xs text-gray-400 mb-1">Contrato (Solana):</p>
+              <p className="text-xs text-yellow-400 font-mono break-all">
+                2cbcV3PsabFRttudnJNY5GFVYSLxZiYjPN5Dh5aXpump
+              </p>
             </div>
           </div>
         </div>
