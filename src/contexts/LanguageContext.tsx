@@ -503,6 +503,16 @@ export const translations: Translations = {
   'roadmap.nftCollection': { es: 'NFT Collection exclusiva', en: 'Exclusive NFT Collection', th: 'คอลเลกชัน NFT พิเศษ', ru: 'Эксклюзивная NFT коллекция' },
   'roadmap.metaverse': { es: 'Metaverso del Reino Crypto', en: 'Crypto Kingdom Metaverse', th: 'Metaverse อาณาจักรคริปโต', ru: 'Метавселенная Крипто-Королевства' },
 
+  // Features Section
+  'features.title': { es: '¿Por qué elegir', en: 'Why Choose', th: 'ทำไมต้องเลือก', ru: 'Почему выбирают' },
+  'features.subtitle': { es: '¡Muchas características! ¡Grandes beneficios! 🐕', en: 'Such features! Very benefits! 🐕', th: 'คุณสมบัติเยอะ! ประโยชน์มาก! 🐕', ru: 'Много функций! Много преимуществ! 🐕' },
+  'features.collectTitle': { es: 'Colecciona Doges Raros', en: 'Collect Rare Doges', th: 'สะสม Doge หายาก', ru: 'Собирай редких Doge' },
+  'features.collectDesc': { es: '¡Construye tu manada con Doges de Común a Legendario! Cada personaje tiene poder de minado y rareza únicos. 🐕', en: 'Build your pack with Common to Legendary Doges! Each character has unique mining power and rarity. 🐕', th: 'สร้างฝูงของคุณด้วย Doge ธรรมดาถึงตำนาน! ตัวละครแต่ละตัวมีพลังขุดและความหายากเฉพาะ 🐕', ru: 'Собирай стаю от Обычных до Легендарных Doge! Каждый персонаж имеет уникальную мощность и редкость. 🐕' },
+  'features.miningTitle': { es: 'Minado Pasivo', en: 'Passive Mining', th: 'การขุดแบบพาสซีฟ', ru: 'Пассивный майнинг' },
+  'features.miningDesc': { es: 'Reclama tus ganancias en DOGE cada hora', en: 'Claim your DOGE earnings every hour', th: 'รับรายได้ DOGE ของคุณทุกชั่วโมง', ru: 'Получай DOGE каждый час' },
+  'features.boxesTitle': { es: 'Cajas Misteriosas', en: 'Mystery Boxes', th: 'กล่องปริศนา', ru: 'Загадочные коробки' },
+  'features.boxesDesc': { es: 'Abre cajas para obtener nuevos Doges y aumentar tu poder de minado. ¡Diferentes rarezas con distintas probabilidades!', en: 'Open boxes to get new Doges and boost your mining power. Different rarities with varying drop rates!', th: 'เปิดกล่องเพื่อรับ Doge ใหม่และเพิ่มพลังขุด! ความหายากต่างกันมีอัตราดรอปต่างกัน!', ru: 'Открывай коробки, чтобы получить новых Doge и увеличить мощность майнинга. Разные редкости с разным шансом выпадения!' },
+
   // Common
   'common.loading': { es: 'Cargando...', en: 'Loading...', th: 'กำลังโหลด...', ru: 'Загрузка...' },
   'common.error': { es: 'Error', en: 'Error', th: 'ข้อผิดพลาด', ru: 'Ошибка' },
