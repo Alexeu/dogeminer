@@ -11,7 +11,7 @@ const features = [
     icon: Pickaxe,
     title: "Passive Mining",
     description:
-      "Earn DOGE 24/7 automatically. Your Doges mine even when you're offline. No manual clicking required. Such easy!",
+      "Reclama tus ganancias en DOGE cada hora",
   },
   {
     icon: Gift,
