@@ -27,7 +27,6 @@ const RPGDogePresale = () => {
   const benefits = [
     { icon: Rocket, title: t('presale.earlyAccess'), desc: t('presale.earlyAccessDesc') },
     { icon: Shield, title: t('presale.exclusivePrice'), desc: t('presale.exclusivePriceDesc') },
-    { icon: TrendingUp, title: t('presale.extraBonus'), desc: t('presale.extraBonusDesc') },
     { icon: Crown, title: t('presale.vipAccess'), desc: t('presale.vipAccessDesc') },
   ];
 
