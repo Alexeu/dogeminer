@@ -80,10 +80,10 @@ export const translations: Translations = {
   'hero.title3': { es: 'con tu ', en: 'with Your ', th: 'กับ ', ru: 'с твоей ' },
   'hero.title4': { es: 'Colección', en: 'Collection', th: 'คอลเลกชัน', ru: 'Коллекцией' },
   'hero.subtitle': { 
-    es: 'Colecciona personajes Doge únicos y gana Dogecoin automáticamente 24/7. ¡Retiros instantáneos a FaucetPay! 🌙', 
-    en: 'Collect unique Doge characters and earn Dogecoin automatically 24/7. Instant withdrawals to FaucetPay! 🌙',
-    th: 'สะสมตัวละคร Doge ที่ไม่ซ้ำกันและรับ Dogecoin โดยอัตโนมัติ 24/7 ถอนทันทีไปยัง FaucetPay! 🌙',
-    ru: 'Собирай уникальных персонажей Doge и зарабатывай Dogecoin автоматически 24/7. Мгновенный вывод на FaucetPay! 🌙'
+    es: 'Colecciona personajes Doge únicos y gana Dogecoin cada hora ¡Retiros instantáneos a FaucetPay! 🌙', 
+    en: 'Collect unique Doge characters and earn Dogecoin every hour. Instant withdrawals to FaucetPay! 🌙',
+    th: 'สะสมตัวละคร Doge ที่ไม่ซ้ำกันและรับ Dogecoin ทุกชั่วโมง ถอนทันทีไปยัง FaucetPay! 🌙',
+    ru: 'Собирай уникальных персонажей Doge и зарабатывай Dogecoin каждый час. Мгновенный вывод на FaucetPay! 🌙'
   },
   'hero.ctaPrimary': { es: '¡Comenzar Gratis!', en: 'Start Free!', th: 'เริ่มต้นฟรี!', ru: 'Начать бесплатно!' },
   'hero.ctaSecondary': { es: 'Ver Colección', en: 'View Collection', th: 'ดูคอลเลกชัน', ru: 'Смотреть коллекцию' },
