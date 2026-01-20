@@ -1,41 +1,41 @@
-import { Dog, Pickaxe, Gift, Rocket } from "lucide-react";
-
-const features = [
-  {
-    icon: Dog,
-    title: "Colecciona Doges Raros",
-    description:
-      "¡Construye tu manada con Doges de Común a Legendario! Cada personaje tiene poder de minado y rareza únicos. 🐕",
-  },
-  {
-    icon: Pickaxe,
-    title: "Minado Pasivo",
-    description:
-      "Reclama tus ganancias en DOGE cada hora",
-  },
-  {
-    icon: Gift,
-    title: "Cajas Misteriosas",
-    description:
-      "Abre cajas para obtener nuevos Doges y aumentar tu poder de minado. ¡Diferentes rarezas con distintas probabilidades!",
-  },
-];
+import { Dog, Pickaxe, Gift } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const FeaturesSection = () => {
+  const { t } = useLanguage();
+
+  const features = [
+    {
+      icon: Dog,
+      title: t('features.collectTitle'),
+      description: t('features.collectDesc'),
+    },
+    {
+      icon: Pickaxe,
+      title: t('features.miningTitle'),
+      description: t('features.miningDesc'),
+    },
+    {
+      icon: Gift,
+      title: t('features.boxesTitle'),
+      description: t('features.boxesDesc'),
+    },
+  ];
+
   return (
     <section className="py-20 bg-background">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-          ¿Por qué elegir <span className="text-gradient">DOGEMiner</span>?
+          {t('features.title')} <span className="text-gradient">DOGEMiner</span>?
         </h2>
         <p className="text-center text-muted-foreground mb-12 font-comic">
-          ¡Muchas características! ¡Grandes beneficios! 🐕
+          {t('features.subtitle')}
         </p>
 
         <div className="grid md:grid-cols-3 gap-8">
           {features.map((feature, index) => (
             <div
-              key={feature.title}
+              key={index}
               className="glass rounded-2xl p-8 text-center hover:shadow-doge-lg transition-all duration-300 hover:-translate-y-2 animate-slide-up"
               style={{ animationDelay: `${index * 150}ms` }}
             >
