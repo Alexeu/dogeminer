@@ -27,6 +27,7 @@ import SupportSection from "@/components/SupportSection";
 import StakingSection from "@/components/StakingSection";
 import DogeBirdsSection from "@/components/DogeBirdsSection";
 import ManualReviewAlert from "@/components/ManualReviewAlert";
+import SurveySection from "@/components/SurveySection";
 
 import RPGDogeTokenCounter from "@/components/RPGDogeTokenCounter";
 import rpgDogeBanner from "@/assets/rpgdoge-banner-2.png";
@@ -185,6 +186,7 @@ const Index = () => {
         <div id="support">
           <SupportSection />
         </div>
+        <SurveySection />
         <HowItWorksSection />
         <WithdrawalsSection />
         <RaritySection />
