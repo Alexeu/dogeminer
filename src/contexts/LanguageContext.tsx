@@ -362,7 +362,7 @@ export const translations: Translations = {
   'birds.info1': { es: 'Compra pájaros con tu balance de depósito', en: 'Buy birds with your deposit balance', th: 'ซื้อนกด้วยยอดเงินฝากของคุณ', ru: 'Покупай птиц за депозитный баланс' },
   'birds.info2': { es: 'Los pájaros generan huevos automáticamente cada hora', en: 'Birds automatically generate eggs every hour', th: 'นกสร้างไข่อัตโนมัติทุกชั่วโมง', ru: 'Птицы автоматически производят яйца каждый час' },
   'birds.info3': { es: 'Almacena los huevos en tu granero (¡mejóralo para más capacidad!)', en: 'Store eggs in your barn (upgrade it for more capacity!)', th: 'เก็บไข่ในยุ้งฉาง (อัพเกรดเพื่อเพิ่มความจุ!)', ru: 'Храни яйца в амбаре (улучши его для большей вместимости!)' },
-  'birds.info4': { es: 'Convierte 45,000 huevos en 0.0075 DOGE', en: 'Convert 45,000 eggs into 0.0075 DOGE', th: 'แปลง 45,000 ไข่เป็น 0.0075 DOGE', ru: 'Обменивай 45 000 яиц на 0.0075 DOGE' },
+  'birds.info4': { es: 'Convierte 42,000 huevos en 0.01 DOGE', en: 'Convert 42,000 eggs into 0.01 DOGE', th: 'แปลง 42,000 ไข่เป็น 0.01 DOGE', ru: 'Обменивай 42 000 яиц на 0.01 DOGE' },
   'birds.insufficientBalance': { es: 'Balance insuficiente', en: 'Insufficient balance', th: 'ยอดเงินไม่เพียงพอ', ru: 'Недостаточно средств' },
   'birds.birdPurchased': { es: '¡Pájaro comprado!', en: 'Bird purchased!', th: 'ซื้อนกแล้ว!', ru: 'Птица куплена!' },
   'birds.purchaseFailed': { es: 'Error al comprar', en: 'Purchase failed', th: 'ซื้อไม่สำเร็จ', ru: 'Ошибка покупки' },
@@ -371,7 +371,7 @@ export const translations: Translations = {
   'birds.barnMaxLevel': { es: 'Granero ya en nivel máximo', en: 'Barn already at max level', th: 'ยุ้งฉางเลเวลสูงสุดแล้ว', ru: 'Амбар уже на максимальном уровне' },
   'birds.barnUpgraded': { es: '¡Granero mejorado a nivel', en: 'Barn upgraded to level', th: 'อัพเกรดยุ้งฉางเป็นระดับ', ru: 'Амбар улучшен до уровня' },
   'birds.upgradeFailed': { es: 'Error al mejorar', en: 'Upgrade failed', th: 'อัพเกรดไม่สำเร็จ', ru: 'Ошибка улучшения' },
-  'birds.minEggsRequired': { es: 'Mínimo 60,000 huevos requeridos', en: 'Minimum 60,000 eggs required', th: 'ต้องมีไข่อย่างน้อย 60,000', ru: 'Требуется минимум 60 000 яиц' },
+  'birds.minEggsRequired': { es: 'Mínimo 42,000 huevos requeridos', en: 'Minimum 42,000 eggs required', th: 'ต้องมีไข่อย่างน้อย 42,000', ru: 'Требуется минимум 42 000 яиц' },
   'birds.eggsConverted': { es: 'Huevos convertidos', en: 'Eggs converted', th: 'แปลงไข่แล้ว', ru: 'Яиц конвертировано' },
   'birds.convertFailed': { es: 'Error al convertir', en: 'Conversion failed', th: 'แปลงไม่สำเร็จ', ru: 'Ошибка конвертации' },
   
