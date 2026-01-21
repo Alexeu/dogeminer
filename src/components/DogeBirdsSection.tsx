@@ -370,7 +370,7 @@ const DogeBirdsSection = () => {
             </div>
             
             <p className="text-xs text-muted-foreground mt-4">
-              💱 {t("birds.exchangeRate")}: 45,000 🥚 = 0.0075 DOGE
+              💱 {t("birds.exchangeRate")}: 42,000 🥚 = 0.01 DOGE
             </p>
           </CardContent>
         </Card>
