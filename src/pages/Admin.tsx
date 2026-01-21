@@ -32,7 +32,8 @@ import {
   Sparkles,
   Trophy,
   Coins,
-  Minus
+  Minus,
+  MessageSquare
 } from "lucide-react";
 import { formatDoge } from "@/data/dogeData";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -188,6 +189,24 @@ const Admin = () => {
   const [rdogePurchaseRequests, setRdogePurchaseRequests] = useState<RdogePurchaseRequest[]>([]);
   const [rdogePurchaseSearchQuery, setRdogePurchaseSearchQuery] = useState("");
 
+  // Survey responses state
+  interface SurveyResponse {
+    id: string;
+    user_id: string;
+    response_type: string;
+    other_coin: string | null;
+    created_at: string;
+    user_email?: string;
+  }
+  const [surveyResponses, setSurveyResponses] = useState<SurveyResponse[]>([]);
+  const [surveyStats, setSurveyStats] = useState<{
+    total: number;
+    yesPepe: number;
+    yesOther: number;
+    no: number;
+    otherCoins: { coin: string; count: number }[];
+  }>({ total: 0, yesPepe: 0, yesOther: 0, no: 0, otherCoins: [] });
+
   useEffect(() => {
     checkAdminRole();
   }, [user]);
@@ -320,11 +339,61 @@ const Admin = () => {
       fetchAllMiningStats(),
       fetchReferralStats(),
       fetchRdogeTokens(),
-      fetchRdogePurchaseRequests()
+      fetchRdogePurchaseRequests(),
+      fetchSurveyResponses()
     ]);
   };
 
-  const fetchRdogePurchaseRequests = async () => {
+  const fetchSurveyResponses = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('survey_responses')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const responsesWithEmails = await Promise.all(
+        (data || []).map(async (r) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email')
+            .eq('id', r.user_id)
+            .maybeSingle();
+          
+          return {
+            ...r,
+            user_email: profile?.email || 'Unknown'
+          };
+        })
+      );
+
+      setSurveyResponses(responsesWithEmails);
+
+      // Calculate stats
+      const total = responsesWithEmails.length;
+      const yesPepe = responsesWithEmails.filter(r => r.response_type === 'yes_pepe').length;
+      const yesOther = responsesWithEmails.filter(r => r.response_type === 'yes_other').length;
+      const no = responsesWithEmails.filter(r => r.response_type === 'no').length;
+
+      // Group other coins
+      const coinCounts: Record<string, number> = {};
+      responsesWithEmails
+        .filter(r => r.response_type === 'yes_other' && r.other_coin)
+        .forEach(r => {
+          const coin = r.other_coin!.toUpperCase().trim();
+          coinCounts[coin] = (coinCounts[coin] || 0) + 1;
+        });
+      
+      const otherCoins = Object.entries(coinCounts)
+        .map(([coin, count]) => ({ coin, count }))
+        .sort((a, b) => b.count - a.count);
+
+      setSurveyStats({ total, yesPepe, yesOther, no, otherCoins });
+    } catch (error) {
+      console.error('Fetch survey responses error:', error);
+    }
+  };
     try {
       const { data: requests, error } = await supabase
         .from('rdoge_purchase_requests')
@@ -1220,6 +1289,15 @@ const Admin = () => {
               {rdogeTokens.length > 0 && (
                 <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-yellow-500 text-black">
                   {rdogeTokens.length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="survey" className="gap-2">
+              <MessageSquare className="w-4 h-4" />
+              Encuesta
+              {surveyResponses.length > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-primary/80 text-primary-foreground">
+                  {surveyResponses.length}
                 </span>
               )}
             </TabsTrigger>
@@ -2704,6 +2782,130 @@ const Admin = () => {
                   <Coins className="w-12 h-12 mx-auto mb-3 opacity-30" />
                   <p>No hay holders de RDOGE registrados</p>
                   <p className="text-sm">Asigna tokens a los usuarios usando el formulario de arriba</p>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Survey Tab */}
+          <TabsContent value="survey" className="space-y-6">
+            <div className="glass rounded-2xl p-6">
+              {/* Survey Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="p-4 rounded-xl bg-background/50 border border-border/50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MessageSquare className="w-5 h-5 text-primary" />
+                    <span className="text-sm text-muted-foreground">Total Respuestas</span>
+                  </div>
+                  <p className="text-2xl font-bold">{surveyStats.total}</p>
+                </div>
+                <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xl">🐸</span>
+                    <span className="text-sm text-muted-foreground">Sí, PEPE</span>
+                  </div>
+                  <p className="text-2xl font-bold text-emerald-500">{surveyStats.yesPepe}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {surveyStats.total > 0 ? ((surveyStats.yesPepe / surveyStats.total) * 100).toFixed(1) : 0}%
+                  </p>
+                </div>
+                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xl">💰</span>
+                    <span className="text-sm text-muted-foreground">Sí, Otra</span>
+                  </div>
+                  <p className="text-2xl font-bold text-amber-500">{surveyStats.yesOther}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {surveyStats.total > 0 ? ((surveyStats.yesOther / surveyStats.total) * 100).toFixed(1) : 0}%
+                  </p>
+                </div>
+                <div className="p-4 rounded-xl bg-muted/50 border border-border/50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xl">🐕</span>
+                    <span className="text-sm text-muted-foreground">No</span>
+                  </div>
+                  <p className="text-2xl font-bold text-muted-foreground">{surveyStats.no}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {surveyStats.total > 0 ? ((surveyStats.no / surveyStats.total) * 100).toFixed(1) : 0}%
+                  </p>
+                </div>
+              </div>
+
+              {/* Other coins suggested */}
+              {surveyStats.otherCoins.length > 0 && (
+                <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <span className="text-xl">💰</span>
+                    Monedas Sugeridas
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {surveyStats.otherCoins.map((item) => (
+                      <span 
+                        key={item.coin} 
+                        className="px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-600 text-sm font-medium"
+                      >
+                        {item.coin} ({item.count})
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Responses Table */}
+              <h3 className="font-semibold mb-4">Respuestas Individuales</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">#</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Email</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Respuesta</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Moneda</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Fecha</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {surveyResponses.map((response, index) => (
+                      <tr key={response.id} className="border-b border-border/50 hover:bg-secondary/30">
+                        <td className="py-3 px-4 text-sm font-medium">{index + 1}</td>
+                        <td className="py-3 px-4 text-sm">{response.user_email}</td>
+                        <td className="py-3 px-4">
+                          {response.response_type === 'yes_pepe' && (
+                            <span className="flex items-center gap-2 text-emerald-500">
+                              <span>🐸</span> Sí, PEPE
+                            </span>
+                          )}
+                          {response.response_type === 'yes_other' && (
+                            <span className="flex items-center gap-2 text-amber-500">
+                              <span>💰</span> Sí, otra moneda
+                            </span>
+                          )}
+                          {response.response_type === 'no' && (
+                            <span className="flex items-center gap-2 text-muted-foreground">
+                              <span>🐕</span> No
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-sm">
+                          {response.other_coin ? (
+                            <span className="px-2 py-1 rounded bg-amber-500/20 text-amber-600 font-medium">
+                              {response.other_coin}
+                            </span>
+                          ) : '-'}
+                        </td>
+                        <td className="py-3 px-4 text-sm text-muted-foreground">
+                          {formatDate(response.created_at)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {surveyResponses.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <p>No hay respuestas de encuesta todavía</p>
                 </div>
               )}
             </div>

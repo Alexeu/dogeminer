@@ -540,6 +540,104 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     return (saved as Language) || 'es';
   });
 
+  // Survey translations
+  translations['survey.title'] = { 
+    es: '📊 ¿Te gustaría otro proyecto similar?', 
+    en: '📊 Would you like another similar project?',
+    th: '📊 คุณต้องการโปรเจกต์ที่คล้ายกันหรือไม่?',
+    ru: '📊 Хотите ли вы похожий проект?'
+  };
+  translations['survey.subtitle'] = { 
+    es: '¡Tu opinión nos importa! Ayúdanos a decidir el próximo proyecto', 
+    en: 'Your opinion matters! Help us decide the next project',
+    th: 'ความคิดเห็นของคุณสำคัญ! ช่วยเราตัดสินใจโปรเจกต์ถัดไป',
+    ru: 'Ваше мнение важно! Помогите нам выбрать следующий проект'
+  };
+  translations['survey.optionA'] = { 
+    es: 'Sí, me gustaría con PEPE', 
+    en: 'Yes, I would like it with PEPE',
+    th: 'ใช่ ฉันอยากได้กับ PEPE',
+    ru: 'Да, я хотел бы с PEPE'
+  };
+  translations['survey.optionADesc'] = { 
+    es: 'Un proyecto similar pero con la moneda PEPE', 
+    en: 'A similar project but with PEPE coin',
+    th: 'โปรเจกต์ที่คล้ายกันแต่ใช้เหรียญ PEPE',
+    ru: 'Похожий проект, но с монетой PEPE'
+  };
+  translations['survey.optionB'] = { 
+    es: 'Sí, pero con otra moneda', 
+    en: 'Yes, but with another coin',
+    th: 'ใช่ แต่ใช้เหรียญอื่น',
+    ru: 'Да, но с другой монетой'
+  };
+  translations['survey.optionBDesc'] = { 
+    es: 'Escribe qué moneda te gustaría', 
+    en: 'Write which coin you would like',
+    th: 'เขียนเหรียญที่คุณต้องการ',
+    ru: 'Напишите, какую монету вы хотите'
+  };
+  translations['survey.optionC'] = { 
+    es: 'No, con este está bien', 
+    en: 'No, this one is fine',
+    th: 'ไม่ อันนี้ก็ดีแล้ว',
+    ru: 'Нет, этого достаточно'
+  };
+  translations['survey.optionCDesc'] = { 
+    es: 'Prefiero concentrarme en este proyecto', 
+    en: 'I prefer to focus on this project',
+    th: 'ฉันชอบที่จะมุ่งเน้นที่โปรเจกต์นี้',
+    ru: 'Предпочитаю сосредоточиться на этом проекте'
+  };
+  translations['survey.coinPlaceholder'] = { 
+    es: 'Escribe el nombre de la moneda...', 
+    en: 'Write the coin name...',
+    th: 'เขียนชื่อเหรียญ...',
+    ru: 'Напишите название монеты...'
+  };
+  translations['survey.submitButton'] = { 
+    es: 'Enviar Respuesta', 
+    en: 'Submit Answer',
+    th: 'ส่งคำตอบ',
+    ru: 'Отправить ответ'
+  };
+  translations['survey.updateButton'] = { 
+    es: 'Actualizar Respuesta', 
+    en: 'Update Answer',
+    th: 'อัปเดตคำตอบ',
+    ru: 'Обновить ответ'
+  };
+  translations['survey.successTitle'] = { 
+    es: '¡Gracias!', 
+    en: 'Thank you!',
+    th: 'ขอบคุณ!',
+    ru: 'Спасибо!'
+  };
+  translations['survey.successMessage'] = { 
+    es: 'Tu respuesta ha sido registrada', 
+    en: 'Your answer has been recorded',
+    th: 'คำตอบของคุณได้รับการบันทึกแล้ว',
+    ru: 'Ваш ответ записан'
+  };
+  translations['survey.errorTitle'] = { 
+    es: 'Error', 
+    en: 'Error',
+    th: 'ข้อผิดพลาด',
+    ru: 'Ошибка'
+  };
+  translations['survey.errorCoin'] = { 
+    es: 'Por favor escribe qué moneda te gustaría', 
+    en: 'Please write which coin you would like',
+    th: 'โปรดเขียนเหรียญที่คุณต้องการ',
+    ru: 'Пожалуйста, напишите, какую монету вы хотите'
+  };
+  translations['survey.alreadyResponded'] = { 
+    es: 'Ya has respondido a esta encuesta. Puedes cambiar tu respuesta.', 
+    en: 'You have already answered this survey. You can change your answer.',
+    th: 'คุณได้ตอบแบบสำรวจนี้แล้ว คุณสามารถเปลี่ยนคำตอบได้',
+    ru: 'Вы уже ответили на этот опрос. Вы можете изменить свой ответ.'
+  };
+
   useEffect(() => {
     localStorage.setItem('rpg-doge-language', language);
   }, [language]);
