@@ -394,6 +394,8 @@ const Admin = () => {
       console.error('Fetch survey responses error:', error);
     }
   };
+
+  const fetchRdogePurchaseRequests = async () => {
     try {
       const { data: requests, error } = await supabase
         .from('rdoge_purchase_requests')
