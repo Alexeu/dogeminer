@@ -54,7 +54,7 @@ const Index = () => {
     const handleScroll = () => {
       const sections = [
         "hero", "mystery-boxes", "inventory", "collection", "doge-birds",
-        "web-mining", "online-mining", "staking", "lottery", "shortlinks", "ptc", "faucetpay", "referral", "support"
+        "web-mining", "online-mining", "staking", "lottery", "shortlinks", "ptc", "faucetpay", "referral", "support", "survey"
       ];
       
       for (const sectionId of sections) {
@@ -186,7 +186,9 @@ const Index = () => {
         <div id="support">
           <SupportSection />
         </div>
-        <SurveySection />
+        <div id="survey">
+          <SurveySection />
+        </div>
         <HowItWorksSection />
         <WithdrawalsSection />
         <RaritySection />
