@@ -576,8 +576,8 @@ const FaucetPaySection = () => {
                 type="number"
                 step="0.1"
                 min="0.1"
-                max="100"
-                placeholder="Cantidad (0.1 - 100 DOGE)"
+                max="1000"
+                placeholder="Cantidad (0.1 - 1000 DOGE)"
                 value={fpDepositAmount}
                 onChange={(e) => setFpDepositAmount(e.target.value)}
                 className="bg-background/50 mb-3"
@@ -693,7 +693,7 @@ const FaucetPaySection = () => {
             <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
               <p className="text-sm font-medium text-amber-600 mb-2">💡 Instrucciones:</p>
               <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
-                <li>Mínimo: <span className="font-bold text-primary">0.1 DOGE</span> - Máximo: 100 DOGE</li>
+                <li>Mínimo: <span className="font-bold text-primary">0.1 DOGE</span> - Máximo: 1000 DOGE</li>
                 <li>Entra a FaucetPay → Send Payment</li>
                 <li>El depósito se acredita automáticamente en segundos</li>
                 {isPromoActive && (

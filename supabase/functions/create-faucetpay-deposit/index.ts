@@ -63,10 +63,10 @@ serve(async (req) => {
     
     // Validate amount
     const numAmount = parseFloat(amount);
-    if (isNaN(numAmount) || numAmount < 0.1 || numAmount > 100) {
+    if (isNaN(numAmount) || numAmount < 0.1 || numAmount > 1000) {
       return new Response(JSON.stringify({ 
         success: false, 
-        error: 'Amount must be between 0.1 and 100 DOGE' 
+        error: 'Amount must be between 0.1 and 1000 DOGE' 
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
