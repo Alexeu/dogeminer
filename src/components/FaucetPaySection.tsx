@@ -537,7 +537,7 @@ const FaucetPaySection = () => {
             </Button>
 
             <p className="text-xs text-muted-foreground text-center">
-              Mínimo: {MIN_WITHDRAWAL} DOGE • Máximo diario: {formatDoge(DAILY_LIMIT)} DOGE
+              Mínimo: {MIN_WITHDRAWAL} DOGE • Máximo diario: {DAILY_LIMIT} DOGE
             </p>
           </div>
 
