@@ -294,10 +294,10 @@ const FaucetPaySection = () => {
       return;
     }
 
-    if (amount > 100) {
+    if (amount > 1000) {
       toast({
         title: "Error",
-        description: "El máximo de depósito es 100 DOGE",
+        description: "El máximo de depósito es 1000 DOGE",
         variant: "destructive",
       });
       return;
