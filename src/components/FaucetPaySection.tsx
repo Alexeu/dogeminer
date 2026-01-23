@@ -207,10 +207,19 @@ const FaucetPaySection = () => {
       return;
     }
 
+    if (dailyUsed >= DAILY_LIMIT) {
+      toast({
+        title: "Límite diario alcanzado ⛔",
+        description: `Ya has retirado ${DAILY_LIMIT} DOGE hoy. Vuelve mañana para continuar retirando.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (dailyUsed + amount > DAILY_LIMIT) {
       toast({
         title: "Límite diario excedido",
-        description: `Solo puedes retirar ${formatDoge(DAILY_LIMIT - dailyUsed)} DOGE más hoy`,
+        description: `Solo puedes retirar ${(DAILY_LIMIT - dailyUsed).toFixed(4)} DOGE más hoy (máximo diario: ${DAILY_LIMIT} DOGE)`,
         variant: "destructive",
       });
       return;
@@ -429,16 +438,17 @@ const FaucetPaySection = () => {
 
         {/* Daily Limit Progress */}
         <div className="max-w-4xl mx-auto mb-8">
-          <div className="glass rounded-2xl p-4">
+          <div className={`glass rounded-2xl p-4 ${dailyPercentage >= 100 ? 'border-2 border-destructive' : ''}`}>
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">Límite diario de retiro</span>
               <span className="text-sm text-muted-foreground">
-                {formatDoge(dailyUsed)} / {formatDoge(DAILY_LIMIT)} DOGE
+                {dailyUsed.toFixed(4)} / {DAILY_LIMIT} DOGE
               </span>
             </div>
             <div className="w-full h-3 bg-secondary rounded-full overflow-hidden">
               <div 
                 className={`h-full transition-all duration-500 ${
+                  dailyPercentage >= 100 ? 'bg-destructive' :
                   dailyPercentage >= 90 ? 'bg-destructive' : 
                   dailyPercentage >= 70 ? 'bg-amber-500' : 
                   'bg-gradient-to-r from-primary to-emerald-500'
@@ -446,10 +456,19 @@ const FaucetPaySection = () => {
                 style={{ width: `${dailyPercentage}%` }}
               />
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Disponible hoy: <span className="font-semibold text-primary">{formatDoge(remainingDaily)} DOGE</span>
-              {' '}• El límite se reinicia a medianoche UTC
-            </p>
+            {dailyPercentage >= 100 ? (
+              <div className="flex items-center gap-2 mt-2 p-2 rounded-lg bg-destructive/10 border border-destructive/30">
+                <AlertTriangle className="w-4 h-4 text-destructive" />
+                <p className="text-xs text-destructive font-medium">
+                  Has alcanzado el límite diario de {DAILY_LIMIT} DOGE. El límite se reinicia a medianoche UTC.
+                </p>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground mt-2">
+                Disponible hoy: <span className="font-semibold text-primary">{remainingDaily.toFixed(4)} DOGE</span>
+                {' '}• El límite se reinicia a medianoche UTC
+              </p>
+            )}
           </div>
         </div>
 
