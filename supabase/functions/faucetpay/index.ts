@@ -267,29 +267,42 @@ serve(async (req) => {
         break;
       
       case 'send':
-        // ADDITIONAL IP RATE LIMIT FOR WITHDRAWALS
-        const withdrawalRateLimit = await checkIPRateLimit(
-          supabaseAdmin,
-          clientIP,
-          'faucetpay_withdrawal',
-          IP_WITHDRAWAL_LIMIT_MAX,
-          IP_WITHDRAWAL_LIMIT_WINDOW_MS
-        );
+        // Check if user is admin FIRST (before rate limits)
+        const { data: adminRoleCheck } = await supabaseAdmin
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userId)
+          .eq('role', 'admin')
+          .maybeSingle();
 
-        if (!withdrawalRateLimit.allowed) {
-          console.warn(`Withdrawal rate limit exceeded for IP ${clientIP}`);
-          return new Response(JSON.stringify({ 
-            status: 429, 
-            message: `Too many withdrawal attempts. Please try again in ${Math.ceil((withdrawalRateLimit.resetAt.getTime() - Date.now()) / 60000)} minutes.`
-          }), {
-            status: 429,
-            headers: { 
-              ...corsHeaders, 
-              'Content-Type': 'application/json',
-              'X-RateLimit-Remaining': '0',
-              'X-RateLimit-Reset': withdrawalRateLimit.resetAt.toISOString()
-            },
-          });
+        const isAdminUser = !!adminRoleCheck;
+        console.log(`User ${userId} is admin: ${isAdminUser}`);
+
+        // ADDITIONAL IP RATE LIMIT FOR WITHDRAWALS (skip for admins)
+        if (!isAdminUser) {
+          const withdrawalRateLimit = await checkIPRateLimit(
+            supabaseAdmin,
+            clientIP,
+            'faucetpay_withdrawal',
+            IP_WITHDRAWAL_LIMIT_MAX,
+            IP_WITHDRAWAL_LIMIT_WINDOW_MS
+          );
+
+          if (!withdrawalRateLimit.allowed) {
+            console.warn(`Withdrawal rate limit exceeded for IP ${clientIP}`);
+            return new Response(JSON.stringify({ 
+              status: 429, 
+              message: `Too many withdrawal attempts. Please try again in ${Math.ceil((withdrawalRateLimit.resetAt.getTime() - Date.now()) / 60000)} minutes.`
+            }), {
+              status: 429,
+              headers: { 
+                ...corsHeaders, 
+                'Content-Type': 'application/json',
+                'X-RateLimit-Remaining': '0',
+                'X-RateLimit-Reset': withdrawalRateLimit.resetAt.toISOString()
+              },
+            });
+          }
         }
 
         // CRITICAL: Validate inputs
@@ -368,19 +381,8 @@ serve(async (req) => {
           });
         }
 
-        // Check if user is admin (skip daily limit for admins)
-        const { data: adminRole } = await supabaseAdmin
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', userId)
-          .eq('role', 'admin')
-          .maybeSingle();
-
-        const isAdmin = !!adminRole;
-        console.log(`User ${userId} is admin: ${isAdmin}`);
-
         // RATE LIMITING: Check daily withdrawal limit (skip for admins)
-        if (!isAdmin) {
+        if (!isAdminUser) {
           const today = new Date();
           today.setHours(0, 0, 0, 0);
           const todayISO = today.toISOString();
