@@ -10,7 +10,7 @@ import { formatDoge } from "@/data/dogeData";
 
 const DAILY_LIMIT = 5.0000;
 const MIN_DEPOSIT_FOR_WITHDRAWAL = 5;
-const MIN_WITHDRAWAL = 2;
+const MIN_WITHDRAWAL = 0.5;
 const FAUCETPAY_DEPOSIT_EMAIL = "rpgdoge30@gmail.com";
 
 // New Year Promo 2025/2026
