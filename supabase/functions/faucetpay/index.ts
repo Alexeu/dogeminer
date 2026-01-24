@@ -368,43 +368,56 @@ serve(async (req) => {
           });
         }
 
-        // RATE LIMITING: Check daily withdrawal limit
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const todayISO = today.toISOString();
-
-        const { data: dailyWithdrawals, error: withdrawalError } = await supabaseAdmin
-          .from('transactions')
-          .select('amount')
+        // Check if user is admin (skip daily limit for admins)
+        const { data: adminRole } = await supabaseAdmin
+          .from('user_roles')
+          .select('role')
           .eq('user_id', userId)
-          .eq('type', 'withdrawal')
-          .in('status', ['pending', 'completed'])
-          .gte('created_at', todayISO);
+          .eq('role', 'admin')
+          .maybeSingle();
 
-        if (withdrawalError) {
-          console.error('Failed to check daily withdrawals:', withdrawalError.message);
-          return new Response(JSON.stringify({ 
-            status: 500, 
-            message: 'Failed to verify withdrawal limits' 
-          }), {
-            status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
+        const isAdmin = !!adminRole;
+        console.log(`User ${userId} is admin: ${isAdmin}`);
 
-        const todayTotal = dailyWithdrawals?.reduce((sum, tx) => sum + Number(tx.amount), 0) || 0;
-        const remainingLimit = DAILY_WITHDRAWAL_LIMIT - todayTotal;
-        
-        console.log(`User ${userId} daily withdrawals: ${todayTotal}, remaining: ${remainingLimit}, requested: ${amount}`);
+        // RATE LIMITING: Check daily withdrawal limit (skip for admins)
+        if (!isAdmin) {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const todayISO = today.toISOString();
 
-        if (todayTotal + amount > DAILY_WITHDRAWAL_LIMIT) {
-          return new Response(JSON.stringify({ 
-            status: 429, 
-            message: `Daily withdrawal limit exceeded. You can withdraw up to ${remainingLimit} DOGE today. Limit resets at midnight UTC.` 
-          }), {
-            status: 429,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+          const { data: dailyWithdrawals, error: withdrawalError } = await supabaseAdmin
+            .from('transactions')
+            .select('amount')
+            .eq('user_id', userId)
+            .eq('type', 'withdrawal')
+            .in('status', ['pending', 'completed'])
+            .gte('created_at', todayISO);
+
+          if (withdrawalError) {
+            console.error('Failed to check daily withdrawals:', withdrawalError.message);
+            return new Response(JSON.stringify({ 
+              status: 500, 
+              message: 'Failed to verify withdrawal limits' 
+            }), {
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+
+          const todayTotal = dailyWithdrawals?.reduce((sum, tx) => sum + Number(tx.amount), 0) || 0;
+          const remainingLimit = DAILY_WITHDRAWAL_LIMIT - todayTotal;
+          
+          console.log(`User ${userId} daily withdrawals: ${todayTotal}, remaining: ${remainingLimit}, requested: ${amount}`);
+
+          if (todayTotal + amount > DAILY_WITHDRAWAL_LIMIT) {
+            return new Response(JSON.stringify({ 
+              status: 429, 
+              message: `Daily withdrawal limit exceeded. You can withdraw up to ${remainingLimit} DOGE today. Limit resets at midnight UTC.` 
+            }), {
+              status: 429,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
         }
 
         // Create pending transaction record BEFORE sending
