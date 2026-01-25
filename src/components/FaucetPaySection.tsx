@@ -495,6 +495,38 @@ const FaucetPaySection = () => {
         <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-6">
           {/* Withdraw Section */}
           <div className="glass rounded-2xl p-6 space-y-4">
+            {/* FaucetPay Requirements Alert */}
+            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-amber-500 text-sm">Requisitos de FaucetPay</h4>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-3 h-3 text-emerald-500" />
+                      Tu cuenta de FaucetPay debe estar <span className="font-medium text-foreground">verificada</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-3 h-3 text-emerald-500" />
+                      Debes pasar las <span className="font-medium text-foreground">verificaciones anti-fraude</span> de FaucetPay
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-3 h-3 text-emerald-500" />
+                      Tu cuenta <span className="font-medium text-foreground">no debe estar suspendida</span>
+                    </li>
+                  </ul>
+                  <a 
+                    href="https://faucetpay.io/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1"
+                  >
+                    Verificar en FaucetPay.io <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+            </div>
+
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center">
                 <ArrowUpFromLine className="w-6 h-6 text-primary-foreground" />
