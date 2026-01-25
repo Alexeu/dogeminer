@@ -560,6 +560,8 @@ serve(async (req) => {
             userMessage = 'La dirección de FaucetPay no fue encontrada. Asegúrate de que tu email esté registrado en FaucetPay.';
           } else if (fpData.status === 455 || (fpData.message && fpData.message.includes('suspended'))) {
             userMessage = 'Tu cuenta de FaucetPay está suspendida. Contacta al soporte de FaucetPay.';
+          } else if (fpData.status === 457 || (fpData.message && fpData.message.includes('anti-fraud'))) {
+            userMessage = 'Tu cuenta de FaucetPay no pasó las verificaciones anti-fraude. Por favor, contacta al soporte de FaucetPay para resolver este problema.';
           }
 
           return new Response(JSON.stringify({ 
