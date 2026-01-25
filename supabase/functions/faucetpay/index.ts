@@ -13,7 +13,7 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 // Rate limiting constants
 const DAILY_WITHDRAWAL_LIMIT = 5; // Max 5 DOGE per day
-const MIN_WITHDRAWAL_AMOUNT = 0.5; // Min 0.5 DOGE per withdrawal
+const MIN_WITHDRAWAL_AMOUNT = 0.01; // Min 0.01 DOGE per withdrawal
 const IP_RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute window
 const IP_RATE_LIMIT_MAX_REQUESTS = 10; // Max 10 requests per minute per IP
 const IP_WITHDRAWAL_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour window
