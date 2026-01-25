@@ -551,9 +551,20 @@ serve(async (req) => {
             })
             .eq('id', transaction.id);
 
+          // Handle specific FaucetPay error codes with user-friendly messages
+          let userMessage = fpData.message || 'FaucetPay withdrawal failed';
+          
+          if (fpData.status === 456 || (fpData.message && fpData.message.includes('not verified'))) {
+            userMessage = 'Tu cuenta de FaucetPay no está verificada. Por favor, verifica tu cuenta en FaucetPay.io antes de retirar.';
+          } else if (fpData.status === 450 || (fpData.message && fpData.message.includes('not found'))) {
+            userMessage = 'La dirección de FaucetPay no fue encontrada. Asegúrate de que tu email esté registrado en FaucetPay.';
+          } else if (fpData.status === 455 || (fpData.message && fpData.message.includes('suspended'))) {
+            userMessage = 'Tu cuenta de FaucetPay está suspendida. Contacta al soporte de FaucetPay.';
+          }
+
           return new Response(JSON.stringify({ 
             status: fpData.status || 400, 
-            message: fpData.message || 'FaucetPay withdrawal failed' 
+            message: userMessage
           }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
