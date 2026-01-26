@@ -159,35 +159,36 @@ const ReferralSection = () => {
             </div>
 
             {/* Pending Referral Earnings */}
-            {referralEarnings > 0 && (
-              <div className="bg-gradient-to-r from-emerald-500/10 to-primary/10 rounded-xl p-4 border border-emerald-500/30">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                      <Coins className="w-5 h-5 text-emerald-500" />
-                    </div>
-                    <div>
-                      <div className="text-lg font-bold text-emerald-500">{formatNumber(referralEarnings)} DOGE</div>
-                      <div className="text-xs text-muted-foreground">Ganancias de referidos pendientes</div>
-                    </div>
+            <div className={`rounded-xl p-4 border ${referralEarnings > 0 ? 'bg-gradient-to-r from-emerald-500/10 to-primary/10 border-emerald-500/30' : 'bg-background/50 border-border'}`}>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${referralEarnings > 0 ? 'bg-emerald-500/20' : 'bg-muted'}`}>
+                    <Coins className={`w-5 h-5 ${referralEarnings > 0 ? 'text-emerald-500' : 'text-muted-foreground'}`} />
                   </div>
-                  <Button
-                    onClick={handleClaimEarnings}
-                    disabled={isClaiming}
-                    className="bg-emerald-500 hover:bg-emerald-600 text-white shrink-0"
-                  >
-                    {isClaiming ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <>
-                        <Gift className="w-4 h-4 mr-1" />
-                        Recoger
-                      </>
-                    )}
-                  </Button>
+                  <div>
+                    <div className={`text-lg font-bold ${referralEarnings > 0 ? 'text-emerald-500' : 'text-muted-foreground'}`}>
+                      {formatNumber(referralEarnings)} DOGE
+                    </div>
+                    <div className="text-xs text-muted-foreground">Ganancias de referidos pendientes</div>
+                  </div>
                 </div>
+                <Button
+                  onClick={handleClaimEarnings}
+                  disabled={isClaiming || referralEarnings <= 0}
+                  className={referralEarnings > 0 ? "bg-emerald-500 hover:bg-emerald-600 text-white shrink-0" : "shrink-0"}
+                  variant={referralEarnings > 0 ? "default" : "outline"}
+                >
+                  {isClaiming ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Gift className="w-4 h-4 mr-1" />
+                      Recoger
+                    </>
+                  )}
+                </Button>
               </div>
-            )}
+            </div>
 
             {/* Social Share Buttons */}
             {referralLink && (
