@@ -2,19 +2,21 @@ import { useState, useEffect } from "react";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
-import { Copy, Users, Gift, Check, Link, Share2 } from "lucide-react";
+import { Copy, Users, Gift, Check, Link, Share2, Coins, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import SocialShareButtons from "./SocialShareButtons";
+
 const ReferralSection = () => {
-  const { referralCode, totalEarned, applyReferralCode } = useDogeBalance();
+  const { referralCode, totalEarned, referralEarnings, applyReferralCode, claimReferralEarnings } = useDogeBalance();
   const { user } = useAuth();
   const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
   const [hasAppliedCode, setHasAppliedCode] = useState(false);
   const [referralCount, setReferralCount] = useState(0);
   const [appliedReferrer, setAppliedReferrer] = useState<string | null>(null);
+  const [isClaiming, setIsClaiming] = useState(false);
 
   // Generate referral link
   const referralLink = referralCode 
@@ -87,6 +89,15 @@ const ReferralSection = () => {
 
   const formatNumber = (num: number) => num.toFixed(4);
 
+  const handleClaimEarnings = async () => {
+    setIsClaiming(true);
+    try {
+      await claimReferralEarnings();
+    } finally {
+      setIsClaiming(false);
+    }
+  };
+
   return (
     <section className="py-20 relative overflow-hidden">
       {/* Background decorations */}
@@ -146,6 +157,37 @@ const ReferralSection = () => {
                 <div className="text-sm text-muted-foreground">{t('referral.totalDoge')}</div>
               </div>
             </div>
+
+            {/* Pending Referral Earnings */}
+            {referralEarnings > 0 && (
+              <div className="bg-gradient-to-r from-emerald-500/10 to-primary/10 rounded-xl p-4 border border-emerald-500/30">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                      <Coins className="w-5 h-5 text-emerald-500" />
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-emerald-500">{formatNumber(referralEarnings)} DOGE</div>
+                      <div className="text-xs text-muted-foreground">Ganancias de referidos pendientes</div>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={handleClaimEarnings}
+                    disabled={isClaiming}
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white shrink-0"
+                  >
+                    {isClaiming ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Gift className="w-4 h-4 mr-1" />
+                        Recoger
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* Social Share Buttons */}
             {referralLink && (

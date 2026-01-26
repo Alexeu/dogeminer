@@ -467,6 +467,7 @@ export type Database = {
           is_banned: boolean | null
           mining_balance: number | null
           referral_code: string | null
+          referral_earnings: number | null
           referred_by: string | null
           starter_gift_received_at: string | null
           total_deposited: number | null
@@ -488,6 +489,7 @@ export type Database = {
           is_banned?: boolean | null
           mining_balance?: number | null
           referral_code?: string | null
+          referral_earnings?: number | null
           referred_by?: string | null
           starter_gift_received_at?: string | null
           total_deposited?: number | null
@@ -509,6 +511,7 @@ export type Database = {
           is_banned?: boolean | null
           mining_balance?: number | null
           referral_code?: string | null
+          referral_earnings?: number | null
           referred_by?: string | null
           starter_gift_received_at?: string | null
           total_deposited?: number | null
@@ -1115,6 +1118,7 @@ export type Database = {
       claim_mining_reward:
         | { Args: { p_amount: number; p_character_id: string }; Returns: Json }
         | { Args: { p_investment_id: string }; Returns: Json }
+      claim_referral_earnings: { Args: never; Returns: Json }
       claim_stake: { Args: { p_stake_id: string }; Returns: Json }
       claim_starter_gift: {
         Args: {
