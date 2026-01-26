@@ -11,10 +11,12 @@ interface DogeBalanceContextType {
   referralCode: string;
   totalEarned: number;
   totalDeposited: number;
+  referralEarnings: number;
   isLoading: boolean;
   subtractBalance: (amount: number) => Promise<boolean>;
   claimMiningReward: (amount: number, characterId: string) => Promise<boolean>;
   applyReferralCode: (code: string) => Promise<boolean>;
+  claimReferralEarnings: () => Promise<boolean>;
   refreshBalance: () => Promise<void>;
   canWithdraw: boolean;
 }
@@ -30,6 +32,7 @@ export function DogeBalanceProvider({ children }: { children: ReactNode }) {
   const [referralCode, setReferralCode] = useState("");
   const [totalEarned, setTotalEarned] = useState(0);
   const [totalDeposited, setTotalDeposited] = useState(0);
+  const [referralEarnings, setReferralEarnings] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
@@ -47,6 +50,7 @@ export function DogeBalanceProvider({ children }: { children: ReactNode }) {
       setReferralCode("");
       setTotalEarned(0);
       setTotalDeposited(0);
+      setReferralEarnings(0);
       setIsLoading(false);
       return;
     }
@@ -68,6 +72,7 @@ export function DogeBalanceProvider({ children }: { children: ReactNode }) {
           referral_code?: string; 
           total_earned?: number;
           total_deposited?: number;
+          referral_earnings?: number;
         };
         if (result.success) {
           setBalance(result.balance || 0);
@@ -76,6 +81,7 @@ export function DogeBalanceProvider({ children }: { children: ReactNode }) {
           setReferralCode(result.referral_code || "");
           setTotalEarned(result.total_earned || 0);
           setTotalDeposited(result.total_deposited || 0);
+          setReferralEarnings(result.referral_earnings || 0);
         }
       }
     } catch (error) {
@@ -111,6 +117,7 @@ export function DogeBalanceProvider({ children }: { children: ReactNode }) {
               referral_code?: string; 
               total_earned?: number;
               total_deposited?: number;
+              referral_earnings?: number;
             };
             setMiningBalance(newData.mining_balance || 0);
             setDepositBalance(newData.deposit_balance || 0);
@@ -118,6 +125,7 @@ export function DogeBalanceProvider({ children }: { children: ReactNode }) {
             setReferralCode(newData.referral_code || "");
             setTotalEarned(newData.total_earned || 0);
             setTotalDeposited(newData.total_deposited || 0);
+            setReferralEarnings(newData.referral_earnings || 0);
           }
         }
       )
@@ -228,6 +236,40 @@ export function DogeBalanceProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const claimReferralEarnings = async (): Promise<boolean> => {
+    if (!user) {
+      toast.error("Debes iniciar sesión");
+      return false;
+    }
+
+    try {
+      const { data, error } = await supabase.rpc('claim_referral_earnings');
+      
+      if (error) {
+        console.error('Error claiming referral earnings:', error);
+        toast.error("Error al reclamar ganancias de referidos");
+        return false;
+      }
+
+      if (data && typeof data === 'object' && 'success' in data) {
+        const result = data as { success: boolean; claimed_amount?: number; new_deposit_balance?: number; error?: string };
+        if (result.success) {
+          setDepositBalance(result.new_deposit_balance || 0);
+          setReferralEarnings(0);
+          setBalance(miningBalance + (result.new_deposit_balance || 0));
+          toast.success(`¡Reclamaste ${result.claimed_amount?.toFixed(4)} DOGE de referidos!`);
+          return true;
+        } else if (result.error) {
+          toast.error(result.error);
+        }
+      }
+      return false;
+    } catch (error) {
+      console.error('Error claiming referral earnings:', error);
+      return false;
+    }
+  };
+
   return (
     <DogeBalanceContext.Provider
       value={{
@@ -238,10 +280,12 @@ export function DogeBalanceProvider({ children }: { children: ReactNode }) {
         referralCode,
         totalEarned,
         totalDeposited,
+        referralEarnings,
         isLoading,
         subtractBalance,
         claimMiningReward,
         applyReferralCode,
+        claimReferralEarnings,
         refreshBalance,
         canWithdraw,
       }}
