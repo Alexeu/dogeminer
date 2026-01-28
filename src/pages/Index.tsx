@@ -27,6 +27,7 @@ import SupportSection from "@/components/SupportSection";
 import StakingSection from "@/components/StakingSection";
 import DogeBirdsSection from "@/components/DogeBirdsSection";
 import ManualReviewAlert from "@/components/ManualReviewAlert";
+import FaucetPayListingAlert from "@/components/FaucetPayListingAlert";
 import SurveySection from "@/components/SurveySection";
 
 import RPGDogeTokenCounter from "@/components/RPGDogeTokenCounter";
@@ -109,7 +110,8 @@ const Index = () => {
         ref={mainContentRef}
         className="pt-16 lg:pl-64 transition-all duration-300"
       >
-        {/* Manual Review Alert */}
+        {/* Alerts */}
+        <FaucetPayListingAlert />
         <ManualReviewAlert />
         
         {/* RPGDOGE Banner */}
