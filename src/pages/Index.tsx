@@ -29,11 +29,11 @@ import DogeBirdsSection from "@/components/DogeBirdsSection";
 import ManualReviewAlert from "@/components/ManualReviewAlert";
 import FaucetPayListingAlert from "@/components/FaucetPayListingAlert";
 import SurveySection from "@/components/SurveySection";
+import RouletteSection from "@/components/RouletteSection";
 
 import RPGDogeTokenCounter from "@/components/RPGDogeTokenCounter";
 import rpgDogeBanner from "@/assets/rpgdoge-banner-2.png";
 import { Loader2 } from "lucide-react";
-import { Link } from "react-router-dom";
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -54,7 +54,7 @@ const Index = () => {
   useEffect(() => {
     const handleScroll = () => {
       const sections = [
-        "hero", "mystery-boxes", "inventory", "collection", "doge-birds",
+        "hero", "mystery-boxes", "roulette", "inventory", "collection", "doge-birds",
         "web-mining", "online-mining", "staking", "lottery", "shortlinks", "ptc", "faucetpay", "referral", "support", "survey"
       ];
       
@@ -150,6 +150,9 @@ const Index = () => {
         <FeaturesSection />
         <div id="mystery-boxes">
           <MysteryBoxSection />
+        </div>
+        <div id="roulette">
+          <RouletteSection />
         </div>
         <div id="inventory">
           <InventorySection />

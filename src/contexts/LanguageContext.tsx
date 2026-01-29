@@ -645,6 +645,128 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     ru: 'Вы уже ответили на этот опрос. Вы можете изменить свой ответ.'
   };
 
+  // Roulette translations
+  translations['roulette.title'] = { 
+    es: 'Ruleta de la Suerte', 
+    en: 'Wheel of Fortune',
+    th: 'วงล้อแห่งโชค',
+    ru: 'Колесо Фортуны'
+  };
+  translations['roulette.subtitle'] = { 
+    es: '¡Gira la ruleta y gana premios increíbles!', 
+    en: 'Spin the wheel and win amazing prizes!',
+    th: 'หมุนวงล้อและชิงรางวัลสุดพิเศษ!',
+    ru: 'Крути колесо и выигрывай призы!'
+  };
+  translations['roulette.spin'] = { 
+    es: '¡Girar!', 
+    en: 'Spin!',
+    th: 'หมุน!',
+    ru: 'Крутить!'
+  };
+  translations['roulette.spinning'] = { 
+    es: 'Girando...', 
+    en: 'Spinning...',
+    th: 'กำลังหมุน...',
+    ru: 'Крутится...'
+  };
+  translations['roulette.balance'] = { 
+    es: 'Tu balance de depósito', 
+    en: 'Your deposit balance',
+    th: 'ยอดเงินฝากของคุณ',
+    ru: 'Ваш баланс депозита'
+  };
+  translations['roulette.insufficientBalance'] = { 
+    es: 'Balance insuficiente. Necesitas 3 DOGE.', 
+    en: 'Insufficient balance. You need 3 DOGE.',
+    th: 'ยอดเงินไม่เพียงพอ คุณต้องการ 3 DOGE',
+    ru: 'Недостаточно средств. Нужно 3 DOGE.'
+  };
+  translations['roulette.error'] = { 
+    es: 'Error al girar la ruleta', 
+    en: 'Error spinning the wheel',
+    th: 'เกิดข้อผิดพลาดในการหมุนวงล้อ',
+    ru: 'Ошибка при вращении колеса'
+  };
+  translations['roulette.wonBox'] = { 
+    es: '¡Ganaste una caja {box}!', 
+    en: 'You won a {box} box!',
+    th: 'คุณชนะกล่อง {box}!',
+    ru: 'Вы выиграли {box} коробку!'
+  };
+  translations['roulette.wonDoge'] = { 
+    es: '¡Ganaste {amount} DOGE!', 
+    en: 'You won {amount} DOGE!',
+    th: 'คุณชนะ {amount} DOGE!',
+    ru: 'Вы выиграли {amount} DOGE!'
+  };
+  translations['roulette.noWin'] = { 
+    es: '¡Mejor suerte la próxima vez!', 
+    en: 'Better luck next time!',
+    th: 'โชคดีครั้งหน้านะ!',
+    ru: 'Удачи в следующий раз!'
+  };
+  translations['roulette.congratulations'] = { 
+    es: '¡Felicidades', 
+    en: 'Congratulations',
+    th: 'ยินดีด้วย',
+    ru: 'Поздравляем'
+  };
+  translations['roulette.youWon'] = { 
+    es: 'Ganaste', 
+    en: 'You won',
+    th: 'คุณชนะ',
+    ru: 'Вы выиграли'
+  };
+  translations['roulette.tryAgain'] = { 
+    es: '¡Intenta de nuevo!', 
+    en: 'Try again!',
+    th: 'ลองอีกครั้ง!',
+    ru: 'Попробуйте снова!'
+  };
+  translations['roulette.betterLuck'] = { 
+    es: 'Mejor suerte la próxima vez', 
+    en: 'Better luck next time',
+    th: 'โชคดีครั้งหน้า',
+    ru: 'Удачи в следующий раз'
+  };
+  translations['roulette.close'] = { 
+    es: 'Cerrar', 
+    en: 'Close',
+    th: 'ปิด',
+    ru: 'Закрыть'
+  };
+  translations['roulette.prize.commonBox'] = { 
+    es: 'Caja Común', 
+    en: 'Common Box',
+    th: 'กล่องธรรมดา',
+    ru: 'Обычная коробка'
+  };
+  translations['roulette.prize.rareBox'] = { 
+    es: 'Caja Rara', 
+    en: 'Rare Box',
+    th: 'กล่องหายาก',
+    ru: 'Редкая коробка'
+  };
+  translations['roulette.prize.legendaryBox'] = { 
+    es: 'Caja Legendaria', 
+    en: 'Legendary Box',
+    th: 'กล่องตำนาน',
+    ru: 'Легендарная коробка'
+  };
+  translations['sidebar.roulette'] = { 
+    es: 'Ruleta', 
+    en: 'Roulette',
+    th: 'รูเล็ต',
+    ru: 'Рулетка'
+  };
+  translations['roulette.characterReceived'] = { 
+    es: 'Personaje recibido:', 
+    en: 'Character received:',
+    th: 'ตัวละครที่ได้รับ:',
+    ru: 'Полученный персонаж:'
+  };
+
   useEffect(() => {
     localStorage.setItem('rpg-doge-language', language);
   }, [language]);

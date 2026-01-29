@@ -37,6 +37,7 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { id: "hero", labelKey: "sidebar.home", icon: Home, section: "hero" },
   { id: "mystery-boxes", labelKey: "sidebar.mysteryBoxes", icon: Package, section: "mystery-boxes" },
+  { id: "roulette", labelKey: "sidebar.roulette", icon: Ticket, section: "roulette" },
   { id: "inventory", labelKey: "sidebar.inventory", icon: Pickaxe, section: "inventory" },
   { id: "collection", labelKey: "sidebar.collection", icon: Trophy, section: "collection" },
   { id: "doge-birds", labelKey: "sidebar.dogeBirds", icon: Bird, section: "doge-birds" },

@@ -674,6 +674,30 @@ export type Database = {
           },
         ]
       }
+      roulette_spins: {
+        Row: {
+          created_at: string
+          id: string
+          prize_type: string
+          prize_value: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          prize_type: string
+          prize_value: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          prize_type?: string
+          prize_value?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       shortlink_completions: {
         Row: {
           completed_at: string
@@ -1214,12 +1238,17 @@ export type Database = {
         Args: { p_amount: number; p_user_id: string }
         Returns: boolean
       }
+      internal_open_box_for_roulette: {
+        Args: { p_box_type: string; p_user_id: string }
+        Returns: Json
+      }
       level_up_character: { Args: { p_character_id: string }; Returns: Json }
       open_mystery_box: { Args: { p_box_id: string }; Returns: Json }
       renew_character_mining: {
         Args: { p_character_id: string }
         Returns: Json
       }
+      spin_roulette: { Args: never; Returns: Json }
       start_ad_view: { Args: { p_ad_id: string }; Returns: Json }
       start_mining: { Args: { p_character_id: string }; Returns: Json }
       submit_web_mining_hashes: { Args: { p_hashes: number }; Returns: Json }
