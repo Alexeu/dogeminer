@@ -56,10 +56,10 @@ export const translations: Translations = {
     ru: '⚠️ Депозиты проверяются вручную из-за мошеннических попыток. Если средства не зачислены, пожалуйста, напишите в поддержку. Приносим извинения за неудобства.'
   },
   'header.faucetPayListingAlert': {
-    es: '🎉 ¡Hemos sido listados oficialmente en FaucetPay! Ahora puedes depositar y retirar DOGE directamente desde tu cuenta de FaucetPay.',
-    en: '🎉 We have been officially listed on FaucetPay! You can now deposit and withdraw DOGE directly from your FaucetPay account.',
-    th: '🎉 เราได้รับการลงรายการอย่างเป็นทางการบน FaucetPay! ตอนนี้คุณสามารถฝากและถอน DOGE โดยตรงจากบัญชี FaucetPay ของคุณ',
-    ru: '🎉 Мы официально добавлены на FaucetPay! Теперь вы можете пополнять и выводить DOGE напрямую с вашего аккаунта FaucetPay.'
+    es: '🎉 ¡Hemos sido listados oficialmente en FaucetPay!',
+    en: '🎉 We have been officially listed on FaucetPay!',
+    th: '🎉 เราได้รับการลงรายการอย่างเป็นทางการบน FaucetPay!',
+    ru: '🎉 Мы официально добавлены на FaucetPay!'
   },
   
   // Sidebar
