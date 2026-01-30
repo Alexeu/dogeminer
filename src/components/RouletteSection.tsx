@@ -33,8 +33,9 @@ const prizes: Prize[] = [
   { id: "none", name: "Try Again", type: "none", value: "0", color: "#ef4444", icon: <Sparkles className="w-6 h-6" />, probability: 17.5 },
 ];
 
-// Create wheel segments (repeat prizes to fill the wheel)
-const wheelSegments = [...prizes, ...prizes, ...prizes, ...prizes];
+// Create wheel segments based on probability (each segment represents its actual probability)
+// We use the prizes directly since their probabilities already sum to 100%
+const wheelSegments = prizes;
 
 interface RouletteResult {
   prize_type: string;
@@ -78,7 +79,7 @@ const RouletteSection = () => {
         return;
       }
 
-      // Find the prize index
+      // Find the prize and calculate its position based on probability
       let targetIndex = prizes.findIndex(p => {
         if (response.prize_type === 'box') return p.type === 'box' && p.value === response.prize_value;
         if (response.prize_type === 'doge') return p.type === 'doge' && p.value === response.prize_value;
@@ -87,11 +88,18 @@ const RouletteSection = () => {
 
       if (targetIndex === -1) targetIndex = prizes.length - 1;
 
-      // Calculate rotation (multiple full spins + land on prize)
-      const segmentAngle = 360 / wheelSegments.length;
-      const targetAngle = targetIndex * segmentAngle;
+      // Calculate the angle based on cumulative probabilities
+      let cumulative = 0;
+      for (let i = 0; i < targetIndex; i++) {
+        cumulative += prizes[i].probability;
+      }
+      const targetStartAngle = (cumulative / 100) * 360;
+      const targetEndAngle = ((cumulative + prizes[targetIndex].probability) / 100) * 360;
+      // Land somewhere in the middle of the segment
+      const targetAngle = targetStartAngle + (targetEndAngle - targetStartAngle) * (0.3 + Math.random() * 0.4);
+      
       const fullSpins = 5 + Math.floor(Math.random() * 3); // 5-7 full spins
-      const newRotation = rotation + (fullSpins * 360) + (360 - targetAngle) + (segmentAngle / 2);
+      const newRotation = rotation + (fullSpins * 360) + (360 - targetAngle);
 
       setRotation(newRotation);
       setResult(response);
@@ -155,36 +163,49 @@ const RouletteSection = () => {
                 ref={wheelRef}
                 className="w-full h-full rounded-full border-8 border-yellow-500 shadow-2xl overflow-hidden"
                 style={{
-                  background: `conic-gradient(${wheelSegments.map((prize, i) => {
-                    const startAngle = (i / wheelSegments.length) * 100;
-                    const endAngle = ((i + 1) / wheelSegments.length) * 100;
-                    return `${prize.color} ${startAngle}% ${endAngle}%`;
-                  }).join(', ')})`,
+                  background: (() => {
+                    let cumulative = 0;
+                    const gradientParts = wheelSegments.map((prize) => {
+                      const start = cumulative;
+                      cumulative += prize.probability;
+                      return `${prize.color} ${start}% ${cumulative}%`;
+                    });
+                    return `conic-gradient(${gradientParts.join(', ')})`;
+                  })(),
                 }}
                 animate={{ rotate: rotation }}
                 transition={{ duration: 5, ease: [0.2, 0.8, 0.3, 1] }}
               >
-                {/* Prize labels */}
-                {wheelSegments.map((prize, i) => {
-                  const angle = (i / wheelSegments.length) * 360 + (180 / wheelSegments.length);
-                  return (
-                    <div
-                      key={`${prize.id}-${i}`}
-                      className="absolute top-1/2 left-1/2 w-1/2 h-0.5 origin-left"
-                      style={{ transform: `rotate(${angle}deg)` }}
-                    >
-                      <div className="absolute right-6 -translate-y-1/2 text-white font-bold whitespace-nowrap drop-shadow-lg text-[9px] md:text-[11px]">
-                        {prize.type === 'box' ? (
-                          <span>📦 {prize.value === 'common' ? 'Común' : prize.value === 'rare' ? 'Rara' : 'Legendaria'}</span>
-                        ) : prize.type === 'doge' ? (
-                          <span>🪙 {prize.value} DOGE</span>
-                        ) : (
-                          <span>❌</span>
-                        )}
+                {/* Prize labels - positioned at the center of each segment */}
+                {(() => {
+                  let cumulative = 0;
+                  return wheelSegments.map((prize, i) => {
+                    const startAngle = cumulative;
+                    cumulative += prize.probability;
+                    const midAngle = startAngle + (prize.probability / 2);
+                    // Convert percentage to degrees (0% = 0deg, 100% = 360deg)
+                    const angle = (midAngle / 100) * 360;
+                    // Only show label if segment is big enough (>= 2%)
+                    if (prize.probability < 2) return null;
+                    return (
+                      <div
+                        key={`${prize.id}-${i}`}
+                        className="absolute top-1/2 left-1/2 w-1/2 h-0.5 origin-left"
+                        style={{ transform: `rotate(${angle}deg)` }}
+                      >
+                        <div className="absolute right-6 -translate-y-1/2 text-white font-bold whitespace-nowrap drop-shadow-lg text-[8px] md:text-[10px]">
+                          {prize.type === 'box' ? (
+                            <span>📦 {prize.value === 'common' ? 'Común' : prize.value === 'rare' ? 'Rara' : 'Legend'}</span>
+                          ) : prize.type === 'doge' ? (
+                            <span>🪙 {prize.value}D</span>
+                          ) : (
+                            <span>❌</span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  });
+                })()}
 
                 {/* Center decoration */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 border-4 border-white shadow-lg flex items-center justify-center">
