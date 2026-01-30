@@ -173,13 +173,13 @@ const RouletteSection = () => {
                       className="absolute top-1/2 left-1/2 w-1/2 h-0.5 origin-left"
                       style={{ transform: `rotate(${angle}deg)` }}
                     >
-                      <div className="absolute right-4 -translate-y-1/2 text-white text-xs font-bold whitespace-nowrap drop-shadow-md">
+                      <div className="absolute right-6 -translate-y-1/2 text-white font-bold whitespace-nowrap drop-shadow-lg text-[9px] md:text-[11px]">
                         {prize.type === 'box' ? (
-                          <span className="text-[10px]">{prize.value.charAt(0).toUpperCase()}</span>
+                          <span>📦 {prize.value === 'common' ? 'Común' : prize.value === 'rare' ? 'Rara' : 'Legendaria'}</span>
                         ) : prize.type === 'doge' ? (
-                          <span>{prize.value}D</span>
+                          <span>🪙 {prize.value} DOGE</span>
                         ) : (
-                          <span>X</span>
+                          <span>❌</span>
                         )}
                       </div>
                     </div>
