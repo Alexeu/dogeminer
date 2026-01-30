@@ -33,9 +33,38 @@ const prizes: Prize[] = [
   { id: "none", name: "Try Again", type: "none", value: "0", color: "#ef4444", icon: <Sparkles className="w-6 h-6" />, probability: 17.5 },
 ];
 
-// Create wheel segments based on probability (each segment represents its actual probability)
-// We use the prizes directly since their probabilities already sum to 100%
-const wheelSegments = prizes;
+// Create 50 wheel segments distributed by probability
+// Common Box: 50% = 25 segments, Rare Box: 15% = 7 segments, 3 DOGE: 10% = 5 segments
+// 5 DOGE: 5% = 3 segments, 8 DOGE: 2% = 1 segment, Legendary: 0.5% = 1 segment, None: 17.5% = 8 segments
+const createWheelSegments = (): Prize[] => {
+  const segments: Prize[] = [];
+  const distribution: { prize: Prize; count: number }[] = [
+    { prize: prizes[0], count: 25 }, // Common Box - 50%
+    { prize: prizes[6], count: 8 },  // Try Again - 17.5%
+    { prize: prizes[1], count: 7 },  // Rare Box - 15%
+    { prize: prizes[2], count: 5 },  // 3 DOGE - 10%
+    { prize: prizes[3], count: 3 },  // 5 DOGE - 5%
+    { prize: prizes[4], count: 1 },  // 8 DOGE - 2%
+    { prize: prizes[5], count: 1 },  // Legendary Box - 0.5%
+  ];
+  
+  // Interleave segments for visual variety
+  let segmentIndex = 0;
+  while (segments.length < 50) {
+    for (const { prize, count } of distribution) {
+      const currentCount = segments.filter(s => s.id === prize.id).length;
+      if (currentCount < count) {
+        segments.push({ ...prize, id: `${prize.id}-${segmentIndex}` });
+        segmentIndex++;
+        if (segments.length >= 50) break;
+      }
+    }
+  }
+  
+  return segments;
+};
+
+const wheelSegments = createWheelSegments();
 
 interface RouletteResult {
   prize_type: string;
@@ -79,24 +108,22 @@ const RouletteSection = () => {
         return;
       }
 
-      // Find the prize and calculate its position based on probability
-      let targetIndex = prizes.findIndex(p => {
-        if (response.prize_type === 'box') return p.type === 'box' && p.value === response.prize_value;
-        if (response.prize_type === 'doge') return p.type === 'doge' && p.value === response.prize_value;
-        return p.type === 'none';
-      });
+      // Find matching segments for the prize won
+      const matchingIndices = wheelSegments
+        .map((seg, i) => ({ seg, i }))
+        .filter(({ seg }) => {
+          if (response.prize_type === 'box') return seg.type === 'box' && seg.value === response.prize_value;
+          if (response.prize_type === 'doge') return seg.type === 'doge' && seg.value === response.prize_value;
+          return seg.type === 'none';
+        })
+        .map(({ i }) => i);
 
-      if (targetIndex === -1) targetIndex = prizes.length - 1;
-
-      // Calculate the angle based on cumulative probabilities
-      let cumulative = 0;
-      for (let i = 0; i < targetIndex; i++) {
-        cumulative += prizes[i].probability;
-      }
-      const targetStartAngle = (cumulative / 100) * 360;
-      const targetEndAngle = ((cumulative + prizes[targetIndex].probability) / 100) * 360;
-      // Land somewhere in the middle of the segment
-      const targetAngle = targetStartAngle + (targetEndAngle - targetStartAngle) * (0.3 + Math.random() * 0.4);
+      // Pick a random segment from matching ones
+      const targetIndex = matchingIndices[Math.floor(Math.random() * matchingIndices.length)] || 0;
+      
+      // Calculate angle - each segment is 360/50 = 7.2 degrees
+      const segmentAngle = 360 / wheelSegments.length;
+      const targetAngle = targetIndex * segmentAngle + segmentAngle * (0.3 + Math.random() * 0.4);
       
       const fullSpins = 5 + Math.floor(Math.random() * 3); // 5-7 full spins
       const newRotation = rotation + (fullSpins * 360) + (360 - targetAngle);
@@ -164,11 +191,11 @@ const RouletteSection = () => {
                 className="w-full h-full rounded-full border-8 border-yellow-500 shadow-2xl overflow-hidden"
                 style={{
                   background: (() => {
-                    let cumulative = 0;
-                    const gradientParts = wheelSegments.map((prize) => {
-                      const start = cumulative;
-                      cumulative += prize.probability;
-                      return `${prize.color} ${start}% ${cumulative}%`;
+                    const segmentAngle = 100 / wheelSegments.length; // Each segment is equal size
+                    const gradientParts = wheelSegments.map((prize, i) => {
+                      const start = i * segmentAngle;
+                      const end = (i + 1) * segmentAngle;
+                      return `${prize.color} ${start}% ${end}%`;
                     });
                     return `conic-gradient(${gradientParts.join(', ')})`;
                   })(),
@@ -176,36 +203,30 @@ const RouletteSection = () => {
                 animate={{ rotate: rotation }}
                 transition={{ duration: 5, ease: [0.2, 0.8, 0.3, 1] }}
               >
-                {/* Prize labels - positioned at the center of each segment */}
-                {(() => {
-                  let cumulative = 0;
-                  return wheelSegments.map((prize, i) => {
-                    const startAngle = cumulative;
-                    cumulative += prize.probability;
-                    const midAngle = startAngle + (prize.probability / 2);
-                    // Convert percentage to degrees (0% = 0deg, 100% = 360deg)
-                    const angle = (midAngle / 100) * 360;
-                    // Only show label if segment is big enough (>= 2%)
-                    if (prize.probability < 2) return null;
-                    return (
-                      <div
-                        key={`${prize.id}-${i}`}
-                        className="absolute top-1/2 left-1/2 w-1/2 h-0.5 origin-left"
-                        style={{ transform: `rotate(${angle}deg)` }}
-                      >
-                        <div className="absolute right-6 -translate-y-1/2 text-white font-bold whitespace-nowrap drop-shadow-lg text-[8px] md:text-[10px]">
-                          {prize.type === 'box' ? (
-                            <span>📦 {prize.value === 'common' ? 'Común' : prize.value === 'rare' ? 'Rara' : 'Legend'}</span>
-                          ) : prize.type === 'doge' ? (
-                            <span>🪙 {prize.value}D</span>
-                          ) : (
-                            <span>❌</span>
-                          )}
-                        </div>
+                {/* Prize labels - show every few segments to avoid overcrowding */}
+                {wheelSegments.map((prize, i) => {
+                  // Only show label every 5 segments to avoid clutter
+                  if (i % 5 !== 0) return null;
+                  const segmentAngle = 360 / wheelSegments.length;
+                  const angle = i * segmentAngle + segmentAngle / 2;
+                  return (
+                    <div
+                      key={`label-${i}`}
+                      className="absolute top-1/2 left-1/2 w-1/2 h-0.5 origin-left"
+                      style={{ transform: `rotate(${angle}deg)` }}
+                    >
+                      <div className="absolute right-4 -translate-y-1/2 text-white font-bold whitespace-nowrap drop-shadow-lg text-[7px] md:text-[9px]">
+                        {prize.type === 'box' ? (
+                          <span>{prize.value === 'common' ? '📦' : prize.value === 'rare' ? '💎' : '👑'}</span>
+                        ) : prize.type === 'doge' ? (
+                          <span>🪙</span>
+                        ) : (
+                          <span>❌</span>
+                        )}
                       </div>
-                    );
-                  });
-                })()}
+                    </div>
+                  );
+                })}
 
                 {/* Center decoration */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 border-4 border-white shadow-lg flex items-center justify-center">
