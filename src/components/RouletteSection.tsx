@@ -24,13 +24,13 @@ interface Prize {
 }
 
 const prizes: Prize[] = [
-  { id: "common", name: "Common Box", type: "box", value: "common", color: "#6b7280", icon: <Gift className="w-6 h-6" />, probability: 30 },
-  { id: "rare", name: "Rare Box", type: "box", value: "rare", color: "#3b82f6", icon: <Gift className="w-6 h-6" />, probability: 10 },
-  { id: "doge1", name: "1 DOGE", type: "doge", value: "1", color: "#eab308", icon: <Coins className="w-6 h-6" />, probability: 30 },
-  { id: "legendary", name: "Legendary Box", type: "box", value: "legendary", color: "#a855f7", icon: <Trophy className="w-6 h-6" />, probability: 1 },
-  { id: "doge2", name: "2 DOGE", type: "doge", value: "2", color: "#f59e0b", icon: <Coins className="w-6 h-6" />, probability: 15 },
+  { id: "common", name: "Common Box", type: "box", value: "common", color: "#6b7280", icon: <Gift className="w-6 h-6" />, probability: 50 },
+  { id: "rare", name: "Rare Box", type: "box", value: "rare", color: "#3b82f6", icon: <Gift className="w-6 h-6" />, probability: 15 },
   { id: "doge3", name: "3 DOGE", type: "doge", value: "3", color: "#22c55e", icon: <Coins className="w-6 h-6" />, probability: 10 },
-  { id: "none", name: "Try Again", type: "none", value: "0", color: "#ef4444", icon: <Sparkles className="w-6 h-6" />, probability: 4 },
+  { id: "doge5", name: "5 DOGE", type: "doge", value: "5", color: "#f59e0b", icon: <Coins className="w-6 h-6" />, probability: 5 },
+  { id: "doge8", name: "8 DOGE", type: "doge", value: "8", color: "#eab308", icon: <Coins className="w-6 h-6" />, probability: 2 },
+  { id: "legendary", name: "Legendary Box", type: "box", value: "legendary", color: "#a855f7", icon: <Trophy className="w-6 h-6" />, probability: 0.5 },
+  { id: "none", name: "Try Again", type: "none", value: "0", color: "#ef4444", icon: <Sparkles className="w-6 h-6" />, probability: 17.5 },
 ];
 
 // Create wheel segments (repeat prizes to fill the wheel)
@@ -199,7 +199,7 @@ const RouletteSection = () => {
             </div>
 
             {/* Prize Legend */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-2xl">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 w-full max-w-2xl">
               {prizes.filter(p => p.type !== 'none').map((prize) => (
                 <div
                   key={prize.id}
@@ -207,10 +207,7 @@ const RouletteSection = () => {
                   style={{ borderLeft: `4px solid ${prize.color}` }}
                 >
                   {prize.icon}
-                  <div>
-                    <div className="font-medium">{prize.type === 'box' ? t(`roulette.prize.${prize.value}Box`) : `${prize.value} DOGE`}</div>
-                    <div className="text-xs text-muted-foreground">{prize.probability}%</div>
-                  </div>
+                  <div className="font-medium">{prize.type === 'box' ? t(`roulette.prize.${prize.value}Box`) : `${prize.value} DOGE`}</div>
                 </div>
               ))}
             </div>
