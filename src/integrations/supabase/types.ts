@@ -1238,10 +1238,9 @@ export type Database = {
         Args: { p_amount: number; p_user_id: string }
         Returns: boolean
       }
-      internal_open_box_for_roulette: {
-        Args: { p_box_type: string; p_user_id: string }
-        Returns: Json
-      }
+      internal_open_box_for_roulette:
+        | { Args: { p_box_type: string; p_user_id: string }; Returns: Json }
+        | { Args: { p_box_type: string; p_user_id: string }; Returns: Json }
       level_up_character: { Args: { p_character_id: string }; Returns: Json }
       open_mystery_box: { Args: { p_box_id: string }; Returns: Json }
       renew_character_mining: {
