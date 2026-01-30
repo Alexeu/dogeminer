@@ -171,7 +171,9 @@ const InventorySection = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {inventory.map((item) => {
-            const config = rarityConfig[item.character.rarity];
+            // Normalize rarity to lowercase and handle unknown rarities
+            const normalizedRarity = item.character.rarity?.toLowerCase() as keyof typeof rarityConfig;
+            const config = rarityConfig[normalizedRarity] || rarityConfig.common;
             const progress = getMiningProgress(item);
             const timeRemaining = getTimeRemaining(item);
             const isMining = item.miningStartTime !== null;
