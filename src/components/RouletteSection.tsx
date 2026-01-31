@@ -305,12 +305,9 @@ const RouletteSection = () => {
                   style={{ borderLeft: `4px solid ${prize.color}` }}
                 >
                   <span className="text-lg">{prize.icon}</span>
-                  <div>
-                    <div className="font-medium">
-                      {prize.type === 'box' ? prize.nameEs : prize.type === 'doge' ? `${prize.value} DOGE` : prize.nameEs}
-                    </div>
-                    <div className="text-[10px] text-muted-foreground">{prize.probability}%</div>
-                  </div>
+                  <span className="font-medium">
+                    {prize.type === 'box' ? prize.nameEs : prize.type === 'doge' ? `${prize.value} DOGE` : prize.nameEs}
+                  </span>
                 </div>
               ))}
             </div>
