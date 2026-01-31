@@ -32,40 +32,35 @@ const prizes: Prize[] = [
 ];
 
 // Create wheel segments based on probability (each segment = 2%)
+// 50 segments total: Common(25), None(9), Rare(7), 3DOGE(5), 5DOGE(2), 8DOGE(1), Legendary(1) = 50
 const createWheelSegments = (): Prize[] => {
   const segments: Prize[] = [];
-  const segmentCounts: { [key: string]: number } = {
-    common: 25,     // 50%
-    none: 9,        // 18% (rounded from 17.5%)
-    rare: 8,        // 16% (rounded from 15%)
-    doge3: 5,       // 10%
-    doge5: 2,       // 4% (rounded from 5%)
-    doge8: 1,       // 2%
-    legendary: 0,   // Will add 1 at the end for 0.5%
-  };
   
-  // Interleave segments for visual variety
-  const prizeOrder = ['common', 'none', 'rare', 'common', 'doge3', 'common', 'none', 'rare', 'doge5', 'common', 'doge8'];
-  let counts = { ...segmentCounts };
+  // Distribute segments evenly around the wheel for visual variety
+  const distribution = [
+    'common', 'none', 'rare', 'common', 'doge3',     // 0-4
+    'common', 'none', 'common', 'rare', 'common',     // 5-9
+    'doge3', 'common', 'none', 'rare', 'common',      // 10-14
+    'doge5', 'common', 'none', 'common', 'rare',      // 15-19
+    'common', 'doge3', 'common', 'none', 'legendary', // 20-24 (legendary at 24)
+    'common', 'rare', 'common', 'none', 'doge3',      // 25-29
+    'common', 'none', 'common', 'rare', 'common',     // 30-34
+    'doge8', 'common', 'none', 'rare', 'common',      // 35-39 (doge8 at 35)
+    'doge3', 'common', 'none', 'common', 'doge5',     // 40-44
+    'common', 'none', 'common', 'rare', 'common',     // 45-49
+  ];
   
-  for (let i = 0; segments.length < 49; i++) {
-    const prizeId = prizeOrder[i % prizeOrder.length];
-    if (counts[prizeId] > 0) {
-      const prize = prizes.find(p => p.id === prizeId)!;
-      segments.push({ ...prize, id: `${prize.id}-${segments.length}` });
-      counts[prizeId]--;
-    }
+  for (let i = 0; i < 50; i++) {
+    const prizeId = distribution[i];
+    const prize = prizes.find(p => p.id === prizeId)!;
+    segments.push({ ...prize, id: `${prize.id}-${i}` });
   }
-  
-  // Add legendary as the 50th segment
-  const legendary = prizes.find(p => p.id === 'legendary')!;
-  segments.push({ ...legendary, id: `legendary-49` });
   
   return segments;
 };
 
 const wheelSegments = createWheelSegments();
-const SEGMENT_ANGLE = 360 / wheelSegments.length; // 7.2 degrees per segment
+const SEGMENT_ANGLE = 360 / 50; // 7.2 degrees per segment
 
 interface RouletteResult {
   prize_type: string;
