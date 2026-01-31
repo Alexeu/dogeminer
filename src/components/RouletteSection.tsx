@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,65 +6,66 @@ import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { useInventory } from "@/contexts/InventoryContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Gift, Coins, Trophy, Sparkles } from "lucide-react";
+import { Loader2, Gift, Coins, Trophy, Sparkles, X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-
-import boxCommon from "@/assets/box-common.png";
-import boxRare from "@/assets/box-rare.png";
-import boxLegendary from "@/assets/box-legendary.png";
 
 interface Prize {
   id: string;
   name: string;
+  nameEs: string;
   type: "box" | "doge" | "none";
   value: string;
   color: string;
-  icon: React.ReactNode;
+  textColor: string;
+  icon: string;
   probability: number;
 }
 
 const prizes: Prize[] = [
-  { id: "common", name: "Common Box", type: "box", value: "common", color: "#6b7280", icon: <Gift className="w-6 h-6" />, probability: 50 },
-  { id: "rare", name: "Rare Box", type: "box", value: "rare", color: "#3b82f6", icon: <Gift className="w-6 h-6" />, probability: 15 },
-  { id: "doge3", name: "3 DOGE", type: "doge", value: "3", color: "#22c55e", icon: <Coins className="w-6 h-6" />, probability: 10 },
-  { id: "doge5", name: "5 DOGE", type: "doge", value: "5", color: "#f59e0b", icon: <Coins className="w-6 h-6" />, probability: 5 },
-  { id: "doge8", name: "8 DOGE", type: "doge", value: "8", color: "#eab308", icon: <Coins className="w-6 h-6" />, probability: 2 },
-  { id: "legendary", name: "Legendary Box", type: "box", value: "legendary", color: "#a855f7", icon: <Trophy className="w-6 h-6" />, probability: 0.5 },
-  { id: "none", name: "Try Again", type: "none", value: "0", color: "#ef4444", icon: <Sparkles className="w-6 h-6" />, probability: 17.5 },
+  { id: "common", name: "Common Box", nameEs: "Común", type: "box", value: "common", color: "#4B5563", textColor: "#fff", icon: "📦", probability: 50 },
+  { id: "rare", name: "Rare Box", nameEs: "Rara", type: "box", value: "rare", color: "#3B82F6", textColor: "#fff", icon: "💎", probability: 15 },
+  { id: "doge3", name: "3 DOGE", nameEs: "3 DOGE", type: "doge", value: "3", color: "#10B981", textColor: "#fff", icon: "🪙", probability: 10 },
+  { id: "doge5", name: "5 DOGE", nameEs: "5 DOGE", type: "doge", value: "5", color: "#F59E0B", textColor: "#000", icon: "🪙", probability: 5 },
+  { id: "doge8", name: "8 DOGE", nameEs: "8 DOGE", type: "doge", value: "8", color: "#FBBF24", textColor: "#000", icon: "💰", probability: 2 },
+  { id: "legendary", name: "Legendary", nameEs: "Legendaria", type: "box", value: "legendary", color: "#A855F7", textColor: "#fff", icon: "👑", probability: 0.5 },
+  { id: "none", name: "Try Again", nameEs: "Sin Premio", type: "none", value: "0", color: "#EF4444", textColor: "#fff", icon: "❌", probability: 17.5 },
 ];
 
-// Create 50 wheel segments distributed by probability
-// Common Box: 50% = 25 segments, Rare Box: 15% = 7 segments, 3 DOGE: 10% = 5 segments
-// 5 DOGE: 5% = 3 segments, 8 DOGE: 2% = 1 segment, Legendary: 0.5% = 1 segment, None: 17.5% = 8 segments
+// Create wheel segments based on probability (each segment = 2%)
 const createWheelSegments = (): Prize[] => {
   const segments: Prize[] = [];
-  const distribution: { prize: Prize; count: number }[] = [
-    { prize: prizes[0], count: 25 }, // Common Box - 50%
-    { prize: prizes[6], count: 8 },  // Try Again - 17.5%
-    { prize: prizes[1], count: 7 },  // Rare Box - 15%
-    { prize: prizes[2], count: 5 },  // 3 DOGE - 10%
-    { prize: prizes[3], count: 3 },  // 5 DOGE - 5%
-    { prize: prizes[4], count: 1 },  // 8 DOGE - 2%
-    { prize: prizes[5], count: 1 },  // Legendary Box - 0.5%
-  ];
+  const segmentCounts: { [key: string]: number } = {
+    common: 25,     // 50%
+    none: 9,        // 18% (rounded from 17.5%)
+    rare: 8,        // 16% (rounded from 15%)
+    doge3: 5,       // 10%
+    doge5: 2,       // 4% (rounded from 5%)
+    doge8: 1,       // 2%
+    legendary: 0,   // Will add 1 at the end for 0.5%
+  };
   
   // Interleave segments for visual variety
-  let segmentIndex = 0;
-  while (segments.length < 50) {
-    for (const { prize, count } of distribution) {
-      const currentCount = segments.filter(s => s.id === prize.id).length;
-      if (currentCount < count) {
-        segments.push({ ...prize, id: `${prize.id}-${segmentIndex}` });
-        segmentIndex++;
-        if (segments.length >= 50) break;
-      }
+  const prizeOrder = ['common', 'none', 'rare', 'common', 'doge3', 'common', 'none', 'rare', 'doge5', 'common', 'doge8'];
+  let counts = { ...segmentCounts };
+  
+  for (let i = 0; segments.length < 49; i++) {
+    const prizeId = prizeOrder[i % prizeOrder.length];
+    if (counts[prizeId] > 0) {
+      const prize = prizes.find(p => p.id === prizeId)!;
+      segments.push({ ...prize, id: `${prize.id}-${segments.length}` });
+      counts[prizeId]--;
     }
   }
+  
+  // Add legendary as the 50th segment
+  const legendary = prizes.find(p => p.id === 'legendary')!;
+  segments.push({ ...legendary, id: `legendary-49` });
   
   return segments;
 };
 
 const wheelSegments = createWheelSegments();
+const SEGMENT_ANGLE = 360 / wheelSegments.length; // 7.2 degrees per segment
 
 interface RouletteResult {
   prize_type: string;
@@ -83,7 +84,6 @@ const RouletteSection = () => {
   const [rotation, setRotation] = useState(0);
   const [result, setResult] = useState<RouletteResult | null>(null);
   const [showResult, setShowResult] = useState(false);
-  const wheelRef = useRef<HTMLDivElement>(null);
 
   const spinRoulette = async () => {
     if (depositBalance < 3) {
@@ -121,24 +121,23 @@ const RouletteSection = () => {
       // Pick a random segment from matching ones
       const targetIndex = matchingIndices[Math.floor(Math.random() * matchingIndices.length)] || 0;
       
-      // Calculate angle - each segment is 360/50 = 7.2 degrees
-      const segmentAngle = 360 / wheelSegments.length;
-      const targetAngle = targetIndex * segmentAngle + segmentAngle * (0.3 + Math.random() * 0.4);
-      
-      const fullSpins = 5 + Math.floor(Math.random() * 3); // 5-7 full spins
-      const newRotation = rotation + (fullSpins * 360) + (360 - targetAngle);
+      // Calculate rotation - pointer is at top (0°), wheel rotates clockwise
+      // Segment 0 starts at top and goes clockwise
+      const segmentCenter = targetIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
+      const fullSpins = 5 + Math.floor(Math.random() * 3);
+      // We want the segment to end up at the top (under the pointer)
+      // So we rotate by (360 - segmentCenter) to bring it to top, plus full spins
+      const newRotation = rotation + (fullSpins * 360) + (360 - segmentCenter);
 
       setRotation(newRotation);
       setResult(response);
 
-      // Show result after spin animation
       setTimeout(() => {
         setIsSpinning(false);
         setShowResult(true);
         refreshBalance();
         refreshInventory();
 
-        // Show appropriate toast
         if (response.prize_type === 'box' && response.character_name) {
           toast.success(`${t('roulette.wonBox').replace('{box}', response.prize_value)} - ${response.character_name} (${response.character_rarity})`);
         } else if (response.prize_type === 'doge') {
@@ -152,15 +151,6 @@ const RouletteSection = () => {
       console.error('Error spinning roulette:', error);
       toast.error(t('roulette.error'));
       setIsSpinning(false);
-    }
-  };
-
-  const getBoxImage = (boxType: string) => {
-    switch (boxType) {
-      case 'common': return boxCommon;
-      case 'rare': return boxRare;
-      case 'legendary': return boxLegendary;
-      default: return boxCommon;
     }
   };
 
@@ -179,77 +169,148 @@ const RouletteSection = () => {
 
           <CardContent className="flex flex-col items-center gap-8">
             {/* Wheel Container */}
-            <div className="relative w-80 h-80 md:w-96 md:h-96">
-              {/* Pointer */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 z-20">
-                <div className="w-0 h-0 border-l-[20px] border-r-[20px] border-t-[30px] border-l-transparent border-r-transparent border-t-yellow-400 drop-shadow-lg" />
+            <div className="relative w-80 h-80 md:w-[420px] md:h-[420px]">
+              {/* Outer glow ring */}
+              <div className="absolute inset-[-8px] rounded-full bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-400 opacity-60 blur-md animate-pulse" />
+              
+              {/* Pointer - Modern arrow design */}
+              <div className="absolute top-[-20px] left-1/2 -translate-x-1/2 z-30">
+                <div className="relative">
+                  <div className="w-0 h-0 border-l-[18px] border-r-[18px] border-t-[35px] border-l-transparent border-r-transparent border-t-yellow-400 drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)]" />
+                  <div className="absolute top-[2px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[12px] border-r-[12px] border-t-[25px] border-l-transparent border-r-transparent border-t-yellow-300" />
+                </div>
               </div>
+
+              {/* Wheel outer border */}
+              <div className="absolute inset-0 rounded-full border-[6px] border-yellow-500 shadow-[0_0_30px_rgba(234,179,8,0.5),inset_0_0_20px_rgba(0,0,0,0.3)]" />
 
               {/* Wheel */}
               <motion.div
-                ref={wheelRef}
-                className="w-full h-full rounded-full border-8 border-yellow-500 shadow-2xl overflow-hidden"
-                style={{
-                  background: (() => {
-                    const segmentAngle = 100 / wheelSegments.length; // Each segment is equal size
-                    const gradientParts = wheelSegments.map((prize, i) => {
-                      const start = i * segmentAngle;
-                      const end = (i + 1) * segmentAngle;
-                      return `${prize.color} ${start}% ${end}%`;
-                    });
-                    return `conic-gradient(${gradientParts.join(', ')})`;
-                  })(),
-                }}
+                className="w-full h-full rounded-full overflow-hidden relative"
                 animate={{ rotate: rotation }}
                 transition={{ duration: 5, ease: [0.2, 0.8, 0.3, 1] }}
               >
-                {/* Prize labels - show every few segments to avoid overcrowding */}
-                {wheelSegments.map((prize, i) => {
-                  // Only show label every 5 segments to avoid clutter
-                  if (i % 5 !== 0) return null;
-                  const segmentAngle = 360 / wheelSegments.length;
-                  const angle = i * segmentAngle + segmentAngle / 2;
-                  return (
-                    <div
-                      key={`label-${i}`}
-                      className="absolute top-1/2 left-1/2 w-1/2 h-0.5 origin-left"
-                      style={{ transform: `rotate(${angle}deg)` }}
-                    >
-                      <div className="absolute right-4 -translate-y-1/2 text-white font-bold whitespace-nowrap drop-shadow-lg text-[7px] md:text-[9px]">
-                        {prize.type === 'box' ? (
-                          <span>{prize.value === 'common' ? '📦' : prize.value === 'rare' ? '💎' : '👑'}</span>
-                        ) : prize.type === 'doge' ? (
-                          <span>🪙</span>
-                        ) : (
-                          <span>❌</span>
+                {/* SVG Wheel with segments */}
+                <svg viewBox="0 0 200 200" className="w-full h-full">
+                  <defs>
+                    {/* Gradients for each prize type */}
+                    <radialGradient id="wheelGlow" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stopColor="rgba(255,255,255,0.1)" />
+                      <stop offset="100%" stopColor="rgba(0,0,0,0.2)" />
+                    </radialGradient>
+                  </defs>
+                  
+                  {wheelSegments.map((prize, index) => {
+                    const startAngle = index * SEGMENT_ANGLE - 90; // -90 to start from top
+                    const endAngle = (index + 1) * SEGMENT_ANGLE - 90;
+                    const midAngle = (startAngle + endAngle) / 2;
+                    
+                    // Calculate path for segment
+                    const startRad = (startAngle * Math.PI) / 180;
+                    const endRad = (endAngle * Math.PI) / 180;
+                    
+                    const x1 = 100 + 95 * Math.cos(startRad);
+                    const y1 = 100 + 95 * Math.sin(startRad);
+                    const x2 = 100 + 95 * Math.cos(endRad);
+                    const y2 = 100 + 95 * Math.sin(endRad);
+                    
+                    const largeArc = SEGMENT_ANGLE > 180 ? 1 : 0;
+                    
+                    const pathD = `M 100 100 L ${x1} ${y1} A 95 95 0 ${largeArc} 1 ${x2} ${y2} Z`;
+                    
+                    // Calculate text position (at 70% radius)
+                    const textRad = (midAngle * Math.PI) / 180;
+                    const textX = 100 + 65 * Math.cos(textRad);
+                    const textY = 100 + 65 * Math.sin(textRad);
+                    
+                    // Only show text every 2 segments to avoid overcrowding
+                    const showText = index % 2 === 0;
+                    
+                    return (
+                      <g key={prize.id}>
+                        {/* Segment */}
+                        <path
+                          d={pathD}
+                          fill={prize.color}
+                          stroke="rgba(255,255,255,0.3)"
+                          strokeWidth="0.5"
+                        />
+                        {/* Segment highlight */}
+                        <path
+                          d={pathD}
+                          fill="url(#wheelGlow)"
+                        />
+                        
+                        {/* Text label */}
+                        {showText && (
+                          <g transform={`translate(${textX}, ${textY}) rotate(${midAngle + 90})`}>
+                            <text
+                              textAnchor="middle"
+                              dominantBaseline="middle"
+                              fill={prize.textColor}
+                              fontSize="5"
+                              fontWeight="bold"
+                              style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                            >
+                              {prize.icon}
+                            </text>
+                            <text
+                              y="6"
+                              textAnchor="middle"
+                              dominantBaseline="middle"
+                              fill={prize.textColor}
+                              fontSize="3.5"
+                              fontWeight="600"
+                              style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                            >
+                              {prize.type === 'doge' ? `${prize.value}D` : prize.nameEs.substring(0, 6)}
+                            </text>
+                          </g>
                         )}
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {/* Center decoration */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 border-4 border-white shadow-lg flex items-center justify-center">
-                  <Coins className="w-8 h-8 text-white" />
-                </div>
+                      </g>
+                    );
+                  })}
+                  
+                  {/* Center circle overlay */}
+                  <circle cx="100" cy="100" r="20" fill="url(#centerGradient)" />
+                  <defs>
+                    <linearGradient id="centerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#FBBF24" />
+                      <stop offset="50%" stopColor="#F59E0B" />
+                      <stop offset="100%" stopColor="#D97706" />
+                    </linearGradient>
+                  </defs>
+                  <circle cx="100" cy="100" r="18" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+                  <circle cx="100" cy="100" r="15" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="0.5" />
+                  
+                  {/* Center icon */}
+                  <text x="100" y="103" textAnchor="middle" fontSize="12" fill="#fff" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+                    🎰
+                  </text>
+                </svg>
               </motion.div>
 
-              {/* Glow effect when spinning */}
+              {/* Spinning glow effect */}
               {isSpinning && (
-                <div className="absolute inset-0 rounded-full animate-pulse bg-yellow-400/20" />
+                <div className="absolute inset-0 rounded-full animate-pulse bg-yellow-400/20 pointer-events-none" />
               )}
             </div>
 
             {/* Prize Legend */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 w-full max-w-2xl">
-              {prizes.filter(p => p.type !== 'none').map((prize) => (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 w-full max-w-2xl">
+              {prizes.map((prize) => (
                 <div
                   key={prize.id}
-                  className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 text-sm"
+                  className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 text-xs md:text-sm"
                   style={{ borderLeft: `4px solid ${prize.color}` }}
                 >
-                  {prize.icon}
-                  <div className="font-medium">{prize.type === 'box' ? t(`roulette.prize.${prize.value}Box`) : `${prize.value} DOGE`}</div>
+                  <span className="text-lg">{prize.icon}</span>
+                  <div>
+                    <div className="font-medium">
+                      {prize.type === 'box' ? prize.nameEs : prize.type === 'doge' ? `${prize.value} DOGE` : prize.nameEs}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground">{prize.probability}%</div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -260,7 +321,7 @@ const RouletteSection = () => {
                 onClick={spinRoulette}
                 disabled={isSpinning || depositBalance < 3}
                 size="lg"
-                className="text-xl px-12 py-6 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold shadow-lg"
+                className="text-xl px-12 py-6 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold shadow-lg hover:shadow-xl transition-all"
               >
                 {isSpinning ? (
                   <>
@@ -324,7 +385,7 @@ const RouletteSection = () => {
                       </>
                     ) : (
                       <>
-                        <Sparkles className="w-24 h-24 mx-auto mb-4 text-muted-foreground" />
+                        <X className="w-24 h-24 mx-auto mb-4 text-muted-foreground" />
                         <h3 className="text-2xl font-bold text-muted-foreground mb-2">
                           {t('roulette.tryAgain')}
                         </h3>
