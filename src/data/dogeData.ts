@@ -179,6 +179,14 @@ export const boxTypes: BoxType[] = [
     gradient: "from-red-500 via-green-500 to-red-500",
     description: "¡Edición limitada! 30% épico, 40% legendario, 30% Christmas",
   },
+  {
+    id: "supreme",
+    name: "👑 Supreme Box",
+    price: 20,
+    dropRates: { starter: 0, common: 0, rare: 20, epic: 50, legendary: 30, christmas: 0 },
+    gradient: "from-purple-600 via-pink-500 to-amber-500",
+    description: "¡La mejor caja! 20% raro, 50% épico, 30% legendario",
+  },
 ];
 
 export function getRandomCharacter(dropRates: Record<Rarity, number>, boxId?: string): DogeCharacter {
