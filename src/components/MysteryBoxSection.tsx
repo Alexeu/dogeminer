@@ -14,6 +14,7 @@ const boxImages: Record<string, string> = {
   rare: boxRare,
   legendary: boxLegendary,
   christmas: boxChristmas,
+  supreme: boxLegendary, // Usa imagen legendaria temporalmente
 };
 
 // Fecha de expiración: 6 de enero 2026 (Día de Reyes)
