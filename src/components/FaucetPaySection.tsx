@@ -13,10 +13,9 @@ const MIN_DEPOSIT_FOR_WITHDRAWAL = 5;
 const MIN_WITHDRAWAL = 2;
 const FAUCETPAY_DEPOSIT_EMAIL = "rpgdoge30@gmail.com";
 
-// New Year Promo 2025/2026
-const PROMO_END_DATE = new Date('2026-01-07T00:00:00Z'); // Ends January 6th at midnight
-const PROMO_MIN_DEPOSIT = 3;
-const PROMO_BONUS_PERCENT = 25;
+// High Deposit Promo - 30% bonus for deposits >= 60 DOGE
+const HIGH_DEPOSIT_MIN = 60;
+const HIGH_DEPOSIT_BONUS_PERCENT = 30;
 
 interface Transaction {
   id: string;
@@ -391,55 +390,51 @@ const FaucetPaySection = () => {
   const dailyPercentage = Math.min((dailyUsed / DAILY_LIMIT) * 100, 100);
   const remainingDaily = Math.max(DAILY_LIMIT - dailyUsed, 0);
   
-  // Promo logic
-  const isPromoActive = new Date() < PROMO_END_DATE;
-  const daysUntilPromoEnds = isPromoActive 
-    ? Math.ceil((PROMO_END_DATE.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
-    : 0;
-
-  const calculateBonus = (amount: number) => {
-    if (isPromoActive && amount >= PROMO_MIN_DEPOSIT) {
-      return amount * (PROMO_BONUS_PERCENT / 100);
+  // High deposit promo logic - always active
+  const calculateBonusAmount = (amount: number) => {
+    if (amount >= HIGH_DEPOSIT_MIN) {
+      return amount * (HIGH_DEPOSIT_BONUS_PERCENT / 100);
     }
     return 0;
   };
+  
+  const currentDepositAmount = parseFloat(fpDepositAmount) || 0;
+  const currentBonus = calculateBonusAmount(currentDepositAmount);
 
   return (
     <section id="faucetpay" className="py-20 bg-gradient-to-b from-background to-secondary/20">
       <div className="container mx-auto px-4">
-        {/* New Year Promo Banner */}
-        {isPromoActive && (
-          <div className="max-w-4xl mx-auto mb-8">
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 via-primary to-amber-500 p-1">
-              <div className="bg-background/95 backdrop-blur-sm rounded-xl p-6">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-primary flex items-center justify-center animate-pulse">
-                      <Gift className="w-8 h-8 text-white" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-amber-500" />
-                        <h3 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-amber-500 to-primary bg-clip-text text-transparent">
-                          ¡Promo Fin de Año!
-                        </h3>
-                        <Sparkles className="w-5 h-5 text-primary" />
-                      </div>
-                      <p className="text-muted-foreground mt-1">
-                        <span className="font-bold text-emerald-500">+{PROMO_BONUS_PERCENT}% BONUS</span> en depósitos mayores a {PROMO_MIN_DEPOSIT} DOGE
-                      </p>
-                    </div>
+        {/* High Deposit Promo Banner - Always visible */}
+        <div className="max-w-4xl mx-auto mb-8">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-500 to-primary p-1">
+            <div className="bg-background/95 backdrop-blur-sm rounded-xl p-6">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-yellow-400 flex items-center justify-center animate-pulse">
+                    <Gift className="w-8 h-8 text-white" />
                   </div>
-                  <div className="text-center md:text-right">
-                    <p className="text-sm text-muted-foreground">Termina en</p>
-                    <p className="text-2xl font-bold text-primary">{daysUntilPromoEnds} días</p>
-                    <p className="text-xs text-muted-foreground">Hasta el 6 de Enero</p>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-amber-500" />
+                      <h3 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">
+                        ¡PROMO DEPÓSITO ALTO!
+                      </h3>
+                      <Sparkles className="w-5 h-5 text-yellow-500" />
+                    </div>
+                    <p className="text-muted-foreground mt-1">
+                      <span className="font-bold text-emerald-500">+{HIGH_DEPOSIT_BONUS_PERCENT}% BONUS</span> en depósitos de {HIGH_DEPOSIT_MIN}+ DOGE
+                    </p>
                   </div>
+                </div>
+                <div className="text-center md:text-right bg-amber-500/10 px-4 py-2 rounded-lg border border-amber-500/30">
+                  <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">Ejemplo:</p>
+                  <p className="text-lg font-bold text-foreground">60 DOGE → <span className="text-emerald-500">78 DOGE</span></p>
+                  <p className="text-xs text-muted-foreground">¡18 DOGE gratis!</p>
                 </div>
               </div>
             </div>
           </div>
-        )}
+        </div>
 
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-4">
@@ -634,17 +629,17 @@ const FaucetPaySection = () => {
                 onChange={(e) => setFpDepositAmount(e.target.value)}
                 className="bg-background/50 mb-3"
               />
-              {/* Promo bonus preview */}
-              {isPromoActive && parseFloat(fpDepositAmount) >= PROMO_MIN_DEPOSIT && (
-                <div className="p-3 rounded-xl bg-gradient-to-r from-emerald-500/10 to-amber-500/10 border border-emerald-500/30 mb-3">
+              {/* High deposit bonus preview */}
+              {currentBonus > 0 && (
+                <div className="p-3 rounded-xl bg-gradient-to-r from-amber-500/10 to-yellow-500/10 border border-amber-500/30 mb-3">
                   <div className="flex items-center gap-2">
-                    <Gift className="w-5 h-5 text-emerald-500" />
+                    <Gift className="w-5 h-5 text-amber-500" />
                     <div>
-                      <p className="text-sm font-medium text-emerald-600">
-                        +{calculateBonus(parseFloat(fpDepositAmount)).toFixed(4)} DOGE de bonus
+                      <p className="text-sm font-medium text-amber-600">
+                        +{currentBonus.toFixed(4)} DOGE de bonus ({HIGH_DEPOSIT_BONUS_PERCENT}%)
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Recibirás {(parseFloat(fpDepositAmount) + calculateBonus(parseFloat(fpDepositAmount))).toFixed(4)} DOGE en total
+                        Recibirás {(currentDepositAmount + currentBonus).toFixed(4)} DOGE en total
                       </p>
                     </div>
                   </div>
@@ -726,21 +721,18 @@ const FaucetPaySection = () => {
               </div>
             </div>
 
-            {/* Promo info in deposit card */}
-            {isPromoActive && (
-              <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-500/20 via-primary/20 to-amber-500/20 border border-emerald-500/40">
-                <div className="flex items-center gap-2 mb-2">
-                  <Gift className="w-5 h-5 text-emerald-500" />
-                  <p className="text-sm font-bold text-emerald-600">🎉 ¡Promoción Activa!</p>
-                </div>
-                <ul className="text-xs space-y-1 text-muted-foreground">
-                  <li>✓ <span className="font-semibold text-emerald-500">+{PROMO_BONUS_PERCENT}%</span> extra en depósitos de {PROMO_MIN_DEPOSIT}+ DOGE</li>
-                  <li>✓ Bonus acreditado automáticamente</li>
-                  <li>✓ Válido hasta el <span className="font-semibold">6 de Enero 2025</span></li>
-                  <li className="text-xs text-amber-600 font-medium">⏰ ¡Quedan {daysUntilPromoEnds} días!</li>
-                </ul>
+            {/* High deposit promo info in deposit card */}
+            <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-primary/20 border border-amber-500/40">
+              <div className="flex items-center gap-2 mb-2">
+                <Gift className="w-5 h-5 text-amber-500" />
+                <p className="text-sm font-bold text-amber-600">🎉 ¡Promoción Activa!</p>
               </div>
-            )}
+              <ul className="text-xs space-y-1 text-muted-foreground">
+                <li>✓ <span className="font-semibold text-amber-500">+{HIGH_DEPOSIT_BONUS_PERCENT}%</span> extra en depósitos de {HIGH_DEPOSIT_MIN}+ DOGE</li>
+                <li>✓ Bonus acreditado automáticamente</li>
+                <li>✓ Promoción permanente - ¡Sin fecha límite!</li>
+              </ul>
+            </div>
 
             <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
               <p className="text-sm font-medium text-amber-600 mb-2">💡 Instrucciones:</p>
@@ -748,9 +740,7 @@ const FaucetPaySection = () => {
                 <li>Mínimo: <span className="font-bold text-primary">0.1 DOGE</span> - Máximo: 1000 DOGE</li>
                 <li>Entra a FaucetPay → Send Payment</li>
                 <li>El depósito se acredita automáticamente en segundos</li>
-                {isPromoActive && (
-                  <li className="text-emerald-600 font-medium">🎁 Deposita 3+ DOGE y recibe +25% extra</li>
-                )}
+                <li className="text-amber-600 font-medium">🎁 Deposita {HIGH_DEPOSIT_MIN}+ DOGE y recibe +{HIGH_DEPOSIT_BONUS_PERCENT}% extra</li>
               </ul>
             </div>
 
