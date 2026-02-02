@@ -30,7 +30,7 @@ import ManualReviewAlert from "@/components/ManualReviewAlert";
 import FaucetPayListingAlert from "@/components/FaucetPayListingAlert";
 import SurveySection from "@/components/SurveySection";
 import RouletteSection from "@/components/RouletteSection";
-
+import DepositPromoBanner from "@/components/DepositPromoBanner";
 import RPGDogeTokenCounter from "@/components/RPGDogeTokenCounter";
 import rpgDogeBanner from "@/assets/rpgdoge-banner-2.png";
 import { Loader2 } from "lucide-react";
@@ -112,6 +112,7 @@ const Index = () => {
       >
         {/* Alerts */}
         <FaucetPayListingAlert />
+        <DepositPromoBanner />
         <ManualReviewAlert />
         
         {/* RPGDOGE Banner */}
