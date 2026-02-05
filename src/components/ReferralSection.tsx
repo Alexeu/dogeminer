@@ -234,8 +234,8 @@ const ReferralSection = () => {
               <ul className="text-sm text-muted-foreground space-y-1">
                 <li>• {t('referral.step1')}</li>
                 <li>• {t('referral.step2')}</li>
-                <li>• {t('referral.step3')}</li>
-                <li>• {t('referral.step4')}</li>
+                <li>• <span className="text-primary font-medium">Ganas el 5% del poder de minado</span> de cada personaje que obtengan</li>
+                <li>• Las comisiones se acumulan y puedes reclamarlas cuando quieras</li>
               </ul>
             </div>
           </div>
