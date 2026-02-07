@@ -146,6 +146,11 @@ const OnlineMiningSection = () => {
   useEffect(() => {
     const newPendingRewards: Record<string, number> = {};
     investments.forEach((investment) => {
+      // Don't accumulate rewards for expired investments
+      if (new Date(investment.expires_at).getTime() < currentTime) {
+        newPendingRewards[investment.id] = 0;
+        return;
+      }
       const msElapsed = currentTime - new Date(investment.last_claim_at).getTime();
       const hoursElapsed = msElapsed / (1000 * 60 * 60);
       const reward = (investment.invested_amount * investment.daily_rate / 24) * hoursElapsed;
@@ -164,6 +169,7 @@ const OnlineMiningSection = () => {
         .from('mining_investments')
         .select('*')
         .eq('is_active', true)
+        .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false });
       
       if (error) throw error;
