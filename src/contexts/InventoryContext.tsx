@@ -31,7 +31,7 @@ interface InventoryContextType {
   isLoading: boolean;
   addToInventory: (character: DogeCharacter) => Promise<boolean>;
   startMining: (characterId: string) => Promise<boolean>;
-  claimRewards: (characterId: string) => Promise<number>;
+  claimRewards: (characterId: string) => Promise<{ amount: number; error?: string }>;
   levelUpCharacter: (characterId: string) => Promise<{ success: boolean; error?: string; newLevel?: number }>;
   renewCharacter: (characterId: string) => Promise<{ success: boolean; error?: string; cost?: number }>;
   getTotalMiningRate: () => number;
@@ -251,8 +251,8 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const claimRewards = async (characterId: string): Promise<number> => {
-    if (!user) return 0;
+  const claimRewards = async (characterId: string): Promise<{ amount: number; error?: string }> => {
+    if (!user) return { amount: 0, error: 'Not authenticated' };
 
     try {
       const { data, error } = await supabase.rpc('claim_mining_reward', {
@@ -262,12 +262,11 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) {
         console.error('Error claiming rewards:', error);
-        return 0;
+        return { amount: 0, error: error.message };
       }
 
       const result = data as unknown as RpcResponse;
       
-      // Check for success - claimed_amount can be a very small number, so check for >= 0
       if (result?.success) {
         const claimedAmount = result.claimed_amount || 0;
         
@@ -283,15 +282,14 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
         // Refresh inventory from database to ensure sync
         await refreshInventory();
         
-        return claimedAmount;
+        return { amount: claimedAmount };
       }
       
-      // Log specific error for debugging
       console.error('Claim failed:', result?.error || 'Unknown error');
-      return 0;
+      return { amount: 0, error: result?.error || 'Unknown error' };
     } catch (error) {
       console.error('Error claiming rewards:', error);
-      return 0;
+      return { amount: 0, error: 'Error al reclamar recompensas' };
     }
   };
 
