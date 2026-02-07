@@ -24,7 +24,7 @@ const getCharacterImage = (characterId: string): string => {
   return char?.image || characters[0].image;
 };
 
-const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps) => {
+const MysteryBoxModal = ({ isOpen, onClose, boxType }: MysteryBoxModalProps): JSX.Element | null => {
   const [phase, setPhase] = useState<AnimationPhase>("idle");
   const [revealedCharacter, setRevealedCharacter] = useState<DogeCharacter | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
