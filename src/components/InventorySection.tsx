@@ -71,17 +71,23 @@ const InventorySection = () => {
     
     setClaimingId(characterId);
     try {
-      const amount = await claimRewards(characterId);
+      const result = await claimRewards(characterId);
       
-      if (amount > 0) {
-        // Start cooldown after successful claim
+      if (result.amount > 0) {
         setCooldownEndTime(Date.now() + CLAIM_COOLDOWN);
         await refreshBalance();
-        toast.success(`¡Has reclamado ${amount.toFixed(4)} DOGE!`);
-      } else if (amount === 0) {
-        // Rate limited by server - start cooldown anyway
-        setCooldownEndTime(Date.now() + CLAIM_COOLDOWN);
-        toast.info("Espera un momento antes de reclamar de nuevo");
+        toast.success(`¡Has reclamado ${result.amount.toFixed(4)} DOGE!`);
+      } else if (result.error) {
+        if (result.error.includes('expired')) {
+          toast.error("El minado de este personaje ha expirado. Renuévalo para continuar.");
+        } else if (result.error.includes('wait') || result.error.includes('Please wait')) {
+          setCooldownEndTime(Date.now() + CLAIM_COOLDOWN);
+          toast.info("Espera un momento antes de reclamar de nuevo");
+        } else if (result.error.includes('No active mining')) {
+          toast.info("No hay sesión de minado activa. Inicia el minado primero.");
+        } else {
+          toast.error(result.error);
+        }
       }
     } catch (error) {
       console.error('Claim error:', error);
