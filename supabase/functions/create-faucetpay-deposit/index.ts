@@ -10,14 +10,20 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const FAUCETPAY_DEPOSIT_EMAIL = 'rpgdoge30@gmail.com'; // Email donde recibimos depósitos
 
-// High Deposit Promo Configuration - 30% bonus for deposits >= 60 DOGE
-const HIGH_DEPOSIT_MIN = 60;
-const HIGH_DEPOSIT_BONUS_PERCENT = 30;
+// Deposit Promo Configuration - Tiered bonuses
+const PROMO_TIER_1_MIN = 100;
+const PROMO_TIER_1_BONUS_PERCENT = 50;
+const PROMO_TIER_2_MIN = 200;
+const PROMO_TIER_2_BONUS_PERCENT = 100;
 
 function calculateBonus(amount: number): number {
-  // 30% bonus for deposits >= 60 DOGE
-  if (amount >= HIGH_DEPOSIT_MIN) {
-    return amount * (HIGH_DEPOSIT_BONUS_PERCENT / 100);
+  // +100% bonus for deposits >= 200 DOGE
+  if (amount >= PROMO_TIER_2_MIN) {
+    return amount * (PROMO_TIER_2_BONUS_PERCENT / 100);
+  }
+  // +50% bonus for deposits >= 100 DOGE
+  if (amount >= PROMO_TIER_1_MIN) {
+    return amount * (PROMO_TIER_1_BONUS_PERCENT / 100);
   }
   return 0;
 }
@@ -71,7 +77,7 @@ serve(async (req) => {
 
     // Calculate bonus for high deposit promo
     const bonus = calculateBonus(numAmount);
-    const promoActive = numAmount >= HIGH_DEPOSIT_MIN;
+    const promoActive = numAmount >= PROMO_TIER_1_MIN;
 
     // Check for existing pending deposit
     const { data: existingDeposit } = await supabaseAdmin

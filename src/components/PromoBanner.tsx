@@ -30,7 +30,7 @@ const PromoBanner = () => {
 
   return (
     <div className="flex flex-col">
-      {/* 30% Deposit Bonus Banner */}
+      {/* Mega Deposit Bonus Banner */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-yellow-500 via-amber-500 to-orange-500 opacity-90" />
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxjaXJjbGUgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjEiIGN4PSIyMCIgY3k9IjIwIiByPSIyIi8+PC9nPjwvc3ZnPg==')] opacity-30" />
@@ -45,20 +45,26 @@ const PromoBanner = () => {
                 <div className="flex items-center gap-2 flex-wrap">
                   <Sparkles className="w-4 h-4 text-yellow-200" />
                   <h3 className="text-base md:text-lg font-bold">
-                    💰 +30% BONUS EN DEPÓSITOS
+                    🔥 MEGA BONUS EN DEPÓSITOS
                   </h3>
                   <Sparkles className="w-4 h-4 text-yellow-200" />
                 </div>
                 <p className="text-white/90 text-xs md:text-sm">
-                  Deposita <span className="font-bold text-yellow-200">60+ DOGE</span> y recibe <span className="font-bold text-yellow-200">30% extra</span> automáticamente
+                  <span className="font-bold text-yellow-200">+50%</span> en 100+ DOGE | <span className="font-bold text-yellow-200">+100%</span> en 200+ DOGE
                 </p>
               </div>
             </div>
             
             <div className="flex items-center gap-3">
-              <div className="text-center text-white hidden md:block bg-white/10 px-3 py-1 rounded-lg">
-                <span className="text-xs">Ejemplo:</span>
-                <div className="font-bold text-sm">60 → <span className="text-yellow-200">78 DOGE</span></div>
+              <div className="text-center text-white hidden md:block space-y-1">
+                <div className="bg-white/10 px-3 py-1 rounded-lg">
+                  <span className="text-xs">100 →</span>
+                  <span className="font-bold text-sm text-yellow-200"> 150 DOGE</span>
+                </div>
+                <div className="bg-white/10 px-3 py-1 rounded-lg">
+                  <span className="text-xs">200 →</span>
+                  <span className="font-bold text-sm text-yellow-200"> 400 DOGE</span>
+                </div>
               </div>
               <Button 
                 onClick={scrollToDeposit}
