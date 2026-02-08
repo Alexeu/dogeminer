@@ -43,10 +43,9 @@ const DepositPromoBanner = () => {
           <Sparkles className="h-4 w-4 text-yellow-200 animate-pulse" />
         </div>
         <AlertDescription className="flex-1 text-white font-medium text-sm md:text-base">
-          <span className="font-bold">💰 ¡PROMO ACTIVA!</span>{" "}
-          <span className="hidden sm:inline">Deposita 60+ DOGE y recibe </span>
-          <span className="font-bold text-yellow-200">+30% BONUS</span>
-          <span className="hidden md:inline"> automáticamente</span>
+          <span className="font-bold">🔥 ¡MEGA PROMO!</span>{" "}
+          <span className="hidden sm:inline">+50% en 100+ DOGE | </span>
+          <span className="font-bold text-yellow-200">+100% en 200+ DOGE</span>
         </AlertDescription>
         <Button
           onClick={scrollToDeposit}
