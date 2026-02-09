@@ -203,6 +203,35 @@ serve(async (req) => {
     const userId = user.id;
     console.log(`Authenticated user: ${userId}`);
 
+    // Check if user is banned
+    const { data: banCheck, error: banError } = await supabaseAdmin
+      .from('profiles')
+      .select('is_banned, ban_reason')
+      .eq('id', userId)
+      .single();
+
+    if (banError) {
+      console.error('Failed to check ban status:', banError.message);
+      return new Response(JSON.stringify({ 
+        status: 500, 
+        message: 'Failed to verify account status' 
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (banCheck?.is_banned) {
+      console.warn(`Banned user ${userId} attempted action`);
+      return new Response(JSON.stringify({ 
+        status: 403, 
+        message: 'Tu cuenta ha sido suspendida. Contacta al soporte para más información.' 
+      }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { action, address, amount, currency = 'DOGE' } = await req.json();
     console.log(`FaucetPay action: ${action}, currency: ${currency}`);
 
