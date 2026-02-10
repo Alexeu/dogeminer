@@ -31,6 +31,7 @@ import FaucetPayListingAlert from "@/components/FaucetPayListingAlert";
 import SurveySection from "@/components/SurveySection";
 import RouletteSection from "@/components/RouletteSection";
 import DepositPromoBanner from "@/components/DepositPromoBanner";
+import MultiAccountWarning from "@/components/MultiAccountWarning";
 import RPGDogeTokenCounter from "@/components/RPGDogeTokenCounter";
 import rpgDogeBanner from "@/assets/rpgdoge-banner-2.png";
 import { Loader2 } from "lucide-react";
@@ -111,6 +112,7 @@ const Index = () => {
         className="pt-16 lg:pl-64 transition-all duration-300"
       >
         {/* Alerts */}
+        <MultiAccountWarning />
         <FaucetPayListingAlert />
         <DepositPromoBanner />
         <ManualReviewAlert />
