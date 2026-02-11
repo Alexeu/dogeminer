@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Button } from "@/components/ui/button";
-import { BoxType, DogeCharacter, rarityConfig, characters, christmasCharacters } from "@/data/dogeData";
+import { BoxType, DogeCharacter, rarityConfig, characters, christmasCharacters, valentineCharacters } from "@/data/dogeData";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { useInventory } from "@/contexts/InventoryContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,7 +19,7 @@ type AnimationPhase = "idle" | "shaking" | "opening" | "revealing" | "revealed";
 
 // Map character IDs to their images (including Christmas characters)
 const getCharacterImage = (characterId: string): string => {
-  const allCharacters = [...characters, ...christmasCharacters];
+  const allCharacters = [...characters, ...christmasCharacters, ...valentineCharacters];
   const char = allCharacters.find(c => c.id === characterId);
   return char?.image || characters[0].image;
 };
