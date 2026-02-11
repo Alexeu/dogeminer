@@ -19,9 +19,14 @@ import dogeGladiator from "@/assets/doge-gladiator.png";
 import dogeVampire from "@/assets/doge-vampire.png";
 import dogePhoenix from "@/assets/doge-phoenix.png";
 import dogeDragon from "@/assets/doge-dragon.png";
+import dogeCupid from "@/assets/doge-cupid.png";
+import dogeRomeo from "@/assets/doge-romeo.png";
+import dogeLovefairy from "@/assets/doge-lovefairy.png";
+import dogeHeartknight from "@/assets/doge-heartknight.png";
+import dogeLovequeen from "@/assets/doge-lovequeen.png";
 
 
-export type Rarity = "starter" | "common" | "rare" | "epic" | "legendary" | "christmas";
+export type Rarity = "starter" | "common" | "rare" | "epic" | "legendary" | "christmas" | "valentine";
 
 export interface DogeCharacter {
   id: string;
@@ -41,6 +46,7 @@ export const miningRatesByRarity: Record<Rarity, number> = {
   epic: 0.00975,   // 0.0075 * 1.3
   legendary: 0.013, // 0.01 * 1.3
   christmas: 0.0195, // 0.015 * 1.3 - Superior a legendary!
+  valentine: 0.01495, // 0.013 * 1.15 - 15% más que legendary
 };
 
 // Personaje starter gratuito al registrarse (sin bonus, 0.0025 DOGE/hora)
@@ -90,6 +96,15 @@ export const christmasCharacters: DogeCharacter[] = [
   { id: "reindeer-doge", name: "Reindeer Doge", image: dogeDragon, rarity: "christmas", miningRate: 0.0195 },
 ];
 
+// Valentine Special Characters (0.01495 DOGE/hour - 15% más que legendary!)
+export const valentineCharacters: DogeCharacter[] = [
+  { id: "cupid-doge", name: "Cupid Doge", image: dogeCupid, rarity: "valentine", miningRate: 0.01495 },
+  { id: "romeo-doge", name: "Romeo Doge", image: dogeRomeo, rarity: "valentine", miningRate: 0.01495 },
+  { id: "lovefairy-doge", name: "Love Fairy Doge", image: dogeLovefairy, rarity: "valentine", miningRate: 0.01495 },
+  { id: "heartknight-doge", name: "Heart Knight Doge", image: dogeHeartknight, rarity: "valentine", miningRate: 0.01495 },
+  { id: "lovequeen-doge", name: "Love Queen Doge", image: dogeLovequeen, rarity: "valentine", miningRate: 0.01495 },
+];
+
 
 export const rarityConfig = {
   starter: {
@@ -134,6 +149,13 @@ export const rarityConfig = {
     textColor: "text-red-600",
     glowColor: "shadow-red-400/50",
   },
+  valentine: {
+    label: "💕 Valentine",
+    color: "from-pink-400 via-rose-500 to-pink-600",
+    bgColor: "bg-gradient-to-r from-pink-100 to-rose-100",
+    textColor: "text-pink-600",
+    glowColor: "shadow-pink-400/50",
+  },
 };
 
 export interface BoxType {
@@ -151,7 +173,7 @@ export const boxTypes: BoxType[] = [
     id: "common",
     name: "Common Box",
     price: 1,
-    dropRates: { starter: 0, common: 100, rare: 0, epic: 0, legendary: 0, christmas: 0 },
+    dropRates: { starter: 0, common: 100, rare: 0, epic: 0, legendary: 0, christmas: 0, valentine: 0 },
     gradient: "from-gray-500 to-gray-700",
     description: "Solo personajes comunes garantizados",
   },
@@ -159,7 +181,7 @@ export const boxTypes: BoxType[] = [
     id: "rare",
     name: "Rare Box",
     price: 4,
-    dropRates: { starter: 0, common: 40, rare: 40, epic: 20, legendary: 0, christmas: 0 },
+    dropRates: { starter: 0, common: 40, rare: 40, epic: 20, legendary: 0, christmas: 0, valentine: 0 },
     gradient: "from-blue-500 to-indigo-600",
     description: "40% común, 40% raro, 20% épico",
   },
@@ -167,7 +189,7 @@ export const boxTypes: BoxType[] = [
     id: "legendary",
     name: "Legendary Box",
     price: 9,
-    dropRates: { starter: 0, common: 0, rare: 40, epic: 40, legendary: 20, christmas: 0 },
+    dropRates: { starter: 0, common: 0, rare: 40, epic: 40, legendary: 20, christmas: 0, valentine: 0 },
     gradient: "from-yellow-500 to-amber-600",
     description: "40% raro, 40% épico, 20% legendario",
   },
@@ -175,15 +197,23 @@ export const boxTypes: BoxType[] = [
     id: "christmas",
     name: "🎄 Christmas Box",
     price: 15,
-    dropRates: { starter: 0, common: 0, rare: 0, epic: 30, legendary: 40, christmas: 30 },
+    dropRates: { starter: 0, common: 0, rare: 0, epic: 30, legendary: 40, christmas: 30, valentine: 0 },
     gradient: "from-red-500 via-green-500 to-red-500",
     description: "¡Edición limitada! 30% épico, 40% legendario, 30% Christmas",
+  },
+  {
+    id: "valentine",
+    name: "💕 Valentine Box",
+    price: 12,
+    dropRates: { starter: 0, common: 0, rare: 0, epic: 0, legendary: 0, christmas: 0, valentine: 100 },
+    gradient: "from-pink-500 via-rose-500 to-pink-600",
+    description: "¡San Valentín! 100% personaje Valentine (+15% minado vs Legendary)",
   },
   {
     id: "supreme",
     name: "👑 Supreme Box",
     price: 20,
-    dropRates: { starter: 0, common: 0, rare: 20, epic: 50, legendary: 30, christmas: 0 },
+    dropRates: { starter: 0, common: 0, rare: 20, epic: 50, legendary: 30, christmas: 0, valentine: 0 },
     gradient: "from-purple-600 via-pink-500 to-amber-500",
     description: "¡La mejor caja! 20% raro, 50% épico, 30% legendario",
   },
@@ -205,6 +235,11 @@ export function getRandomCharacter(dropRates: Record<Rarity, number>, boxId?: st
   // Si es Christmas rarity, usar los personajes navideños
   if (selectedRarity === "christmas") {
     return christmasCharacters[Math.floor(Math.random() * christmasCharacters.length)];
+  }
+
+  // Si es Valentine rarity, usar los personajes de San Valentín
+  if (selectedRarity === "valentine") {
+    return valentineCharacters[Math.floor(Math.random() * valentineCharacters.length)];
   }
 
   const charactersOfRarity = characters.filter((c) => c.rarity === selectedRarity);

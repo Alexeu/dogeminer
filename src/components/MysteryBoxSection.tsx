@@ -9,12 +9,14 @@ import boxRare from "@/assets/box-rare.png";
 import boxLegendary from "@/assets/box-legendary.png";
 import boxChristmas from "@/assets/box-christmas.png";
 import boxSupreme from "@/assets/box-supreme.png";
+import boxValentine from "@/assets/box-valentine.png";
 
 const boxImages: Record<string, string> = {
   common: boxCommon,
   rare: boxRare,
   legendary: boxLegendary,
   christmas: boxChristmas,
+  valentine: boxValentine,
   supreme: boxSupreme,
 };
 
@@ -104,23 +106,29 @@ const MysteryBoxSection = () => {
           </p>
         </div>
 
-        <div className={`grid md:grid-cols-2 ${availableBoxes.length === 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-6 max-w-6xl mx-auto`}>
+        <div className={`grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto`}>
           {availableBoxes.map((box, index) => {
             const canAfford = depositBalance >= box.price;
             const isChristmas = box.id === "christmas";
+            const isValentine = box.id === "valentine";
             
             return (
               <div
                 key={box.id}
                 className={`glass rounded-2xl p-6 text-center transition-all duration-300 animate-slide-up group relative ${
                   canAfford ? "hover:shadow-doge-lg hover:-translate-y-2" : "opacity-75"
-                } ${isChristmas ? "ring-2 ring-red-500/50 bg-gradient-to-b from-red-500/10 via-green-500/5 to-red-500/10" : ""}`}
+                } ${isChristmas ? "ring-2 ring-red-500/50 bg-gradient-to-b from-red-500/10 via-green-500/5 to-red-500/10" : ""} ${isValentine ? "ring-2 ring-pink-500/50 bg-gradient-to-b from-pink-500/10 via-rose-500/5 to-pink-500/10" : ""}`}
                 style={{ animationDelay: `${index * 150}ms` }}
               >
-                {/* Christmas Badge with Countdown */}
+                {/* Special Badge */}
                 {isChristmas && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-500 to-green-500 text-white px-3 py-1 rounded-full text-xs font-bold animate-pulse whitespace-nowrap">
                     ✨ ¡EDICIÓN LIMITADA! ✨
+                  </div>
+                )}
+                {isValentine && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 to-rose-500 text-white px-3 py-1 rounded-full text-xs font-bold animate-pulse whitespace-nowrap">
+                    💕 ¡SAN VALENTÍN! 💕
                   </div>
                 )}
                 
@@ -219,10 +227,21 @@ const MysteryBoxSection = () => {
                         <span className="font-semibold text-green-600">{box.dropRates.christmas}%</span>
                       </div>
                     )}
+                    {box.dropRates.valentine > 0 && (
+                      <div className="flex justify-between px-2 py-1 rounded bg-gradient-to-r from-pink-100 to-rose-100 col-span-2">
+                        <span className="text-pink-600">💕 Valentine</span>
+                        <span className="font-semibold text-rose-600">{box.dropRates.valentine}%</span>
+                      </div>
+                    )}
                   </div>
                   {isChristmas && (
                     <p className="text-xs text-green-600 font-medium mt-2">
                       ⚡ +50% minado vs Legendary
+                    </p>
+                  )}
+                  {isValentine && (
+                    <p className="text-xs text-pink-600 font-medium mt-2">
+                      💪 +15% minado vs Legendary · No cuenta para colección
                     </p>
                   )}
                 </div>
@@ -237,15 +256,15 @@ const MysteryBoxSection = () => {
                 </div>
 
                 <Button
-                  variant={box.id === "legendary" || box.id === "christmas" ? "hero" : "default"}
-                  className={`w-full ${!canAfford ? "opacity-50" : ""} ${isChristmas ? "bg-gradient-to-r from-red-500 via-green-500 to-red-500 hover:from-red-600 hover:via-green-600 hover:to-red-600" : ""}`}
+                  variant={box.id === "legendary" || box.id === "christmas" || box.id === "valentine" ? "hero" : "default"}
+                  className={`w-full ${!canAfford ? "opacity-50" : ""} ${isChristmas ? "bg-gradient-to-r from-red-500 via-green-500 to-red-500 hover:from-red-600 hover:via-green-600 hover:to-red-600" : ""} ${isValentine ? "bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 hover:from-pink-600 hover:via-rose-600 hover:to-pink-700" : ""}`}
                   onClick={() => handleOpenBox(box)}
                   disabled={!canAfford}
                 >
                   {canAfford ? (
                     <>
                       <Gift className="w-4 h-4" />
-                      {isChristmas ? "🎁 Abrir Regalo" : "Open Box"}
+                      {isChristmas ? "🎁 Abrir Regalo" : isValentine ? "💕 Abrir Valentine" : "Open Box"}
                     </>
                   ) : (
                     <>
