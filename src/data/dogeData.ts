@@ -204,7 +204,7 @@ export const boxTypes: BoxType[] = [
   {
     id: "valentine",
     name: "💕 Valentine Box",
-    price: 12,
+    price: 30,
     dropRates: { starter: 0, common: 0, rare: 0, epic: 0, legendary: 0, christmas: 0, valentine: 100 },
     gradient: "from-pink-500 via-rose-500 to-pink-600",
     description: "¡San Valentín! 100% personaje Valentine (+15% minado vs Legendary)",
