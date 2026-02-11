@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useDogeBalance } from "@/contexts/DogeBalanceContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, TrendingUp, Clock, Coins, Zap, Crown, Rocket, Star } from "lucide-react";
+import { Loader2, TrendingUp, Clock, Coins, Zap, Crown, Rocket, Star, Gem } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MiningPlan {
@@ -77,6 +77,19 @@ const miningPlans: MiningPlan[] = [
     bgGradient: 'from-yellow-400/10 to-amber-500/10',
     description: '¡Máximo rendimiento para los Doges más ricos!',
     descriptionEn: 'Maximum returns for the richest Doges!'
+  },
+  {
+    id: 'mega_vip',
+    name: 'Plan MEGA VIP',
+    nameEn: 'MEGA VIP Plan',
+    dailyRate: 15,
+    minAmount: 1500,
+    maxAmount: 5000,
+    icon: Gem,
+    gradient: 'from-rose-500 to-fuchsia-600',
+    bgGradient: 'from-rose-500/10 to-fuchsia-600/10',
+    description: '¡El plan definitivo! Retornos explosivos para élites 💎',
+    descriptionEn: 'The ultimate plan! Explosive returns for elites 💎'
   }
 ];
 
@@ -325,7 +338,7 @@ const OnlineMiningSection = () => {
         </div>
 
         {/* Plans Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-12">
           {miningPlans.map((plan) => {
             const Icon = plan.icon;
             const isSelected = selectedPlan === plan.id;
